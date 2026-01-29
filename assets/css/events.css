@@ -1,0 +1,164 @@
+/* assets/css/events.css — Events & Activities Page */
+
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 0 20px;
+}
+
+.page-header h1 {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 12px;
+  font-family: 'Outfit', sans-serif;
+}
+
+.page-header p {
+  font-size: 16px;
+  color: var(--text-gray);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Filters Bar */
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding: 0 20px;
+}
+
+.search-filter input {
+  padding: 12px 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 15px;
+  width: 300px;
+  max-width: 100%;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 2px solid var(--light-green);
+  background: transparent;
+  color: var(--primary-green);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.filter-btn.active,
+.filter-btn:hover {
+  background: var(--light-green);
+  border-color: var(--primary-green);
+}
+
+/* Events Grid */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+.event-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(93, 173, 226, 0.15);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(168, 230, 207, 0.3);
+}
+
+.event-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(93, 173, 226, 0.25);
+}
+
+.event-image {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+}
+
+.event-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.event-date-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: white;
+  border-radius: 12px;
+  padding: 8px 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.event-date-badge .day {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--primary-green);
+}
+
+.event-date-badge .month {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+}
+
+.event-content {
+  padding: 20px;
+}
+
+.event-content h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-dark);
+}
+
+.event-time-location {
+  font-size: 14px;
+  color: var(--text-gray);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.event-desc {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.event-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.slots {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e67e22;
+}
+
+.btn.small {
+  padding: 10px 20px;
+  font-size: 14px;
+}

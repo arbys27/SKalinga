@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SKalinga - Events & Activities</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/portal.css">
+  <link rel="stylesheet" href="assets/css/events.css">
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Top Navigation (same as portal) -->
+  <nav class="top-nav">
+    <div class="logo-area">
+      <div class="logo-icons-group">
+        <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo">
+        <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo">
+      </div>
+      <div class="logo-text">
+        <h1>SKalinga</h1>
+        <p>Youth Portal</p>
+      </div>
+    </div>
+    
+  </nav>
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <h1>Events & Activities</h1>
+    <p>Discover and join upcoming youth programs, trainings, sports, and community events</p>
+  </header>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-filter">
+      <input type="text" placeholder="Search events..." />
+    </div>
+    <div class="filter-buttons">
+      <button class="filter-btn active">All</button>
+      <button class="filter-btn">Upcoming</button>
+      <button class="filter-btn">Past</button>
+      <button class="filter-btn">Registered</button>
+    </div>
+  </div>
+
+  <!-- Events Grid -->
+  <div class="events-grid">
+    <!-- Event Card 1 -->
+    <div class="event-card upcoming">
+      <div class="event-image">
+        <img src="https://images.unsplash.com/photo-1522202176988-66273c2b033f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Youth Summit">
+        <div class="event-date-badge">
+          <span class="day">15</span>
+          <span class="month">FEB</span>
+        </div>
+      </div>
+      <div class="event-content">
+        <h3>Youth Leadership Summit 2026</h3>
+        <p class="event-time-location">Saturday, 9:00 AM – 4:00 PM<br>Barangay Hall, San Antonio</p>
+        <p class="event-desc">A full-day leadership training with guest speakers, workshops, and team-building activities.</p>
+        <div class="event-footer">
+          <span class="slots">148 / 150 slots left</span>
+          <button class="btn primary small">Register Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event Card 2 -->
+    <div class="event-card upcoming">
+      <div class="event-image">
+        <img src="https://images.unsplash.com/photo-1541532713592-79a0317b6b77?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Sports Fest">
+        <div class="event-date-badge">
+          <span class="day">20</span>
+          <span class="month">FEB</span>
+        </div>
+      </div>
+      <div class="event-content">
+        <h3>Sports Fest 2026</h3>
+        <p class="event-time-location">Thursday, 2:00 PM – 8:00 PM<br>Sports Complex</p>
+        <p class="event-desc">Basketball, volleyball, and fun runs. Open for team and individual registration.</p>
+        <div class="event-footer">
+          <span class="slots">Open registration</span>
+          <button class="btn primary small">Join Event</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event Card 3 -->
+    <div class="event-card upcoming">
+      <div class="event-image">
+        <img src="https://images.unsplash.com/photo-1581092160560-4c9d3a0d8d5c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Clean-up Drive">
+        <div class="event-date-badge">
+          <span class="day">05</span>
+          <span class="month">MAR</span>
+        </div>
+      </div>
+      <div class="event-content">
+        <h3>Community Clean-up Drive</h3>
+        <p class="event-time-location">Wednesday, 10:00 AM – 2:00 PM<br>City Park</p>
+        <p class="event-desc">Join volunteers to clean and beautify our public spaces. Gloves and tools provided.</p>
+        <div class="event-footer">
+          <span class="slots">Unlimited slots</span>
+          <button class="btn primary small">Volunteer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- More event cards can be added here -->
+  </div>
+
+  <!-- Floating Help Button (same as portal) -->
+  <button class="floating-help">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+  </button>
+
+</div>
+
+<script>
+  // Optional: simple filter toggle (demo)
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // In real app: filter events here
+    });
+  });
+</script>
+</body>
+</html>

@@ -471,3 +471,69 @@ button, .nav-btn {
     align-items: center;
     gap: 6px;
 }
+
+/* Top-right user badge (avatar + name) */
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;               /* reduced gap for tighter look */
+  padding: 6px 12px;       /* smaller padding */
+  background: linear-gradient(135deg, var(--light-green) 0%, rgba(165, 214, 167, 0.6) 100%);
+  border-radius: 12px;     /* slightly smaller radius */
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  font-size: 14px;         /* base font size smaller */
+}
+
+.user-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(46, 125, 50, 0.25);
+}
+
+/* Avatar circle */
+.user-avatar {
+  width: 36px;             /* ← smaller size (was 44px) */
+  height: 36px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;         /* text inside is now proportional */
+  color: var(--primary-green);
+  border: 2px solid var(--light-green);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+/* Name next to avatar */
+.user-name {
+  font-weight: 600;
+  color: var(--primary-green);
+  font-size: 14px;         /* matches overall scale */
+}
+
+/* Notification button (keep same height as avatar) */
+.notification-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--soft-gray);
+  border: 2px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.25s;
+}
+
+/* Make sure header-right aligns everything perfectly */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;               /* reduced gap */
+  flex-shrink: 0;
+}

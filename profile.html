@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SKalinga - My Profile</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/portal.css">
+  <link rel="stylesheet" href="assets/css/profile.css">
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Top Navigation – Centered with Larger Logos -->
+  <nav class="top-nav" style="padding: 24px 32px;">
+    <div class="logo-area" style="display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%;">
+      <!-- Left Logo – Larger -->
+      <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+
+      <!-- Centered Title -->
+      <div class="logo-text" style="text-align: center;">
+        <h1 style="font-size: 40px; font-weight: 800; color: var(--primary-green); margin: 0; line-height: 1;">SKalinga</h1>
+        <p style="font-size: 16px; color: var(--text-gray); margin: 4px 0 0; font-weight: 500;">Youth Portal</p>
+      </div>
+
+      <!-- Right Logo – Larger -->
+      <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+    </div>
+  </nav>
+
+  <!-- Profile Content -->
+  <main class="profile-main">
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-picture-wrap">
+          <img src="assets/images/default-avatar.png" alt="Your Photo" id="profile-photo" class="profile-photo" />
+          <label for="photo-upload" class="photo-upload-btn">Change Photo</label>
+          <input type="file" id="photo-upload" accept="image/*" hidden />
+        </div>
+        <h1>Arby Barnuevo</h1>
+        <p class="member-id">Member ID: SK-2024-0789</p>
+      </div>
+
+      <form class="profile-form" id="profileForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <input type="text" id="fullName" value="Arby Barnuevo" required />
+          </div>
+
+          <div class="form-group">
+            <label for="age">Age</label>
+            <input type="number" id="age" value="19" min="13" max="30" required />
+          </div>
+
+          <div class="form-group full-width">
+            <label for="barangay">Barangay</label>
+            <input type="text" id="barangay" value="Poblacion" required />
+          </div>
+
+          <div class="form-group">
+            <label for="contact">Contact Number</label>
+            <input type="tel" id="contact" value="09171234567" pattern="[0-9]{11}" required />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" value="arby.barnuevo@example.com" required />
+          </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 16px; margin-bottom: 12px;">
+          <button type="button" class="btn secondary" onclick="window.history.back()">Back</button>
+          <button type="submit" class="btn primary">Save Changes</button>
+        </div>
+      </form>
+
+      <div class="digital-id-section" style="margin-top: 20px;">
+        <button type="button" class="btn primary" id="viewDigitalIdBtn">
+          View Digital ID (QR Code)
+        </button>
+        <button type="button" class="btn danger" onclick="logout()" style="margin-top: 8px;">
+          Logout
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Digital ID Modal -->
+  <div class="modal" id="digitalIdModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeModal">×</span>
+      <h2>Digital Youth ID</h2>
+      <div class="id-card-preview">
+        <div class="id-header">
+          <img src="assets/images/sklogo.jpg" alt="SK Logo" class="id-logo" />
+          <h3>SKalinga Youth</h3>
+          <p>San Antonio Chapter</p>
+        </div>
+        <div class="id-body">
+          <img src="assets/images/default-avatar.png" alt="Member Photo" class="id-photo" />
+          <div class="id-info">
+            <h4>Arby Barnuevo</h4>
+            <p class="id-number">Member ID: <strong>SK-2024-0789</strong></p>
+            <p class="id-date">Issued: January 2025</p>
+          </div>
+        </div>
+        <div class="qr-section">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=SK-2024-0789-ArbyBarnuevo" alt="QR Code" class="qr-code" />
+          <p>Scan to verify membership</p>
+        </div>
+      </div>
+      <button class="btn primary" onclick="alert('Download feature coming soon!')">Download ID</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Simple photo preview + modal toggle
+  document.addEventListener('DOMContentLoaded', () => {
+    const photoInput = document.getElementById('photo-upload');
+    const profilePhoto = document.getElementById('profile-photo');
+    const miniAvatar = document.getElementById('mini-avatar');
+
+    if (photoInput) {
+      photoInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            profilePhoto.src = ev.target.result;
+            if (miniAvatar) miniAvatar.src = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    const modal = document.getElementById('digitalIdModal');
+    const btn = document.getElementById('viewDigitalIdBtn');
+    const close = document.getElementById('closeModal');
+
+    if (btn && modal) {
+      btn.onclick = () => modal.style.display = 'flex';
+      close.onclick = () => modal.style.display = 'none';
+      window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+    }
+
+    const form = document.getElementById('profileForm');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Profile updated! (Demo only — no real save yet)');
+      });
+    }
+  });
+
+  // Logout function (demo)
+  function logout() {
+    if (confirm("Are you sure you want to logout?")) {
+      localStorage.clear();
+      alert("You have been logged out!");
+      window.location.href = "login-youth.html";
+    }
+  }
+</script>
+</body>
+</html>
