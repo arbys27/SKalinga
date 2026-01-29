@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SKalinga Youth • Sign In</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/auth.css">
+</head>
+<body>
+
+<div class="card">
+
+  <img src="assets/images/sklogo.jpg" alt="SKalinga" class="logo">
+
+  <!-- Login Form -->
+  <div id="form-login">
+    <h1>Welcome Back</h1>
+    <div class="subtitle">Sign in to your youth account</div>
+
+    <form action="youth-portal.html" method="get">
+      <label for="login-email">Email</label>
+      <input type="text" id="login-email" placeholder="juandelacruz@example.com" required>
+
+      <label for="login-pass">Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••••••" required>
+
+      <button type="submit" class="btn">Sign In</button>
+    </form>
+
+    <div class="extra" style="margin-top: 28px;">
+      New here? <a href="youth-register.html">Create an account</a>
+    </div>
+  </div>
+
+  <!-- Admin / SK Official Link -->
+  <div class="admin-section">
+    <p>Are you an SK Official?</p>
+    <a href="login-admin.html" class="admin-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        <circle cx="12" cy="9" r="2"></circle>
+      </svg>
+      Sign in to Admin Dashboard →
+    </a>
+  </div>
+
+</div>
+
+</body>
+</html>

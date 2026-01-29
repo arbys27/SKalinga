@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SKalinga Youth • Register</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Shared + auth-specific styles -->
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/auth.css">
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Left side - Visual / Welcome area -->
+  <div class="left-side">
+
+    <!-- Barangay + SK logos -->
+    <div class="logos-row">
+      <img src="assets/images/moro.png" alt="MORO Movement">
+      <img src="assets/images/sklogo.jpg" alt="SK San Antonio">
+    </div>
+
+    <h2>Welcome to SKalinga Youth</h2>
+    <p>Become part of the official youth platform of Barangay San Antonio and participate in community programs and initiatives.</p>
+
+    <div class="image-grid">
+      <img src="assets/images/print.jpg">
+      <img src="assets/images/skoffice.jpg">
+      <img src="assets/images/skexample.jpg">
+      <img src="assets/images/zumba.jpg">
+      <img src="assets/images/supplieskit.jpg">
+      <img src="assets/images/groupphoto.jpg">
+      <img src="assets/images/awardsk.jpg">
+      <img src="assets/images/sammap.jpg">
+    </div>
+  </div>
+
+  <!-- Right side - Registration Form -->
+  <div class="right-side">
+
+    <!-- MORO logo + Noel logo side by side -->
+    <div class="header-logos">
+      <img src="assets/images/noellogo.png" alt="Noel Logo">
+      <img src="assets/images/moro.png" alt="MORO Movement">
+    </div>
+
+    <h1>Create Your Account</h1>
+    <div class="subtitle">Join the SK youth movement today</div>
+
+    <form action="youth-portal.html" method="get" id="registerForm">
+
+      <label for="fullname">Full Name</label>
+      <input type="text" id="fullname" name="fullname" placeholder="Juan Santos Dela Cruz" required>
+
+      <label for="birthday">Birthday</label>
+      <input type="date" id="birthday" name="birthday" required>
+
+      <label for="age">Age</label>
+      <input type="number" id="age" name="age" min="13" max="35" placeholder="18" required>
+
+      <label for="barangay">Barangay</label>
+      <input type="text" id="barangay" name="barangay" placeholder="San Antonio" required>
+
+      <label for="address">Full Address</label>
+      <input type="text" id="address" name="address" placeholder="1111, Avocado St. Garcia Subdivision Brgy. San Antonio, Binan, Laguna" required>
+
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" placeholder="juan@example.com" required>
+
+      <label for="contact">Contact Number</label>
+      <input type="tel" id="contact" name="contact" placeholder="09123456789" pattern="[0-9]{11}" title="11-digit Philippine mobile number" required>
+
+      <div class="privacy">
+        <div class="checkbox-group">
+          <input type="checkbox" id="privacy-consent" name="privacy-consent" required>
+          <label for="privacy-consent" style="margin:0; cursor:pointer;">
+            I agree to the <a href="#" target="_blank">Data Privacy Policy</a> and consent to the collection and processing of my personal information in accordance with RA 10173 (Data Privacy Act of 2012).
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn" disabled>Create Account</button>
+
+    </form>
+
+    <div class="extra">
+      Already have an account? <a href="login-youth.html">Sign in here</a>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  // Enable submit only when privacy is checked
+  const privacy = document.getElementById('privacy-consent');
+  const submitBtn = document.getElementById('submitBtn');
+
+  privacy.addEventListener('change', function() {
+    submitBtn.disabled = !this.checked;
+  });
+
+  // Auto-calculate age from birthday
+  document.getElementById('birthday').addEventListener('change', function() {
+    const birth = new Date(this.value);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    document.getElementById('age').value = age > 0 ? age : '';
+  });
+</script>
+
+</body>
+</html>

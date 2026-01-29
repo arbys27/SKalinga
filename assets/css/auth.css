@@ -1,0 +1,287 @@
+/* assets/css/auth.css */
+/* ────────────────────────────────────────────────
+   Shared Auth Layout (Login + Register Youth)
+───────────────────────────────────────────────── */
+
+/* Card / Container Base (used in simple login page) */
+.card {
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(14px);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 480px;
+  padding: 40px;
+  box-shadow: 0 12px 48px var(--shadow);
+  border: 1px solid var(--border-light);
+}
+
+/* Two-column layout (Register page) */
+.left-side {
+  flex: 1;
+  min-width: 40%;
+  background: linear-gradient(135deg, rgba(34,139,87,0.15), rgba(93,173,226,0.15));
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: #333;
+}
+
+.right-side {
+  flex: 1.3;
+  padding: 48px 40px;
+  background: white;
+}
+
+.logos-row,
+.header-logos {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.logos-row img,
+.header-logos img,
+.official-logo {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.left-side h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+
+.left-side p {
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 320px;
+  margin-bottom: 32px;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.image-grid img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  border: 2px solid white;
+}
+
+/* Form Elements (shared between login & register) */
+label {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  display: block;
+  color: #333;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  font-size: 15px;
+  margin-bottom: 20px;
+  background: rgba(255,255,255,0.9);
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(34,139,87,0.18);
+}
+
+.privacy {
+  margin: 20px 0 28px;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.5;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-top: 3px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.extra {
+  text-align: center;
+  margin-top: 28px;
+  font-size: 14.5px;
+  color: #555;
+}
+
+.extra a {
+  color: var(--pink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* Admin-specific link (youth login page) */
+.admin-section {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-light);
+  text-align: center;
+  font-size: 14.5px;
+  color: #555;
+}
+
+.admin-section p {
+  margin-bottom: 12px;
+}
+
+.admin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--pink);
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.admin-link:hover {
+  color: #e04f7e;
+}
+
+.admin-link svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  flex-shrink: 0;
+}
+
+/* ────────────────────────────────────────────────
+   Admin Login Page Specific (login-admin.html)
+───────────────────────────────────────────────── */
+
+.login-box {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 460px;
+  padding: 48px 40px;
+  box-shadow: 0 12px 48px rgba(255, 107, 157, 0.35);
+  border: 1px solid rgba(255, 179, 207, 0.6);
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.logo-img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-login {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 6px 20px rgba(255,107,157,0.3);
+}
+
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(255,107,157,0.45);
+}
+
+.admin-notice {
+  text-align: center;
+  margin-top: 28px;
+  font-size: 14px;
+  color: #555;
+}
+
+.admin-notice a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.admin-notice a:hover {
+  color: var(--pink);
+}
+
+/* ────────────────────────────────────────────────
+   Responsive Adjustments (shared for all auth pages)
+───────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+    max-width: 500px;
+  }
+  .left-side,
+  .right-side {
+    padding: 32px 24px;
+  }
+  .logos-row,
+  .header-logos,
+  .logo-row {
+    gap: 16px;
+  }
+  .logos-row img,
+  .header-logos img,
+  .official-logo,
+  .logo-img {
+    width: 70px;
+    height: 70px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card,
+  .login-box {
+    padding: 32px 24px;
+  }
+}
