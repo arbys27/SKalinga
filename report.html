@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SKalinga - Report Issues</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/portal.css">
+  <link rel="stylesheet" href="assets/css/report.css">
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Back Button -->
+  <button class="back-btn" onclick="window.location.href='youth-portal.html'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M19 12H5M12 19l-7-7 7-7"></path>
+    </svg>
+  </button>
+
+  <!-- Header -->
+  <nav class="top-nav" style="padding: 24px 32px;">
+    <div class="logo-area" style="display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%;">
+      <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" style="width: 64px; height: 64px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+      <div class="logo-text" style="text-align: center;">
+        <h1 style="font-size: 36px; font-weight: 800; color: var(--primary-green); margin: 0;">SKalinga</h1>
+        <p style="font-size: 15px; color: var(--text-gray); margin: 4px 0 0;">Youth Portal</p>
+      </div>
+      <img src="assets/images/sklogo.jpg" alt="SK Logo" style="width: 64px; height: 64px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <h1>Report Issues</h1>
+    <p>Submit incident reports, safety concerns, bullying, environmental problems, or request emergency assistance</p>
+  </header>
+
+  <!-- Main Content -->
+  <section class="report-section">
+    <!-- Report Form -->
+    <form id="reportForm" class="report-form">
+      <div class="form-group">
+        <label for="category">Issue Category</label>
+        <select id="category" name="category" required>
+          <option value="" disabled selected>Select type of issue</option>
+          <option value="safety">Safety / Security Concern</option>
+          <option value="bullying">Bullying or Harassment</option>
+          <option value="environment">Environmental Problem</option>
+          <option value="health">Health / Sanitation Issue</option>
+          <option value="infrastructure">Damaged Facility</option>
+          <option value="emergency">Emergency Assistance</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Describe the Issue</label>
+        <textarea id="description" name="description" rows="5" placeholder="What happened, where, when, who is involved..." required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="location">Location</label>
+        <input type="text" id="location" name="location" placeholder="e.g., Barangay Covered Court, Poblacion" required>
+      </div>
+
+      <div class="form-group">
+        <label>Urgency Level</label>
+        <div class="urgency-options">
+          <label><input type="radio" name="urgency" value="low" checked> Low</label>
+          <label><input type="radio" name="urgency" value="medium"> Medium</label>
+          <label><input type="radio" name="urgency" value="high"> High / Urgent</label>
+          <label><input type="radio" name="urgency" value="emergency"> Emergency</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="photo">Attach Photo (Optional)</label>
+        <input type="file" id="photo" name="photo" accept="image/*">
+        <small>Upload clear photo if possible</small>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn primary large">Submit Report</button>
+      </div>
+    </form>
+
+    <!-- Your Reports Section (shows after submission) -->
+    <div class="reports-history" id="reportsHistory" style="display: none; margin-top: 60px;">
+      <h2>Your Submitted Reports</h2>
+      <div class="reports-list" id="reportsList"></div>
+    </div>
+  </section>
+
+  <!-- Floating Help -->
+  <button class="floating-help">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+  </button>
+
+</div>
+
+<script>
+  // Demo: Store reports in localStorage (replace with real backend later)
+  let reports = JSON.parse(localStorage.getItem('userReports')) || [];
+
+  // Render reports
+  function renderReports() {
+    const list = document.getElementById('reportsList');
+    const history = document.getElementById('reportsHistory');
+    list.innerHTML = '';
+
+    if (reports.length === 0) {
+      list.innerHTML = '<p>No reports submitted yet.</p>';
+    } else {
+      reports.forEach((report, index) => {
+        const item = document.createElement('div');
+        item.className = 'report-item';
+        item.innerHTML = `
+          <div class="report-header">
+            <strong>${report.category.toUpperCase()}</strong>
+            <span class="status ${report.status.toLowerCase()}">${report.status}</span>
+          </div>
+          <p class="report-desc">${report.description.substring(0, 120)}${report.description.length > 120 ? '...' : ''}</p>
+          <p class="report-meta">Location: ${report.location} • Submitted: ${report.date}</p>
+          <p class="report-urgency">Urgency: ${report.urgency}</p>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    history.style.display = reports.length > 0 ? 'block' : 'none';
+  }
+
+  // Form submission
+  document.getElementById('reportForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const newReport = {
+      category: formData.get('category'),
+      description: formData.get('description'),
+      location: formData.get('location'),
+      urgency: formData.get('urgency'),
+      date: new Date().toLocaleString(),
+      status: 'Pending' // can be: Pending, In Review, Resolved
+    };
+
+    reports.unshift(newReport); // add to top
+    localStorage.setItem('userReports', JSON.stringify(reports));
+
+    alert('Your report has been submitted successfully! SK Office will review it soon. Thank you for helping keep our community safe.');
+
+    // Reset form
+    e.target.reset();
+    renderReports();
+  });
+
+  // Load reports on page load
+  renderReports();
+</script>
+</body>
+</html>

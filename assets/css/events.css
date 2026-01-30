@@ -21,7 +21,7 @@
   margin: 0 auto;
 }
 
-/* Filters Bar */
+/* Filters Bar – Search slightly moved down for better alignment */
 .filters-bar {
   display: flex;
   flex-wrap: wrap;
@@ -30,15 +30,19 @@
   align-items: center;
   margin-bottom: 32px;
   padding: 0 20px;
+  padding-top: 4px;              /* small downward adjustment */
 }
 
 .search-filter input {
-  padding: 12px 20px;
+  height: 44px;
+  padding: 0 20px;
   border: 2px solid #e0e0e0;
   border-radius: 12px;
   font-size: 15px;
   width: 300px;
   max-width: 100%;
+  box-sizing: border-box;
+  line-height: 44px;
 }
 
 .filter-buttons {
@@ -48,7 +52,8 @@
 }
 
 .filter-btn {
-  padding: 10px 20px;
+  height: 44px;
+  padding: 0 20px;
   border-radius: 12px;
   border: 2px solid var(--light-green);
   background: transparent;
@@ -56,12 +61,55 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s;
+  line-height: 44px;
+  white-space: nowrap;
 }
 
 .filter-btn.active,
 .filter-btn:hover {
   background: var(--light-green);
   border-color: var(--primary-green);
+}
+
+/* Top Navigation – Smaller Logos */
+.top-nav {
+  padding: 24px 32px;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.logo-area .official-logo {
+  width: 64px;                   /* ← decreased from 80px */
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid white;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.logo-text {
+  text-align: center;
+}
+
+.logo-text h1 {
+  font-size: 36px;               /* slightly smaller to match logo scale */
+  font-weight: 800;
+  color: var(--primary-green);
+  margin: 0;
+  line-height: 1;
+}
+
+.logo-text p {
+  font-size: 15px;
+  color: var(--text-gray);
+  margin: 4px 0 0;
+  font-weight: 500;
 }
 
 /* Events Grid */
@@ -161,4 +209,38 @@
 .btn.small {
   padding: 10px 20px;
   font-size: 14px;
+}
+
+/* Back Button – Top-Left Corner */
+.back-btn {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 1000;
+  width: 48px;
+  height: 48px;
+  background: white;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.back-btn:hover {
+  background: var(--light-green);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(168, 230, 207, 0.4);
+}
+
+.back-btn svg {
+  stroke: var(--primary-green);
+  stroke-width: 2.5;
+}
+
+.back-btn:hover svg {
+  stroke: white;
 }

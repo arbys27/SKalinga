@@ -17,19 +17,24 @@
 
 <div class="app-container">
 
-  <!-- Top Navigation (same as portal) -->
-  <nav class="top-nav">
-    <div class="logo-area">
-      <div class="logo-icons-group">
-        <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo">
-        <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo">
+  <!-- Back Button (Top-Left) -->
+  <button class="back-btn" onclick="window.location.href='youth-portal.html'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5"></path>
+      <path d="M12 19l-7-7 7-7"></path>
+    </svg>
+  </button>
+
+  <!-- Top Navigation – Centered with Logos on Both Sides -->
+  <nav class="top-nav" style="padding: 24px 32px;">
+    <div class="logo-area" style="display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%;">
+      <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+      <div class="logo-text" style="text-align: center;">
+        <h1 style="font-size: 36px; font-weight: 800; color: var(--primary-green); margin: 0; line-height: 1;">SKalinga</h1>
+        <p style="font-size: 15px; color: var(--text-gray); margin: 4px 0 0; font-weight: 500;">Youth Portal</p>
       </div>
-      <div class="logo-text">
-        <h1>SKalinga</h1>
-        <p>Youth Portal</p>
-      </div>
+      <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
     </div>
-    
   </nav>
 
   <!-- Page Header -->
@@ -53,7 +58,6 @@
 
   <!-- Events Grid -->
   <div class="events-grid">
-    <!-- Event Card 1 -->
     <div class="event-card upcoming">
       <div class="event-image">
         <img src="https://images.unsplash.com/photo-1522202176988-66273c2b033f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Youth Summit">
@@ -73,7 +77,6 @@
       </div>
     </div>
 
-    <!-- Event Card 2 -->
     <div class="event-card upcoming">
       <div class="event-image">
         <img src="https://images.unsplash.com/photo-1541532713592-79a0317b6b77?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Sports Fest">
@@ -93,7 +96,6 @@
       </div>
     </div>
 
-    <!-- Event Card 3 -->
     <div class="event-card upcoming">
       <div class="event-image">
         <img src="https://images.unsplash.com/photo-1581092160560-4c9d3a0d8d5c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Clean-up Drive">
@@ -112,11 +114,9 @@
         </div>
       </div>
     </div>
-
-    <!-- More event cards can be added here -->
   </div>
 
-  <!-- Floating Help Button (same as portal) -->
+  <!-- Floating Help Button -->
   <button class="floating-help">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
       <circle cx="12" cy="12" r="10"></circle>
@@ -128,12 +128,10 @@
 </div>
 
 <script>
-  // Optional: simple filter toggle (demo)
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      // In real app: filter events here
     });
   });
 </script>

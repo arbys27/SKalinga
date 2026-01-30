@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SKalinga - Health Services</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/portal.css">
+  <link rel="stylesheet" href="assets/css/health.css">
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Back Button (Top-Left) -->
+  <button class="back-btn" onclick="window.location.href='youth-portal.html'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5"></path>
+      <path d="M12 19l-7-7 7-7"></path>
+    </svg>
+  </button>
+
+  <!-- Top Navigation – Centered with Logos -->
+  <nav class="top-nav" style="padding: 24px 32px;">
+    <div class="logo-area" style="display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%;">
+      <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+      <div class="logo-text" style="text-align: center;">
+        <h1 style="font-size: 36px; font-weight: 800; color: var(--primary-green); margin: 0; line-height: 1;">SKalinga</h1>
+        <p style="font-size: 15px; color: var(--text-gray); margin: 4px 0 0; font-weight: 500;">Youth Portal</p>
+      </div>
+      <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <h1>Health Services</h1>
+    <p>Book teleconsultations, health check-ups, wellness sessions, and access youth health resources</p>
+  </header>
+
+  <!-- Main Content -->
+  <section class="health-main">
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="btn primary medium" id="bookTeleconsult">Book Teleconsultation</button>
+    </div>
+
+    <!-- Services Grid -->
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
+            <path d="M12 8v4l3 3"></path>
+          </svg>
+        </div>
+        <h3>Teleconsultation</h3>
+        <p>Virtual doctor consultation via video call. Fast, free for SK members.</p>
+        <button class="btn primary medium">Book Now</button>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M2 12h20"></path>
+          </svg>
+        </div>
+        <h3>Free Health Check-up</h3>
+        <p>Monthly on-site blood pressure, BMI, and basic screening.</p>
+        <button class="btn primary medium">Register Slot</button>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <h3>Mental Health Talk</h3>
+        <p>Group sessions and one-on-one counseling with licensed psychologists.</p>
+        <button class="btn primary medium">Join Session</button>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11l2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0-1-1H6"></path>
+          </svg>
+        </div>
+        <h3>Nutrition & Fitness Workshop</h3>
+        <p>Monthly talks on healthy eating, exercise, and wellness tips.</p>
+        <button class="btn primary medium">Enroll</button>
+      </div>
+    </div>
+
+    <!-- Upcoming Schedule -->
+    <div class="schedule-section">
+      <h2>Upcoming Health Events</h2>
+      <div class="schedule-list">
+        <div class="schedule-item">
+          <div class="date">FEB 10</div>
+          <div class="details">
+            <h3>Monthly Free Check-up Day</h3>
+            <p>9:00 AM – 3:00 PM | Barangay Hall | Slots: 100</p>
+            <button class="btn primary medium">Reserve Slot</button>
+          </div>
+        </div>
+
+        <div class="schedule-item">
+          <div class="date">FEB 15</div>
+          <div class="details">
+            <h3>Teen Mental Health Talk</h3>
+            <p>2:00 PM – 4:00 PM | Online via Zoom | Open to all</p>
+            <button class="btn primary medium">Join</button>
+          </div>
+        </div>
+
+        <div class="schedule-item">
+          <div class="date">MAR 05</div>
+          <div class="details">
+            <h3>Nutrition Workshop: Healthy Eating on a Budget</h3>
+            <p>10:00 AM – 12:00 PM | Barangay Covered Court</p>
+            <button class="btn primary medium">Enroll</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Floating Help Button -->
+  <button class="floating-help">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+  </button>
+
+</div>
+
+<script>
+  // Optional: simple button interactions (demo)
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.textContent.includes('Book') || btn.textContent.includes('Reserve') || btn.textContent.includes('Enroll') || btn.textContent.includes('Join')) {
+        alert('Booking feature coming soon! Please coordinate with SK Office.');
+      }
+    });
+  });
+</script>
+</body>
+</html>

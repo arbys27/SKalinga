@@ -285,3 +285,28 @@ select:focus {
     padding: 32px 24px;
   }
 }
+
+/* Side-by-side Birthday + Age */
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-group.half {
+  flex: 1;
+}
+
+.form-group.half label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.form-group.half input {
+  width: 100%;
+}
+
+/* Password fields spacing */
+input[type="password"] {
+  margin-bottom: 20px;
+}

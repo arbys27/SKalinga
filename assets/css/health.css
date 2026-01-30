@@ -1,0 +1,251 @@
+/* assets/css/health.css — Health Services Page */
+
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 0 20px;
+}
+
+.page-header h1 {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 12px;
+  font-family: 'Outfit', sans-serif;
+}
+
+.page-header p {
+  font-size: 16px;
+  color: var(--text-gray);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Quick Actions */
+.quick-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+
+.quick-actions .btn.medium {
+  padding: 14px 32px;
+  font-size: 16px;
+  min-width: 260px;
+}
+
+/* Services Grid */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.service-card {
+  background: white;
+  border-radius: 20px;
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: 0 6px 24px rgba(93, 173, 226, 0.15);
+  border: 1px solid rgba(168, 230, 207, 0.3);
+  transition: all 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(93, 173, 226, 0.25);
+}
+
+.service-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--light-green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.service-icon svg {
+  width: 32px;
+  height: 32px;
+  stroke: var(--primary-green);
+}
+
+.service-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.service-card p {
+  font-size: 14px;
+  color: var(--text-gray);
+  margin-bottom: 20px;
+}
+
+/* Uniform Buttons – FIXED SIZE + CENTERED */
+.btn.medium {
+  display: inline-block;
+  width: 200px;
+  padding: 12px 20px;
+  font-size: 15px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+}
+
+.btn.primary.medium {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+}
+
+.btn.primary.medium:hover {
+  background: #1a6b43;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(34, 139, 87, 0.3);
+}
+
+.btn.secondary.medium {
+  background: transparent;
+  border: 2px solid var(--light-green);
+  color: var(--primary-green);
+}
+
+.btn.secondary.medium:hover {
+  background: var(--light-green);
+  transform: translateY(-2px);
+}
+
+/* Center Buttons Wrapper */
+.button-wrapper {
+  text-align: center;
+  margin-top: 20px;           /* space above button */
+}
+
+/* Upcoming Schedule */
+.schedule-section h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 24px;
+  font-family: 'Outfit', sans-serif;
+  text-align: center;
+}
+
+.schedule-list {
+  display: grid;
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.schedule-item {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(93, 173, 226, 0.15);
+  border: 1px solid rgba(168, 230, 207, 0.3);
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.date {
+  min-width: 80px;
+  height: 80px;
+  background: var(--light-green);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-green);
+  font-weight: 800;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.details h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.details p {
+  font-size: 14px;
+  color: var(--text-gray);
+  margin-bottom: 16px;
+}
+
+/* Back Button – Top-Left Corner */
+.back-btn {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 1000;
+  width: 48px;
+  height: 48px;
+  background: white;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.back-btn:hover {
+  background: var(--light-green);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(168, 230, 207, 0.4);
+}
+
+.back-btn svg {
+  stroke: var(--primary-green);
+  stroke-width: 2.5;
+}
+
+.back-btn:hover svg {
+  stroke: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .quick-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .quick-actions .btn.medium {
+    width: 280px;
+  }
+
+  .schedule-item {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .date {
+    margin: 0 auto 16px;
+  }
+
+  .btn.medium {
+    width: 100%;
+    max-width: 260px;
+  }
+}

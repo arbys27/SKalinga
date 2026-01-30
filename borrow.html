@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SKalinga - Borrow Resources</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/portal.css">
+  <link rel="stylesheet" href="assets/css/borrow.css"> <!-- New CSS file for this page -->
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Top Navigation – Centered with Logos on Both Sides -->
+  <nav class="top-nav" style="padding: 24px 32px;">
+    <div class="logo-area" style="display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%;">
+      <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+      <div class="logo-text" style="text-align: center;">
+        <h1 style="font-size: 40px; font-weight: 800; color: var(--primary-green); margin: 0; line-height: 1;">SKalinga</h1>
+        <p style="font-size: 16px; color: var(--text-gray); margin: 4px 0 0; font-weight: 500;">Youth Portal</p>
+      </div>
+      <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+    </div>
+  </nav>
+
+  <!-- Back Button (Top-Left) -->
+  <button class="back-btn" onclick="window.location.href='youth-portal.html'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5"></path>
+      <path d="M12 19l-7-7 7-7"></path>
+    </svg>
+  </button>
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <h1>Borrow Resources</h1>
+    <p>Request equipment and materials for your activities. Show your Digital Youth ID for quick admin scanning.</p>
+  </header>
+
+  <!-- Borrow Section -->
+  <section class="borrow-section">
+    <!-- Request New Borrow Button -->
+    <div class="request-new">
+      <button class="btn primary" id="requestBorrowBtn">Request New Borrow (Show ID for Scan)</button>
+    </div>
+
+    <!-- Recent Borrowings List -->
+    <div class="borrow-history">
+      <h2>Recent Borrowings</h2>
+      <div class="borrow-list">
+        <!-- Borrow Item Card Example -->
+        <div class="borrow-item">
+          <div class="item-info">
+            <h3>Projector & Screen</h3>
+            <p>Borrowed: Jan 15, 2026 10:00 AM</p>
+            <p>Due: Jan 20, 2026</p>
+            <span class="status borrowed">Borrowed</span>
+          </div>
+        </div>
+
+        <div class="borrow-item">
+          <div class="item-info">
+            <h3>Sports Equipment Set</h3>
+            <p>Borrowed: Jan 10, 2026 2:00 PM</p>
+            <p>Returned: Jan 12, 2026</p>
+            <span class="status returned">Returned</span>
+          </div>
+        </div>
+
+        <!-- Add more items as needed -->
+        <div class="borrow-item">
+          <div class="item-info">
+            <h3>Laptop</h3>
+            <p>Borrowed: Dec 25, 2025 9:00 AM</p>
+            <p>Due: Feb 1, 2026</p>
+            <span class="status borrowed">Borrowed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Digital Youth ID Modal (opens for scanning) -->
+  <div class="modal" id="digitalIdModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeModal">&times;</span>
+      <h2>Digital Youth ID – For Admin Scan</h2>
+      <p>Present this to the admin for quick scanning and form filling.</p>
+      <div class="id-card-preview">
+        <div class="id-header">
+          <img src="assets/images/sklogo.jpg" alt="SK Logo" class="id-logo" />
+          <h3>SKalinga Youth</h3>
+          <p>San Antonio Chapter</p>
+        </div>
+        <div class="id-body">
+          <img src="assets/images/default-avatar.png" alt="Member Photo" class="id-photo" />
+          <div class="id-info">
+            <h4>Arby Barnuevo</h4>
+            <p class="id-number">Member ID: <strong>SK-2024-0789</strong></p>
+            <p class="id-date">Issued: January 2025</p>
+          </div>
+        </div>
+        <div class="qr-section">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=SK-2024-0789-ArbyBarnuevo" alt="QR Code" class="qr-code" />
+          <p>Scan to verify and auto-fill borrower details</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Help Button -->
+  <button class="floating-help">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+  </button>
+
+</div>
+
+<script>
+  // Open ID modal for new borrow request
+  const requestBtn = document.getElementById('requestBorrowBtn');
+  const modal = document.getElementById('digitalIdModal');
+  const close = document.getElementById('closeModal');
+
+  if (requestBtn && modal) {
+    requestBtn.onclick = () => modal.style.display = 'flex';
+    close.onclick = () => modal.style.display = 'none';
+    window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+  }
+</script>
+</body>
+</html>
