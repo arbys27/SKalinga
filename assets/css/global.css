@@ -537,3 +537,26 @@ button, .nav-btn {
   gap: 12px;               /* reduced gap */
   flex-shrink: 0;
 }
+
+/* Reduce space between fields */
+.form-group {
+  margin-bottom: 10px;
+}
+
+/* Reduce label spacing */
+label {
+  margin-bottom: 4px;
+  display: block;
+  font-size: 14px;
+}
+
+/* Reduce input height slightly */
+input, select {
+  padding: 10px 14px;
+}
+
+/* Reduce gap between side-by-side rows */
+.form-row {
+  gap: 12px;
+  margin-bottom: 10px;
+}

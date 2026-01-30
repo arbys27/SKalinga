@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SKalinga - Print Services</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/portal.css">
+  <link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Top Navigation -->
+  <nav class="top-nav" style="padding: 24px 32px;">
+    <div class="logo-area" style="display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%;">
+      <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+      <div class="logo-text" style="text-align: center;">
+        <h1 style="font-size: 36px; font-weight: 800; color: var(--primary-green); margin: 0; line-height: 1;">SKalinga</h1>
+        <p style="font-size: 15px; color: var(--text-gray); margin: 4px 0 0; font-weight: 500;">Youth Portal</p>
+      </div>
+      <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+    </div>
+  </nav>
+
+  <!-- Back Button -->
+  <button class="back-btn" onclick="window.location.href='youth-portal.html'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M19 12H5M12 19l-7-7 7-7"></path>
+    </svg>
+  </button>
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <h1>Print Services</h1>
+    <p>Upload your documents and request printing at SK Office. After submission, present your Digital Youth ID for confirmation.</p>
+  </header>
+
+  <!-- Print Section -->
+  <section class="print-section">
+    <!-- Request New Print -->
+    <div class="request-new">
+      <button class="btn primary large" id="requestPrintBtn">Request New Print</button>
+    </div>
+
+    <!-- Upload Form -->
+    <div id="uploadSection" style="display:none; margin-top: 40px;">
+      <h2>Upload Document for Printing</h2>
+      <form id="printForm" class="print-form">
+        <div class="form-group">
+          <label for="document">Select File to Print</label>
+          <input type="file" id="document" name="document" accept=".pdf,.doc,.docx,.jpg,.png,.txt" required>
+          <small>Allowed: PDF, Word, JPG, PNG, TXT • Max 10MB</small>
+        </div>
+
+        <!-- Pages + Color Option side-by-side -->
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="pages">Number of Pages</label>
+            <input type="number" id="pages" name="pages" min="1" max="100" placeholder="e.g., 5" required>
+          </div>
+          <div class="form-group half">
+            <label for="color">Print Type</label>
+            <select id="color" name="color" required>
+              <option value="" disabled selected>Select type</option>
+              <option value="black-white">Black & White</option>
+              <option value="color">Colored</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="purpose">Purpose of Printing</label>
+          <select id="purpose" name="purpose" required>
+            <option value="" disabled selected>Select purpose</option>
+            <option value="academics">Academics / School Requirements</option>
+            <option value="personal">Personal / Resume</option>
+            <option value="event">Event Poster / Flyer</option>
+            <option value="business">Business / Application</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn primary large">Send Document for Printing</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Print History -->
+    <div class="print-history">
+      <h2>Recent Print Requests</h2>
+      <div class="print-list" id="printList">
+        <!-- Items will be added dynamically -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Digital Youth ID Modal (for confirmation after submission) -->
+  <div class="modal" id="digitalIdModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeModal">&times;</span>
+      <h2>Digital Youth ID – For Confirmation Scan</h2>
+      <p>Present this to the admin for scanning to confirm and complete your print request.</p>
+      <div class="id-card-preview">
+        <div class="id-header">
+          <img src="assets/images/sklogo.jpg" alt="SK Logo" class="id-logo" />
+          <h3>SKalinga Youth</h3>
+          <p>San Antonio Chapter</p>
+        </div>
+        <div class="id-body">
+          <img src="assets/images/default-avatar.png" alt="Member Photo" class="id-photo" />
+          <div class="id-info">
+            <h4>Arby Barnuevo</h4>
+            <p class="id-number">Member ID: <strong>SK-2024-0789</strong></p>
+            <p class="id-date">Issued: January 2025</p>
+          </div>
+        </div>
+        <div class="qr-section">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=SK-2024-0789-ArbyBarnuevo" alt="QR Code" class="qr-code" />
+          <p>Scan to confirm printing done</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Help -->
+  <button class="floating-help">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+  </button>
+
+</div>
+
+<script>
+  // --- Upload Flow ---
+  const requestBtn = document.getElementById('requestPrintBtn');
+  const uploadSection = document.getElementById('uploadSection');
+  const modal = document.getElementById('digitalIdModal');
+  const closeModal = document.getElementById('closeModal');
+
+  requestBtn.onclick = () => {
+    uploadSection.style.display = 'block';
+    window.scrollTo({ top: uploadSection.offsetTop - 100, behavior: 'smooth' });
+  };
+
+  closeModal.onclick = () => modal.style.display = 'none';
+  window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+  // --- Print History ---
+  let printHistory = JSON.parse(localStorage.getItem('printHistory')) || [];
+
+  function renderPrintHistory() {
+    const list = document.getElementById('printList');
+    list.innerHTML = '';
+
+    if (printHistory.length === 0) {
+      list.innerHTML = '<p>No print requests yet.</p>';
+      return;
+    }
+
+    printHistory.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'print-item';
+      div.innerHTML = `
+        <div class="item-info">
+          <h3>${item.filename} (${item.pages} pages)</h3>
+          <p>Submitted: ${item.date}</p>
+          <p>Purpose: ${item.purpose}</p>
+          <p>Print Type: ${item.color === 'color' ? 'Colored' : 'Black & White'}</p>
+          <span class="status ${item.status.toLowerCase()}">${item.status}</span>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  // --- Form Submission → Show ID Modal ---
+  document.getElementById('printForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const fileInput = document.getElementById('document');
+    const file = fileInput.files[0];
+
+    if (!file) {
+      alert('Please select a file to print.');
+      return;
+    }
+
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'text/plain'];
+    const maxSize = 10 * 1024 * 1024;
+
+    if (!allowedTypes.includes(file.type)) {
+      alert('Only PDF, Word, JPG, PNG, TXT files are allowed.');
+      return;
+    }
+
+    if (file.size > maxSize) {
+      alert('File size exceeds 10MB limit.');
+      return;
+    }
+
+    const pages = document.getElementById('pages').value;
+    const purpose = document.getElementById('purpose').value;
+    const color = document.getElementById('color').value;
+
+    const newPrint = {
+      filename: file.name,
+      pages: pages,
+      purpose: purpose.charAt(0).toUpperCase() + purpose.slice(1),
+      color: color,
+      date: new Date().toLocaleString(),
+      status: 'Pending'
+    };
+
+    printHistory.unshift(newPrint);
+    localStorage.setItem('printHistory', JSON.stringify(printHistory));
+
+    // Reset form and hide upload section
+    e.target.reset();
+    uploadSection.style.display = 'none';
+
+    // Show ID modal for final confirmation scan
+    modal.style.display = 'flex';
+
+    // After scan (close modal), alert success
+    closeModal.onclick = () => {
+      modal.style.display = 'none';
+      alert(`Your document "${file.name}" (${pages} pages, ${color === 'color' ? 'Colored' : 'Black & White'}) has been confirmed via scan.\nPrinting is done/ready for pickup.`);
+      renderPrintHistory();
+    };
+  });
+
+  // Load history on page load
+  renderPrintHistory();
+</script>
+</body>
+</html>
