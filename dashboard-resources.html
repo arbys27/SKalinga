@@ -49,7 +49,7 @@
                         </svg>
                         Dashboard
                     </a>
-                    <a href="#content-grid" class="nav-item">
+                    <a href="admin-dashboard.html" class="nav-item">
                         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="1" x2="12" y2="23"></line>
                             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
@@ -178,15 +178,17 @@
 
             <table class="admin-table" id="lendingTable">
                 <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Borrower</th>
-                        <th>Borrow Date</th>
-                        <th>Due Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+    <tr>
+        <th>Item ID</th>  <!-- New column for unique item identifier -->
+        <th>Item Name</th>  <!-- Renamed from "Item" for clarity -->
+        <th>Member ID</th>  <!-- New column for youth ID -->
+        <th>Borrower Name</th>  <!-- New column for borrower name -->
+        <th>Borrow Date</th>
+        <th>Due Date</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
+</thead>
                 <tbody id="lendingTableBody"></tbody>
             </table>
         </div>
@@ -334,8 +336,10 @@ function renderLendingTable(filtered = lendingData) {
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${record.itemName}</td>
-            <td>${record.youthId} - ${borrower.first} ${borrower.last}</td>
+            <td>${record.itemId}</td>  <!-- New: Display item ID -->
+            <td>${record.itemName}</td>  <!-- Updated: Now just the item name -->
+            <td>${record.youthId}</td>  <!-- New: Display member ID separately -->
+            <td>${borrower.first} ${borrower.last}</td>  <!-- New: Display borrower name separately -->
             <td>${borrowDate.toLocaleDateString()}</td>
             <td>${dueDate.toLocaleDateString()}</td>
             <td><span class="status-badge ${statusClass}">${status}</span></td>

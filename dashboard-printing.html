@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKalinga - Printing Services Management</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Your shared dashboard CSS -->
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+
+    <!-- Page-specific styles -->
+    <style>
+        /* Custom styles for Printing page */
+        .nav-item.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        /* Additional styles for printing-specific elements */
+        .btn-add-youth {
+            background: #228B57;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add-youth:hover { background: #1a6b43; }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .form-group.half {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload-area:hover {
+            border-color: #228B57;
+            background: rgba(34,139,87,0.05);
+        }
+
+        .uploaded-files {
+            display: none;
+        }
+
+        .uploaded-files.show {
+            display: block;
+        }
+
+        .uploaded-file-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .scan-container {
+            text-align: center;
+        }
+
+        .verified-info {
+            background: #d4edda;
+            padding: 16px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: #228B57;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            background: #1a6b43;
+        }
+
+        .btn-download {
+            background: #17a2b8;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn-download:hover {
+            background: #138496;
+        }
+
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo-section">
+            <div class="logo-content">
+                <div class="logo-icons-group">
+                    <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo">
+                    <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo">
+                </div>
+                <div class="logo-text">
+                    <h1>SKalinga Admin</h1>
+                    <p>San Antonio</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="nav-section">
+            <div class="nav-group">
+                <div class="nav-group-title">Overview</div>
+                <a href="admin-dashboard.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="admin-dashboard.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    Analytics
+                </a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Management</div>
+                <a href="youth-registry.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Youth Registry
+                </a>
+                <a href="dashboard-events.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    Events
+                    <span class="nav-badge">3</span>
+                </a>
+                <a href="dashboard-resources.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    </svg>
+                    Resources
+                </a>
+                <a href="dashboard-printing.html" class="nav-item active">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                    Printing
+                </a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Emergency</div>
+                <a href="dashboard-incidents.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    Incidents
+                    <span class="nav-badge">7</span>
+                </a>
+                <a href="dashboard-health.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    Health Services
+                </a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">System</div>
+                <a href="dashboard-settings.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    Settings
+                </a>
+                <a href="api/logout.php" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-left">
+                <h2>Printing Services Management</h2>
+                <p id="dashboard-datetime">Loading date and time...</p>
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="user-avatar">NM</div>
+                    <div class="user-info">
+                        <h4>Noel Marcellana</h4>
+                        <p>SK Official</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="search-filter-bar">
+                <div class="search-group">
+                    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search by member ID, name...">
+                    <select id="filterStatus" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Finished">Finished</option>
+                    </select>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button class="btn-add-youth" id="scanQrBtn">
+                        <i class="fas fa-qrcode"></i> Scan Youth Digital ID
+                    </button>
+                    <button class="btn-add-youth" id="addRequestBtn">
+                        <i class="fas fa-plus"></i> New Print/Xerox Request
+                    </button>
+                </div>
+            </div>
+
+            <table class="admin-table" id="printingTable">
+                <thead>
+                    <tr>
+                        <th>Member ID</th>
+                        <th>Name</th>
+                        <th>Date & Time Sent</th>
+                        <th>Status</th>
+                        <th>Documents</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="printingTableBody"></tbody>
+            </table>
+        </div>
+    </main>
+
+</div>
+
+<!-- Add Print Request Modal -->
+<div class="modal" id="addRequestModal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeAddRequest">×</span>
+        <h2>New Print/Xerox Request</h2>
+
+        <form id="addRequestForm">
+            <input type="hidden" id="editRequestId">
+
+            <!-- Request Type -->
+            <div class="form-group">
+                <label for="requestType">Request Type *</label>
+                <select id="requestType" required>
+                    <option value="" disabled selected>Select type</option>
+                    <option value="Print">Print</option>
+                    <option value="Xerox">Xerox (Photocopy)</option>
+                </select>
+            </div>
+
+            <!-- Member ID -->
+            <div class="form-group">
+                <label for="memberId">Member ID *</label>
+                <input type="text" id="memberId" placeholder="SK-2024-0789" required>
+            </div>
+
+            <!-- File Upload Area -->
+            <div class="form-group full">
+                <label>Select File to Print *</label>
+                <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p><strong>Choose File</strong> or drag and drop</p>
+                    <small>Allowed: PDF, Word, JPG, PNG, TXT • Max 10MB</small>
+                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt" required>
+                </div>
+                <div class="uploaded-files" id="uploadedFiles">
+                    <div class="uploaded-file-item" id="uploadedFileName">
+                        <i class="fas fa-file"></i>
+                        <span id="fileName">No file selected</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Number of Pages & Print Type -->
+            <div class="form-row">
+                <div class="form-group half">
+                    <label for="pages">Number of Pages *</label>
+                    <input type="number" id="pages" min="1" placeholder="e.g., 5" required>
+                </div>
+                <div class="form-group half">
+                    <label for="printType">Print Type *</label>
+                    <select id="printType" required>
+                        <option value="" disabled selected>Select type</option>
+                        <option value="Black & White">Black & White</option>
+                        <option value="Colored">Colored</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Purpose -->
+            <div class="form-group">
+                <label for="purpose">Purpose of Printing *</label>
+                <select id="purpose" required>
+                    <option value="" disabled selected>Select purpose</option>
+                    <option value="Academics / School Requirements">Academics / School Requirements</option>
+                    <option value="Personal / Resume">Personal / Resume</option>
+                    <option value="Event Poster / Flyer">Event Poster / Flyer</option>
+                    <option value="Business / Application">Business / Application</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-submit">Send Document for Printing</button>
+        </form>
+    </div>
+</div>
+
+<!-- Scan QR Modal -->
+<div class="modal" id="scanQrModal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeScanQr">×</span>
+        <h2>Scan Youth Digital ID QR Code</h2>
+
+        <div class="scan-container">
+            <p style="color: #666; margin-bottom: 20px;">Scan the youth member's QR code to verify and view their print request details.</p>
+            
+            <input type="text" id="scanQrInput" class="search-input" placeholder="Enter Member ID (e.g., SK-2024-0789)" style="text-transform: uppercase; width: 100%; max-width: 400px;">
+            
+            <button id="verifyQrBtn" class="btn-submit">Verify Youth ID</button>
+
+            <div id="verifiedSection" style="display: none;">
+                <div class="verified-info">
+                    <h3>
+                        <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                        Youth Verified
+                    </h3>
+                    <p><strong>Member ID:</strong> <span id="verifiedId"></span></p>
+                    <p><strong>Name:</strong> <span id="verifiedName"></span></p>
+                    <p><strong>Contact:</strong> <span id="verifiedContact"></span></p>
+                </div>
+                
+                <button id="seeDetailsBtn" class="btn-submit" style="background: #5DADE2;">
+                    <i class="fas fa-eye"></i> See Full Request Details
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Youth Request Details Modal -->
+<div class="modal" id="youthRequestModal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeYouthRequest">×</span>
+        <h2>Youth Print Request Details</h2>
+
+        <div id="youthRequestContent" class="details-info"></div>
+
+        <!-- Document Preview Section -->
+        <div class="document-section" id="documentSection" style="margin: 24px 0;">
+            <h3 style="color: #228B57; font-size: 18px; margin-bottom: 12px;">
+                <i class="fas fa-file-alt"></i> Documents Submitted
+            </h3>
+            <div class="document-preview" id="youthDocPreview">
+                <i class="fas fa-file-pdf" style="font-size: 48px; color: #dc3545; margin-bottom: 12px;"></i>
+                <p id="docFileName" style="font-weight: 600; margin: 8px 0;">resume.pdf</p>
+                <small style="color: #666;">5 pages • PDF Document</small>
+            </div>
+            <button class="btn-download" id="downloadYouthDoc" style="width: 100%; margin-top: 12px;">
+                <i class="fas fa-download"></i> Download Document for Printing
+            </button>
+        </div>
+
+        <div style="margin-top: 32px; text-align: center;">
+            <button class="btn-submit" id="confirmPrintBtn" style="background: #28a745;">
+                <i class="fas fa-check-circle"></i> Confirm & Mark as Finished
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- View Details Modal -->
+<div class="modal" id="viewDetailsModal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeViewDetails">×</span>
+        <h2>Print Request Details</h2>
+
+        <div id="detailsContent" class="details-info"></div>
+
+        <div class="document-preview" id="docPreview"></div>
+
+        <button class="btn-download" id="downloadBtn">
+            <i class="fas fa-download"></i> Download Documents
+        </button>
+
+        <div style="margin-top: 24px; text-align: center;">
+            <button class="btn-submit" id="markDoneBtn" style="background: #28a745;">
+                <i class="fas fa-check-circle"></i> Mark as Finished
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ────────────────────────────────────────────────
+// Live Date & Time
+// ────────────────────────────────────────────────
+function updateDashboardDateTime() {
+    const el = document.getElementById('dashboard-datetime');
+    if (!el) return;
+    const now = new Date();
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const day = days[now.getDay()];
+    const month = months[now.getMonth()];
+    const date = now.getDate();
+    const year = now.getFullYear();
+    let hour = now.getHours();
+    let min = now.getMinutes();
+    let ampm = 'AM';
+    if (hour >= 12) { ampm = 'PM'; if (hour > 12) hour -= 12; }
+    if (hour === 0) hour = 12;
+    min = min < 10 ? '0' + min : min;
+    el.textContent = `${day}, ${month} ${date}, ${year} • ${hour}:${min} ${ampm}`;
+}
+setInterval(updateDashboardDateTime, 1000);
+updateDashboardDateTime();
+
+// ────────────────────────────────────────────────
+// Data Management
+// ────────────────────────────────────────────────
+let youthData = JSON.parse(localStorage.getItem('youthData')) || [
+    { id: "SK-2024-0789", first: "Arby", last: "Barnuevo", contact: "09171234567", barangay: "Poblacion" }
+];
+
+let printRequests = JSON.parse(localStorage.getItem('printRequests')) || [
+    { 
+        id: "REQ-001", 
+        memberId: "SK-2024-0789", 
+        name: "Arby Barnuevo", 
+        dateTime: "2026-01-31T21:18:00", 
+        status: "Pending", 
+        documents: "resume.pdf", 
+        purpose: "Personal / Resume", 
+        printType: "Black & White",
+        pages: 5,
+        requestType: "Print"
+    }
+];
+
+function saveRequests() {
+    localStorage.setItem('printRequests', JSON.stringify(printRequests));
+}
+
+function renderPrintTable(filtered = printRequests) {
+    const tbody = document.getElementById('printingTableBody');
+    tbody.innerHTML = '';
+
+    filtered.forEach(req => {
+        const dateTime = new Date(req.dateTime).toLocaleString('en-US', {dateStyle: 'short', timeStyle: 'short'});
+        const statusClass = req.status === 'Pending' ? 'status-pending' : 'status-finished';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${req.memberId}</td>
+            <td style="font-weight: 600;">${req.name}</td>
+            <td>${dateTime}</td>
+            <td><span class="status-badge ${statusClass}">${req.status}</span></td>
+            <td>${req.documents}</td>
+            <td class="action-buttons">
+                <button class="action-btn btn-view" onclick="viewDetails('${req.id}')" title="View Details">
+                    <i class="fas fa-eye"></i>
+                </button>
+                ${req.status === 'Pending' ? `<button class="action-btn btn-done" onclick="markDone('${req.id}')" title="Mark as Finished">
+                    <i class="fas fa-check"></i>
+                </button>` : ''}
+                <button class="action-btn btn-delete" onclick="deleteRequest('${req.id}')" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// ────────────────────────────────────────────────
+// Search & Filter
+// ────────────────────────────────────────────────
+function filterTable() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const status = document.getElementById('filterStatus').value;
+
+    const filtered = printRequests.filter(req => {
+        const text = `${req.memberId} ${req.name} ${req.documents}`.toLowerCase();
+        return text.includes(search) && (!status || req.status === status);
+    });
+
+    renderPrintTable(filtered);
+}
+
+document.getElementById('searchInput')?.addEventListener('input', filterTable);
+document.getElementById('filterStatus')?.addEventListener('change', filterTable);
+
+// ────────────────────────────────────────────────
+// File Upload Handler
+// ────────────────────────────────────────────────
+document.getElementById('fileInput')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('uploadedFiles').classList.add('show');
+    }
+});
+
+// ────────────────────────────────────────────────
+// Modal Controls
+// ────────────────────────────────────────────────
+const addModal = document.getElementById('addRequestModal');
+const scanModal = document.getElementById('scanQrModal');
+const viewModal = document.getElementById('viewDetailsModal');
+const youthRequestModal = document.getElementById('youthRequestModal');
+
+document.getElementById('addRequestBtn').onclick = () => {
+    document.getElementById('addRequestForm').reset();
+    document.getElementById('editRequestId').value = '';
+    document.getElementById('uploadedFiles').classList.remove('show');
+    addModal.style.display = 'flex';
+};
+
+document.getElementById('scanQrBtn').onclick = () => {
+    document.getElementById('scanQrInput').value = '';
+    document.getElementById('verifiedSection').style.display = 'none';
+    scanModal.style.display = 'flex';
+};
+
+document.getElementById('closeAddRequest').onclick = () => addModal.style.display = 'none';
+document.getElementById('closeScanQr').onclick = () => scanModal.style.display = 'none';
+document.getElementById('closeViewDetails').onclick = () => viewModal.style.display = 'none';
+document.getElementById('closeYouthRequest').onclick = () => youthRequestModal.style.display = 'none';
+
+window.onclick = e => {
+    if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+};
+
+// ────────────────────────────────────────────────
+// QR Scan Verification
+// ────────────────────────────────────────────────
+document.getElementById('verifyQrBtn').onclick = () => {
+    const qrData = document.getElementById('scanQrInput').value.trim().toUpperCase();
+    if (!qrData) return alert("Please enter a Member ID");
+
+    const youth = youthData.find(y => y.id.toUpperCase() === qrData);
+    if (!youth) return alert("❌ Invalid Member ID. Youth not found in registry.");
+
+    // Display verified youth info
+    document.getElementById('verifiedId').textContent = youth.id;
+    document.getElementById('verifiedName').textContent = `${youth.first} ${youth.last}`;
+    document.getElementById('verifiedContact').textContent = youth.contact || 'N/A';
+    
+    document.getElementById('verifiedSection').style.display = 'block';
+};
+
+// ────────────────────────────────────────────────
+// See Full Request Details from QR Scan
+// ────────────────────────────────────────────────
+document.getElementById('seeDetailsBtn').addEventListener('click', () => {
+    const youthId = document.getElementById('verifiedId').textContent;
+    const youth = youthData.find(y => y.id === youthId);
+    if (!youth) return alert("Youth not found");
+
+    // Sample print request details (in real app, this would come from youth's submission)
+    const requestDetails = {
+        memberId: youth.id,
+        name: `${youth.first} ${youth.last}`,
+        contact: youth.contact || 'N/A',
+        pages: 5,
+        printType: "Black & White",
+        purpose: "Academics / School Requirements",
+        documentName: "resume.pdf", // Sample document
+        documentType: "PDF Document",
+        documentSize: "2.3 MB"
+    };
+
+    // Show youth request details modal
+    document.getElementById('youthRequestContent').innerHTML = `
+        <p><strong>Member ID:</strong> ${requestDetails.memberId}</p>
+        <p><strong>Name:</strong> ${requestDetails.name}</p>
+        <p><strong>Contact:</strong> ${requestDetails.contact}</p>
+        <p><strong>Number of Pages:</strong> ${requestDetails.pages}</p>
+        <p><strong>Print Type:</strong> ${requestDetails.printType}</p>
+        <p><strong>Purpose:</strong> ${requestDetails.purpose}</p>
+    `;
+
+    // Update document preview
+    const docType = requestDetails.documentName.split('.').pop().toLowerCase();
+    let fileIcon = 'fa-file';
+    let iconColor = '#666';
+    
+    if (docType === 'pdf') {
+        fileIcon = 'fa-file-pdf';
+        iconColor = '#dc3545';
+    } else if (docType === 'doc' || docType === 'docx') {
+        fileIcon = 'fa-file-word';
+        iconColor = '#2b579a';
+    } else if (docType === 'jpg' || docType === 'jpeg' || docType === 'png') {
+        fileIcon = 'fa-file-image';
+        iconColor = '#28a745';
+    } else if (docType === 'txt') {
+        fileIcon = 'fa-file-alt';
+        iconColor = '#6c757d';
+    }
+
+    document.getElementById('youthDocPreview').innerHTML = `
+        <i class="fas ${fileIcon}" style="font-size: 48px; color: ${iconColor}; margin-bottom: 12px;"></i>
+        <p id="docFileName" style="font-weight: 600; margin: 8px 0; font-size: 16px;">${requestDetails.documentName}</p>
+        <small style="color: #666;">${requestDetails.pages} pages • ${requestDetails.documentType} • ${requestDetails.documentSize}</small>
+    `;
+
+    // Setup download button
+    document.getElementById('downloadYouthDoc').onclick = () => {
+        // Simulate document download
+        const content = `Print Request Document\n\nMember: ${requestDetails.name}\nID: ${requestDetails.memberId}\nDocument: ${requestDetails.documentName}\nPages: ${requestDetails.pages}\nType: ${requestDetails.printType}\nPurpose: ${requestDetails.purpose}`;
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = requestDetails.documentName;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        alert('✅ Document downloaded! You can now print it.');
+    };
+
+    scanModal.style.display = 'none';
+    youthRequestModal.style.display = 'flex';
+});
+
+// ────────────────────────────────────────────────
+// Confirm Print from Youth Request
+// ────────────────────────────────────────────────
+document.getElementById('confirmPrintBtn').addEventListener('click', () => {
+    const youthId = document.getElementById('verifiedId').textContent;
+    const youth = youthData.find(y => y.id === youthId);
+    
+    // Get document name from the preview
+    const docFileName = document.getElementById('docFileName')?.textContent || 'document.pdf';
+    
+    const newRequest = {
+        id: "REQ-" + Math.floor(1000 + Math.random() * 9000),
+        memberId: youth.id,
+        name: `${youth.first} ${youth.last}`,
+        dateTime: new Date().toISOString(),
+        status: 'Finished',
+        documents: docFileName,
+        purpose: 'Academics / School Requirements',
+        printType: 'Black & White',
+        pages: 5,
+        requestType: 'Print'
+    };
+
+    printRequests.unshift(newRequest);
+    saveRequests();
+    renderPrintTable();
+
+    youthRequestModal.style.display = 'none';
+    alert('✅ Print request confirmed and marked as finished!');
+});
+
+// ────────────────────────────────────────────────
+// Add Request (manual)
+// ────────────────────────────────────────────────
+document.getElementById('addRequestForm').addEventListener('submit', e => {
+    e.preventDefault();
+
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    if (!file) {
+        alert('Please select a file to upload');
+        return;
+    }
+
+    const id = document.getElementById('editRequestId').value || "REQ-" + Math.floor(1000 + Math.random() * 9000);
+    const memberId = document.getElementById('memberId').value.trim().toUpperCase();
+    const youth = youthData.find(y => y.id === memberId) || { first: 'Unknown', last: '' };
+    const name = `${youth.first} ${youth.last}`.trim();
+
+    const request = {
+        id,
+        memberId,
+        name,
+        dateTime: new Date().toISOString(),
+        status: 'Pending',
+        documents: file.name,
+        purpose: document.getElementById('purpose').value,
+        printType: document.getElementById('printType').value,
+        pages: document.getElementById('pages').value,
+        requestType: document.getElementById('requestType').value
+    };
+
+    if (document.getElementById('editRequestId').value) {
+        const index = printRequests.findIndex(r => r.id === id);
+        if (index !== -1) printRequests[index] = request;
+    } else {
+        printRequests.unshift(request);
+    }
+
+    saveRequests();
+    renderPrintTable();
+    filterTable();
+
+    addModal.style.display = 'none';
+    alert(`✅ Print request ${document.getElementById('editRequestId').value ? 'updated' : 'added'} successfully!`);
+});
+
+// ────────────────────────────────────────────────
+// View Details
+// ────────────────────────────────────────────────
+function viewDetails(id) {
+    const req = printRequests.find(r => r.id === id);
+    if (!req) return alert("Request not found");
+
+    const dateTime = new Date(req.dateTime).toLocaleString('en-US', {dateStyle: 'full', timeStyle: 'short'});
+
+    document.getElementById('detailsContent').innerHTML = `
+        <p><strong>Request Type:</strong> ${req.requestType || 'N/A'}</p>
+        <p><strong>Member ID:</strong> ${req.memberId}</p>
+        <p><strong>Name:</strong> ${req.name}</p>
+        <p><strong>Date & Time Sent:</strong> ${dateTime}</p>
+        <p><strong>Purpose:</strong> ${req.purpose}</p>
+        <p><strong>Print Type:</strong> ${req.printType}</p>
+        <p><strong>Pages:</strong> ${req.pages || 'N/A'}</p>
+        <p><strong>Status:</strong> ${req.status}</p>
+    `;
+
+    document.getElementById('docPreview').textContent = req.documents;
+
+    document.getElementById('markDoneBtn').style.display = req.status === 'Pending' ? 'block' : 'none';
+    document.getElementById('markDoneBtn').onclick = () => markDone(id);
+
+    document.getElementById('downloadBtn').onclick = () => downloadDocuments(req);
+
+    viewModal.style.display = 'flex';
+}
+
+// ────────────────────────────────────────────────
+// Mark as Done
+// ────────────────────────────────────────────────
+function markDone(id) {
+    const req = printRequests.find(r => r.id === id);
+    if (req) req.status = 'Finished';
+
+    saveRequests();
+    viewModal.style.display = 'none';
+    renderPrintTable();
+    filterTable();
+
+    alert("✅ Request marked as finished!");
+}
+
+// ────────────────────────────────────────────────
+// Delete Request
+// ────────────────────────────────────────────────
+function deleteRequest(id) {
+    if (!confirm("Are you sure you want to delete this request?")) return;
+
+    printRequests = printRequests.filter(r => r.id !== id);
+    saveRequests();
+    renderPrintTable();
+    filterTable();
+
+    alert("✅ Request deleted successfully.");
+}
+
+// ────────────────────────────────────────────────
+// Download Documents
+// ────────────────────────────────────────────────
+function downloadDocuments(req) {
+    const content = `Documents for ${req.name} (${req.memberId}):\n\n${req.documents}\n\nRequest Type: ${req.requestType}\nPurpose: ${req.purpose}\nPrint Type: ${req.printType}\nPages: ${req.pages}`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${req.name.replace(/\s+/g, '_')}_${req.documents}`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ────────────────────────────────────────────────
+// Initial load
+// ────────────────────────────────────────────────
+renderPrintTable();
+filterTable();
+</script>
+</body>
+</html>
