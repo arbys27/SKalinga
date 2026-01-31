@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKalinga - Events Management</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Your shared dashboard CSS -->
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+
+    <!-- Page-specific styles -->
+    
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo-section">
+            <div class="logo-content">
+                <div class="logo-icons-group">
+                    <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo">
+                    <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo">
+                </div>
+                <div class="logo-text">
+                    <h1>SKalinga Admin</h1>
+                    <p>San Antonio</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="nav-section">
+            <div class="nav-group">
+                <div class="nav-group-title">Overview</div>
+                <a href="admin-dashboard.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="admin-dashboard.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    Analytics
+                </a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Management</div>
+                <a href="youth-registry.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Youth Registry
+                </a>
+                <a href="dashboard-events.html" class="nav-item active">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    Events
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    </svg>
+                    Resources
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                    Printing
+                </a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Emergency</div>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    Incidents
+                    <span class="nav-badge">7</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    Health Services
+                </a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">System</div>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    Settings
+                </a>
+                <a href="api/logout.php" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-left">
+                <h2>Events Management</h2>
+                <p id="dashboard-datetime">Loading date and time...</p>
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="user-avatar">NM</div>
+                    <div class="user-info">
+                        <h4>Noel Marcellana</h4>
+                        <p>SK Official</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="search-filter-bar">
+                <div class="search-group">
+                    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search by title, location...">
+                    <select id="filterStatus" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="Upcoming">Upcoming</option>
+                        <option value="Ongoing">Ongoing</option>
+                        <option value="Past">Past</option>
+                    </select>
+                </div>
+                <button class="btn-add-event" id="addEventBtn">
+                    <i class="fas fa-plus"></i> Add New Event
+                </button>
+            </div>
+
+            <table class="admin-table" id="eventsTable">
+                <thead>
+                    <tr>
+                        <th>Event ID</th>
+                        <th>Title</th>
+                        <th>Date & Time</th>
+                        <th>Location</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Registration Link</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="eventsTableBody"></tbody>
+            </table>
+        </div>
+    </main>
+
+</div>
+
+<!-- Add/Edit Event Modal -->
+<div class="modal" id="addEventModal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeEventModal">×</span>
+        <h2 id="eventModalTitle">Add New Event</h2>
+
+        <form id="eventForm">
+            <input type="hidden" id="editEventId">
+
+            <div class="form-group">
+                <label for="eventTitle">Event Title *</label>
+                <input type="text" id="eventTitle" placeholder="Youth Leadership Summit" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="eventDate">Date *</label>
+                    <input type="date" id="eventDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventTime">Time *</label>
+                    <input type="time" id="eventTime" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="eventLocation">Location *</label>
+                <input type="text" id="eventLocation" placeholder="Barangay Hall, San Antonio" required>
+            </div>
+
+            <div class="form-group">
+                <label for="eventType">Event Type *</label>
+                <select id="eventType" required>
+                    <option value="" disabled selected>Select type</option>
+                    <option value="Training">Training / Seminar</option>
+                    <option value="Sports">Sports / Tournament</option>
+                    <option value="Cultural">Cultural / Festival</option>
+                    <option value="Community">Community Service</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="eventDescription">Description</label>
+                <textarea id="eventDescription" placeholder="Brief description of the event..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="registrationLink">Registration Link (Google Form or external)</label>
+                <input type="url" id="registrationLink" placeholder="https://forms.gle/xxxxxx">
+                <small style="color: #666; font-size: 13px;">Paste the Google Form link here so youth can register.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="eventStatus">Status</label>
+                <select id="eventStatus">
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Ongoing">Ongoing</option>
+                    <option value="Past">Past</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-submit">Save Event</button>
+        </form>
+    </div>
+</div>
+
+<!-- View Event Modal -->
+<div class="modal" id="viewEventModal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeViewEvent">×</span>
+        <h2>Event Details</h2>
+
+        <div id="eventDetails" class="event-details"></div>
+
+        <div style="margin-top: 24px;">
+            <a id="viewRegLink" href="#" target="_blank" class="btn-add-event" style="display: inline-flex; text-decoration: none;">
+                <i class="fas fa-external-link-alt"></i> Open Registration Form
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// ────────────────────────────────────────────────
+// Live date & time
+// ────────────────────────────────────────────────
+function updateDashboardDateTime() {
+    const el = document.getElementById('dashboard-datetime');
+    if (!el) return;
+    const now = new Date();
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    el.textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()} • ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+}
+setInterval(updateDashboardDateTime, 1000);
+updateDashboardDateTime();
+
+// ────────────────────────────────────────────────
+// Data & Storage
+// ────────────────────────────────────────────────
+let eventsData = JSON.parse(localStorage.getItem('skalingaEvents')) || [];
+
+// ────────────────────────────────────────────────
+// Generate incremental Event ID (EVT-YYYY-NNNN)
+// ────────────────────────────────────────────────
+function generateEventId() {
+    const year = new Date().getFullYear();
+    const thisYearEvents = eventsData.filter(e => e.id.startsWith(`EVT-${year}-`));
+    const highest = thisYearEvents.length > 0 
+        ? Math.max(...thisYearEvents.map(e => parseInt(e.id.split('-')[2])))
+        : 0;
+    const nextNum = String(highest + 1).padStart(4, '0');
+    return `EVT-${year}-${nextNum}`;
+}
+
+// Save to localStorage
+function saveEvents() {
+    localStorage.setItem('skalingaEvents', JSON.stringify(eventsData));
+}
+
+// Render table
+function renderEventsTable(filtered = eventsData) {
+    const tbody = document.getElementById('eventsTableBody');
+    tbody.innerHTML = '';
+
+    filtered.forEach(event => {
+        const dateTime = new Date(`${event.date}T${event.time}`);
+        const statusClass = {
+            Upcoming: 'status-upcoming',
+            Ongoing: 'status-ongoing',
+            Past: 'status-past'
+        }[event.status] || '';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${event.id}</td>
+            <td style="font-weight: 600;">${event.title}</td>
+            <td>${dateTime.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'})} • ${event.time}</td>
+            <td>${event.location}</td>
+            <td>${event.type}</td>
+            <td><span class="status-badge ${statusClass}">${event.status}</span></td>
+            <td>
+                ${event.regLink ? `<a href="${event.regLink}" target="_blank" style="color:#228B57;">Google Form</a>` : '—'}
+            </td>
+            <td class="action-buttons">
+                <button class="action-btn btn-view" onclick="viewEvent('${event.id}')" title="View Details">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="action-btn btn-edit" onclick="editEvent('${event.id}')" title="Edit Event">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn btn-delete" onclick="deleteEvent('${event.id}')" title="Delete Event">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// ────────────────────────────────────────────────
+// Search & Filter
+// ────────────────────────────────────────────────
+function filterEvents() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const status = document.getElementById('filterStatus').value;
+
+    const filtered = eventsData.filter(e => {
+        const text = `${e.id} ${e.title} ${e.location} ${e.type}`.toLowerCase();
+        return text.includes(search) && (!status || e.status === status);
+    });
+
+    renderEventsTable(filtered);
+}
+
+document.getElementById('searchInput')?.addEventListener('input', filterEvents);
+document.getElementById('filterStatus')?.addEventListener('change', filterEvents);
+
+// ────────────────────────────────────────────────
+// Modal Controls
+// ────────────────────────────────────────────────
+const addEventModal = document.getElementById('addEventModal');
+const viewEventModal = document.getElementById('viewEventModal');
+
+document.getElementById('addEventBtn').onclick = () => {
+    document.getElementById('eventModalTitle').textContent = "Add New Event";
+    document.getElementById('eventForm').reset();
+    document.getElementById('editEventId').value = "";
+    addEventModal.style.display = 'flex';
+};
+
+document.getElementById('closeEventModal').onclick = () => addEventModal.style.display = 'none';
+document.getElementById('closeViewEvent').onclick = () => viewEventModal.style.display = 'none';
+
+window.onclick = e => {
+    if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+};
+
+// ────────────────────────────────────────────────
+// Save / Edit Event
+// ────────────────────────────────────────────────
+document.getElementById('eventForm').addEventListener('submit', e => {
+    e.preventDefault();
+
+    const id = document.getElementById('editEventId').value || generateEventId();
+
+    const event = {
+        id,
+        title: document.getElementById('eventTitle').value.trim(),
+        date: document.getElementById('eventDate').value,
+        time: document.getElementById('eventTime').value,
+        location: document.getElementById('eventLocation').value.trim(),
+        type: document.getElementById('eventType').value,
+        description: document.getElementById('eventDescription').value.trim(),
+        regLink: document.getElementById('registrationLink').value.trim(),
+        status: document.getElementById('eventStatus').value
+    };
+
+    if (document.getElementById('editEventId').value) {
+        const index = eventsData.findIndex(e => e.id === id);
+        if (index !== -1) eventsData[index] = event;
+    } else {
+        eventsData.unshift(event);
+    }
+
+    saveEvents();
+    renderEventsTable();
+    filterEvents();
+
+    addEventModal.style.display = 'none';
+    document.getElementById('eventForm').reset();
+
+    alert(`Event ${document.getElementById('editEventId').value ? 'updated' : 'added'} successfully!`);
+});
+
+// ────────────────────────────────────────────────
+// Edit Event
+// ────────────────────────────────────────────────
+function editEvent(id) {
+    const event = eventsData.find(e => e.id === id);
+    if (!event) return alert("Event not found");
+
+    document.getElementById('eventModalTitle').textContent = "Edit Event";
+    document.getElementById('editEventId').value = event.id;
+
+    document.getElementById('eventTitle').value = event.title;
+    document.getElementById('eventDate').value = event.date;
+    document.getElementById('eventTime').value = event.time;
+    document.getElementById('eventLocation').value = event.location;
+    document.getElementById('eventType').value = event.type;
+    document.getElementById('eventDescription').value = event.description || '';
+    document.getElementById('registrationLink').value = event.regLink || '';
+    document.getElementById('eventStatus').value = event.status;
+
+    addEventModal.style.display = 'flex';
+}
+
+// ────────────────────────────────────────────────
+// Delete Event
+// ────────────────────────────────────────────────
+function deleteEvent(id) {
+    if (!confirm("Delete this event?")) return;
+
+    eventsData = eventsData.filter(e => e.id !== id);
+    saveEvents();
+    renderEventsTable();
+    filterEvents();
+}
+
+// ────────────────────────────────────────────────
+// View Event
+// ────────────────────────────────────────────────
+function viewEvent(id) {
+    const event = eventsData.find(e => e.id === id);
+    if (!event) return alert("Event not found");
+
+    const dateTime = new Date(`${event.date}T${event.time}`).toLocaleString('en-US', {
+        month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+    });
+
+    document.getElementById('eventDetails').innerHTML = `
+        <p><strong>Event ID:</strong> ${event.id}</p>
+        <p><strong>Title:</strong> ${event.title}</p>
+        <p><strong>Date & Time:</strong> ${dateTime}</p>
+        <p><strong>Location:</strong> ${event.location}</p>
+        <p><strong>Type:</strong> ${event.type}</p>
+        <p><strong>Status:</strong> ${event.status}</p>
+        <p><strong>Description:</strong> ${event.description || 'No description'}</p>
+        ${event.regLink ? `<p><strong>Registration Link:</strong> <a href="${event.regLink}" target="_blank">Open Google Form</a></p>` : ''}
+    `;
+
+    viewEventModal.style.display = 'flex';
+}
+
+// ────────────────────────────────────────────────
+// Initial load
+// ────────────────────────────────────────────────
+renderEventsTable();
+filterEvents();
+</script>
+</body>
+</html>
