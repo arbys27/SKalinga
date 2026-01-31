@@ -1,175 +1,1512 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SKalinga - My Profile</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKalinga - My Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="assets/css/global.css">
-  <link rel="stylesheet" href="assets/css/portal.css">
-  <link rel="stylesheet" href="assets/css/profile.css">
+    <link rel="stylesheet" href="assets/css/portal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="logo-area">
+                <div class="logo-icons-group">
+                    <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo">
+                    <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo">
+                </div>
+                <div class="logo-text">
+                    <h1>SKalinga</h1>
+                    <p>Youth Portal</p>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <a href="profile.html" class="user-badge">
+                    <div class="user-avatar">
+                        <img src="assets/images/default-avatar.png" alt="Profile" id="mini-avatar">
+                    </div>
+                    <span class="user-name" id="nav-user-name">Loading...</span>
+                </a>
+            </div>
+        </nav>
 
-<div class="app-container">
+        <!-- Profile Header Card -->
+        <section class="welcome-section profile-header-card">
+            <div class="welcome-content">
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar">
+                        <img src="assets/images/default-avatar.png" alt="Profile Photo" id="profile-avatar">
+                        <label for="avatar-upload" class="avatar-edit-btn">
+                            <i class="fas fa-camera"></i>
+                        </label>
+                        <input type="file" id="avatar-upload" accept="image/*" hidden>
+                    </div>
+                </div>
+                <div class="profile-info">
+                    <h2 id="profile-name">Loading...</h2>
+                    <p class="member-id">Member ID: <span id="member-id">Loading...</span></p>
+                    <div class="profile-status-badges">
+                        <div class="status-badge active">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            Active Member
+                        </div>
+                        <div class="status-badge">
+                            <i class="fas fa-birthday-cake"></i>
+                            <span id="profile-age">Loading...</span> years old
+                        </div>
+                        <div class="status-badge">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="profile-barangay">Loading...</span>
+                        </div>
+                        <div class="status-badge">
+                            <i class="fas fa-venus-mars"></i>
+                            <span id="profile-gender">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button class="action-btn secondary" id="view-id-btn">
+                        <i class="fas fa-id-card"></i>
+                        Digital ID
+                    </button>
+                    <button class="action-btn primary" id="edit-profile-btn">
+                        <i class="fas fa-edit"></i>
+                        Edit Profile
+                    </button>
+                    <button class="action-btn danger" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </section>
 
-  <!-- Top Navigation – Centered with Larger Logos -->
-  <nav class="top-nav" style="padding: 24px 32px;">
-    <div class="logo-area" style="display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%;">
-      <!-- Left Logo – Larger -->
-      <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+            <!-- Personal Information -->
+            <div class="services-card">
+                <div class="card-header">
+                    <h3>Personal Information</h3>
+                    <p>Your personal details and contact information</p>
+                </div>
+                <div class="personal-info-grid">
+                    <div class="info-field">
+                        <label class="field-label">First Name</label>
+                        <div class="field-value" id="first-name">Loading...</div>
+                        <input type="text" class="field-input" id="first-name-input">
+                    </div>
+                    <div class="info-field">
+                        <label class="field-label">Last Name</label>
+                        <div class="field-value" id="last-name">Loading...</div>
+                        <input type="text" class="field-input" id="last-name-input">
+                    </div>
+                    <div class="info-field">
+                        <label class="field-label">Birthday</label>
+                        <div class="field-value" id="birthday">Loading...</div>
+                        <input type="date" class="field-input" id="birthday-input">
+                    </div>
+                    <div class="info-field">
+                        <label class="field-label">Age</label>
+                        <div class="field-value" id="age">Loading...</div>
+                    </div>
+                    <div class="info-field">
+                        <label class="field-label">Gender</label>
+                        <div class="field-value" id="gender">Loading...</div>
+                        <select class="field-input" id="gender-input">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="info-field">
+                        <label class="field-label">Contact Number</label>
+                        <div class="field-value" id="contact">Loading...</div>
+                        <input type="tel" class="field-input" id="contact-input" pattern="[0-9]{11}">
+                    </div>
+                    <div class="info-field full-width">
+                        <label class="field-label">Email Address</label>
+                        <div class="field-value" id="email">Loading...</div>
+                        <div class="email-edit-container">
+                            <input type="email" class="field-input" id="email-input">
+                            <button class="verify-email-btn" id="verify-email-btn">
+                                <i class="fas fa-shield-alt"></i>
+                                Verify Email
+                            </button>
+                        </div>
+                    </div>
+                    <div class="info-field full-width">
+                        <label class="field-label">Full Address</label>
+                        <div class="field-value" id="address">Loading...</div>
+                        <textarea class="field-input" id="address-input" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="edit-actions" id="edit-actions" style="display: none;">
+                    <button class="action-btn secondary" id="cancel-edit">Cancel</button>
+                    <button class="action-btn primary" id="save-changes">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </div>
 
-      <!-- Centered Title -->
-      <div class="logo-text" style="text-align: center;">
-        <h1 style="font-size: 40px; font-weight: 800; color: var(--primary-green); margin: 0; line-height: 1;">SKalinga</h1>
-        <p style="font-size: 16px; color: var(--text-gray); margin: 4px 0 0; font-weight: 500;">Youth Portal</p>
-      </div>
-
-      <!-- Right Logo – Larger -->
-      <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
-    </div>
-  </nav>
-
-  <!-- Profile Content -->
-  <main class="profile-main">
-    <div class="profile-card">
-      <div class="profile-header">
-        <div class="profile-picture-wrap">
-          <img src="assets/images/default-avatar.png" alt="Your Photo" id="profile-photo" class="profile-photo" />
-          <label for="photo-upload" class="photo-upload-btn">Change Photo</label>
-          <input type="file" id="photo-upload" accept="image/*" hidden />
+            <!-- Activity Summary -->
+            <div class="events-card activity-summary">
+                <div class="card-header">
+                    <h3>Activity Summary</h3>
+                    <p>Your engagement with SK programs</p>
+                </div>
+                <div class="activity-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="stat-value" id="events-joined">0</div>
+                        <div class="stat-label">Events Joined</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-value" id="borrow-requests">0</div>
+                        <div class="stat-label">Borrow Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
+                        <div class="stat-value" id="reports-submitted">0</div>
+                        <div class="stat-label">Reports Submitted</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <h1>Arby Barnuevo</h1>
-        <p class="member-id">Member ID: SK-2024-0789</p>
-      </div>
 
-      <form class="profile-form" id="profileForm">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="fullName">Full Name</label>
-            <input type="text" id="fullName" value="Arby Barnuevo" required />
-          </div>
-
-          <div class="form-group">
-            <label for="age">Age</label>
-            <input type="number" id="age" value="19" min="13" max="30" required />
-          </div>
-
-          <div class="form-group full-width">
-            <label for="barangay">Barangay</label>
-            <input type="text" id="barangay" value="Poblacion" required />
-          </div>
-
-          <div class="form-group">
-            <label for="contact">Contact Number</label>
-            <input type="tel" id="contact" value="09171234567" pattern="[0-9]{11}" required />
-          </div>
-
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" value="arby.barnuevo@example.com" required />
-          </div>
+        <!-- Digital Youth ID Modal -->
+        <div class="modal" id="digital-id-modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Digital Youth ID</h3>
+                    <button class="modal-close" id="close-modal">&times;</button>
+                </div>
+                <div class="id-card">
+                    <div class="id-header">
+                        <div class="id-logos">
+                            <img src="assets/images/sklogo.jpg" alt="SK Logo" class="id-logo">
+                        </div>
+                        <div class="id-title">
+                            <h4>SKalinga Youth</h4>
+                            <p>San Antonio Chapter</p>
+                        </div>
+                    </div>
+                    <div class="id-body">
+                        <img src="assets/images/default-avatar.png" alt="Photo" class="id-photo" id="id-avatar">
+                        <div class="id-details">
+                            <h5 id="id-name">Loading...</h5>
+                            <p>Member ID: <strong id="id-member-id">Loading...</strong></p>
+                            <p>Issued: January 2025</p>
+                        </div>
+                    </div>
+                    <div class="id-qr">
+                        <img id="qr-code" src="" alt="QR Code" class="qr-code">
+                        <p>Scan to verify membership</p>
+                    </div>
+                </div>
+                <button class="action-btn primary full-width" id="download-id">
+                    <i class="fas fa-download"></i>
+                    Download ID Card
+                </button>
+            </div>
         </div>
 
-        <div class="form-actions" style="margin-top: 16px; margin-bottom: 12px;">
-          <button type="button" class="btn secondary" onclick="window.history.back()">Back</button>
-          <button type="submit" class="btn primary">Save Changes</button>
-        </div>
-      </form>
-
-      <div class="digital-id-section" style="margin-top: 20px;">
-        <button type="button" class="btn primary" id="viewDigitalIdBtn">
-          View Digital ID (QR Code)
+        <!-- Floating Help Button -->
+        <button class="floating-help">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
         </button>
-        <button type="button" class="btn danger" onclick="logout()" style="margin-top: 8px;">
-          Logout
-        </button>
-      </div>
     </div>
-  </main>
 
-  <!-- Digital ID Modal -->
-  <div class="modal" id="digitalIdModal">
-    <div class="modal-content">
-      <span class="close-modal" id="closeModal">×</span>
-      <h2>Digital Youth ID</h2>
-      <div class="id-card-preview">
-        <div class="id-header">
-          <img src="assets/images/sklogo.jpg" alt="SK Logo" class="id-logo" />
-          <h3>SKalinga Youth</h3>
-          <p>San Antonio Chapter</p>
-        </div>
-        <div class="id-body">
-          <img src="assets/images/default-avatar.png" alt="Member Photo" class="id-photo" />
-          <div class="id-info">
-            <h4>Arby Barnuevo</h4>
-            <p class="id-number">Member ID: <strong>SK-2024-0789</strong></p>
-            <p class="id-date">Issued: January 2025</p>
-          </div>
-        </div>
-        <div class="qr-section">
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=SK-2024-0789-ArbyBarnuevo" alt="QR Code" class="qr-code" />
-          <p>Scan to verify membership</p>
-        </div>
-      </div>
-      <button class="btn primary" onclick="alert('Download feature coming soon!')">Download ID</button>
-    </div>
-  </div>
-
-</div>
-
-<script>
-  // Simple photo preview + modal toggle
-  document.addEventListener('DOMContentLoaded', () => {
-    const photoInput = document.getElementById('photo-upload');
-    const profilePhoto = document.getElementById('profile-photo');
-    const miniAvatar = document.getElementById('mini-avatar');
-
-    if (photoInput) {
-      photoInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            profilePhoto.src = ev.target.result;
-            if (miniAvatar) miniAvatar.src = ev.target.result;
-          };
-          reader.readAsDataURL(file);
+    <style>
+        /* Profile-specific styles */
+        .profile-header-card {
+            margin-bottom: 2rem;
         }
-      });
-    }
 
-    const modal = document.getElementById('digitalIdModal');
-    const btn = document.getElementById('viewDigitalIdBtn');
-    const close = document.getElementById('closeModal');
+        .welcome-content {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 2rem;
+            align-items: center;
+        }
 
-    if (btn && modal) {
-      btn.onclick = () => modal.style.display = 'flex';
-      close.onclick = () => modal.style.display = 'none';
-      window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-    }
+        .profile-avatar-section {
+            display: flex;
+            align-items: center;
+        }
 
-    const form = document.getElementById('profileForm');
-    if (form) {
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        alert('Profile updated! (Demo only — no real save yet)');
-      });
-    }
-  });
+        .profile-avatar {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid var(--white);
+            box-shadow: 0 8px 25px var(--card-shadow);
+        }
 
-  // Logout function (demo)
-  function logout() {
-    if (confirm("Are you sure you want to logout?")) {
-      localStorage.clear();
-      alert("You have been logged out!");
-      window.location.href = 'index.html';
-    }
-  }
-</script>
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-edit-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-green);
+            border: 3px solid var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--white);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(34, 139, 87, 0.3);
+        }
+
+        .avatar-edit-btn:hover {
+            transform: scale(1.1);
+            background: var(--secondary-green);
+        }
+
+        .profile-info h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .member-id {
+            font-size: 1rem;
+            color: var(--text-gray);
+            margin-bottom: 1rem;
+        }
+
+        .profile-status-badges {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .status-badge.active {
+            background: linear-gradient(135deg, var(--light-green), var(--primary-green));
+            color: var(--white);
+        }
+
+        .profile-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            justify-content: center;
+            min-width: 140px;
+        }
+
+        .action-btn.primary {
+            background: var(--primary-green);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(34, 139, 87, 0.3);
+        }
+
+        .action-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 139, 87, 0.4);
+        }
+
+        .action-btn.secondary {
+            background: var(--soft-gray);
+            color: var(--text-dark);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.danger {
+            background: var(--accent-pink);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+        }
+
+        .action-btn.danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
+        }
+
+        .personal-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .info-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .field-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .field-value {
+            padding: 0.75rem;
+            background: var(--soft-gray);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+
+        .field-input {
+            padding: 0.75rem;
+            border: 2px solid var(--primary-green);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: var(--white);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .field-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(34, 139, 87, 0.1);
+        }
+
+        .info-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .activity-summary .activity-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--soft-gray);
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-gray);
+            padding: 0.25rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--soft-gray);
+            color: var(--text-dark);
+        }
+
+        .id-card {
+            background: white;
+            background-image: url('assets/images/sklogo.jpg');
+            background-size: 400px;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-blend-mode: lighten;
+            border-radius: 12px;
+            padding: 2rem;
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
+            border: 3px solid var(--primary-green);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .id-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .id-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .id-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-green);
+        }
+
+        .id-title h4 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-dark);
+        }
+
+        .id-title p {
+            display: none;
+        }
+
+        .id-body {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .id-photo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-green);
+        }
+
+        .id-details h5 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem 0;
+            color: var(--text-dark);
+        }
+
+        .id-details p {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin: 0.25rem 0;
+            color: var(--text-dark);
+        }
+
+        .id-qr {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .id-qr p {
+            color: var(--text-dark);
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+
+        .qr-code {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+        }
+
+        .action-btn.full-width {
+            width: 100%;
+        }
+
+        /* Edit mode styles */
+        .edit-mode .field-value {
+            display: none;
+        }
+
+        .edit-mode .field-input {
+            display: block;
+        }
+
+        .edit-mode .verify-email-btn {
+            display: inline-flex;
+        }
+
+        /* Email verification styles */
+        .email-edit-container {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .email-edit-container .field-input {
+            flex: 1;
+        }
+
+        .verify-email-btn {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .verify-email-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+        }
+
+        .verify-email-btn.verified {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            display: inline-flex;
+        }
+
+        .verify-email-btn.verified i {
+            color: #00f2fe;
+        }
+
+        /* OTP Modal */
+        .otp-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+        }
+
+        .otp-content {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .otp-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .otp-header h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            color: var(--text-dark);
+        }
+
+        .otp-header p {
+            color: var(--text-gray);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .otp-input {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+
+        .otp-digit {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--soft-gray);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            background: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .otp-digit:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(34, 139, 87, 0.1);
+        }
+
+        .otp-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .otp-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .otp-btn.primary {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+
+        .otp-btn.secondary {
+            background: var(--soft-gray);
+            color: var(--text-dark);
+        }
+
+        .otp-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Success animation */
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .success-animation {
+            animation: successPulse 0.6s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .welcome-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 1.5rem;
+            }
+
+            .profile-actions {
+                flex-direction: row;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .personal-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-avatar {
+                width: 100px;
+                height: 100px;
+            }
+
+            .profile-info h2 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .profile-actions {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .modal-content {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+
+    <script>
+        // Global variables
+        let isEditMode = false;
+        let originalData = {};
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserProfile();
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Avatar upload
+            document.getElementById('avatar-upload').addEventListener('change', handleAvatarUpload);
+
+            // Edit profile
+            document.getElementById('edit-profile-btn').addEventListener('click', toggleEditMode);
+
+            // Cancel edit
+            document.getElementById('cancel-edit').addEventListener('click', cancelEdit);
+
+            // Save changes
+            document.getElementById('save-changes').addEventListener('click', saveChanges);
+
+            // Digital ID modal
+            document.getElementById('view-id-btn').addEventListener('click', showDigitalIdModal);
+            document.getElementById('close-modal').addEventListener('click', hideDigitalIdModal);
+
+            // Close modal on outside click
+            document.getElementById('digital-id-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'digital-id-modal') {
+                    hideDigitalIdModal();
+                }
+            });
+
+            // Download ID
+            document.getElementById('download-id').addEventListener('click', downloadDigitalId);
+
+            // Email verification
+            document.getElementById('verify-email-btn').addEventListener('click', showEmailVerification);
+        }
+
+        // Load user profile data
+        async function loadUserProfile() {
+            try {
+                const response = await fetch('api/get_user.php', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    populateProfileData(data);
+                    originalData = { ...data };
+                    updateNavUser(data);
+                    updateQRCode(data.member_id, data.name);
+                } else {
+                    alert('Failed to load profile: ' + data.message);
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                alert('Error loading profile data');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Populate profile data
+        function populateProfileData(data) {
+            // Header
+            document.getElementById('profile-name').textContent = data.name;
+            document.getElementById('member-id').textContent = data.member_id;
+            document.getElementById('profile-age').textContent = data.age;
+            document.getElementById('profile-barangay').textContent = data.barangay;
+            document.getElementById('profile-gender').textContent = data.gender;
+
+            // Personal info
+            document.getElementById('first-name').textContent = data.firstname;
+            document.getElementById('last-name').textContent = data.lastname;
+            document.getElementById('birthday').textContent = formatDate(data.birthday);
+            document.getElementById('age').textContent = data.age;
+            document.getElementById('gender').textContent = data.gender;
+            document.getElementById('contact').textContent = data.contact;
+            document.getElementById('email').textContent = data.email;
+            document.getElementById('address').textContent = data.address;
+
+            // Digital ID
+            document.getElementById('id-name').textContent = data.name;
+            document.getElementById('id-member-id').textContent = data.member_id;
+        }
+
+        // Update navigation user info
+        function updateNavUser(data) {
+            document.getElementById('nav-user-name').textContent = data.name;
+            document.getElementById('mini-avatar').src = 'assets/images/default-avatar.png'; // Could be updated with actual avatar
+        }
+
+        // Handle avatar upload
+        function handleAvatarUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('profile-avatar').src = ev.target.result;
+                    document.getElementById('id-avatar').src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Toggle edit mode
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const container = document.querySelector('.services-card');
+
+            if (isEditMode) {
+                container.classList.add('edit-mode');
+                document.getElementById('edit-actions').style.display = 'flex';
+                document.getElementById('edit-profile-btn').innerHTML = '<i class="fas fa-times"></i> Cancel Edit';
+                document.getElementById('edit-profile-btn').classList.replace('primary', 'secondary');
+
+                // Populate inputs
+                document.getElementById('first-name-input').value = originalData.firstname;
+                document.getElementById('last-name-input').value = originalData.lastname;
+                document.getElementById('birthday-input').value = originalData.birthday;
+                document.getElementById('gender-input').value = originalData.gender;
+                document.getElementById('contact-input').value = originalData.contact;
+                document.getElementById('email-input').value = originalData.email;
+                document.getElementById('address-input').value = originalData.address;
+            } else {
+                cancelEdit();
+            }
+        }
+
+        // Cancel edit
+        function cancelEdit() {
+            isEditMode = false;
+            const container = document.querySelector('.services-card');
+            container.classList.remove('edit-mode');
+            document.getElementById('edit-actions').style.display = 'none';
+            document.getElementById('edit-profile-btn').innerHTML = '<i class="fas fa-edit"></i> Edit Profile';
+            document.getElementById('edit-profile-btn').classList.replace('secondary', 'primary');
+        }
+
+        // Save changes
+        async function saveChanges() {
+            const formData = {
+                firstname: document.getElementById('first-name-input').value.trim(),
+                lastname: document.getElementById('last-name-input').value.trim(),
+                birthday: document.getElementById('birthday-input').value,
+                age: calculateAge(document.getElementById('birthday-input').value),
+                gender: document.getElementById('gender-input').value,
+                contact: document.getElementById('contact-input').value.trim(),
+                email: document.getElementById('email-input').value.trim(),
+                address: document.getElementById('address-input').value.trim(),
+                barangay: originalData.barangay // Keep existing barangay
+            };
+
+            // Update age display
+            document.getElementById('age').textContent = formData.age;
+
+            try {
+                const response = await fetch('api/update_user.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update original data and UI
+                    originalData = { ...originalData, ...formData };
+                    populateProfileData(originalData);
+
+                    // Success animation
+                    document.getElementById('save-changes').classList.add('success-animation');
+                    setTimeout(() => {
+                        document.getElementById('save-changes').classList.remove('success-animation');
+                    }, 600);
+
+                    // Exit edit mode
+                    setTimeout(() => {
+                        cancelEdit();
+                        showSuccessMessage('Profile updated successfully!');
+                    }, 1000);
+                } else {
+                    alert('Failed to update profile: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Error updating profile. Please try again.');
+            }
+        }
+
+        // Calculate age from birthday
+        function calculateAge(birthday) {
+            if (!birthday) return '';
+            const birthDate = new Date(birthday);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            return age;
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Show digital ID modal
+        function showDigitalIdModal() {
+            document.getElementById('digital-id-modal').style.display = 'flex';
+        }
+
+        // Hide digital ID modal
+        function hideDigitalIdModal() {
+            document.getElementById('digital-id-modal').style.display = 'none';
+        }
+
+        // Update QR code
+        function updateQRCode(memberId, name) {
+            const qrData = `${memberId}-${name.replace(/\s+/g, '')}`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrData)}`;
+            document.getElementById('qr-code').src = qrUrl;
+        }
+
+        // Download digital ID
+        function downloadDigitalId() {
+            // Create canvas for ID card (PORTRAIT orientation)
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas size (portrait: width x height) - Higher DPI
+            canvas.width = 600;
+            canvas.height = 950;
+
+            // White background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 600, 950);
+
+            // Add subtle San Antonio logo watermark background
+            const sanAntonioLogo = new Image();
+            sanAntonioLogo.crossOrigin = 'anonymous';
+            sanAntonioLogo.onload = function() {
+                try {
+                    ctx.globalAlpha = 0.06;
+                    ctx.drawImage(sanAntonioLogo, 350, 550, 220, 220);
+                    ctx.globalAlpha = 1.0;
+                } catch (e) {
+                    console.warn('Error drawing San Antonio watermark:', e);
+                }
+                drawCardContent();
+            };
+
+            sanAntonioLogo.onerror = function() {
+                console.warn('Failed to load San Antonio logo watermark');
+                drawCardContent();
+            };
+
+            sanAntonioLogo.src = 'assets/images/logosanantonio.jpg';
+
+            function drawCardContent() {
+                // Green border
+                ctx.fillStyle = '#228B57';
+                ctx.fillRect(0, 0, 600, 10);
+                ctx.fillRect(0, 940, 600, 10);
+                ctx.fillRect(0, 0, 10, 950);
+                ctx.fillRect(590, 0, 10, 950);
+
+                // Header section with background
+                ctx.fillStyle = '#f5f7fa';
+                ctx.fillRect(0, 10, 600, 140);
+
+                // Header divider line
+                ctx.strokeStyle = '#228B57';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(0, 150);
+                ctx.lineTo(600, 150);
+                ctx.stroke();
+
+                // Draw SK Logo in header (top center)
+                const skLogo = new Image();
+                skLogo.crossOrigin = 'anonymous';
+                skLogo.onload = function() {
+                    try {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(300, 50, 30, 0, Math.PI * 2);
+                        ctx.clip();
+                        ctx.drawImage(skLogo, 270, 20, 60, 60);
+                        ctx.restore();
+                    } catch (e) {
+                        console.warn('Error drawing SK logo:', e);
+                        drawSKFallback();
+                    }
+                    drawAfterLogos();
+                };
+
+                skLogo.onerror = function() {
+                    drawSKFallback();
+                    drawAfterLogos();
+                };
+
+                function drawSKFallback() {
+                    ctx.fillStyle = '#228B57';
+                    ctx.beginPath();
+                    ctx.arc(300, 50, 30, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 22px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('SK', 300, 50);
+                }
+
+                skLogo.src = 'assets/images/sklogo.jpg';
+
+                function drawAfterLogos() {
+                    // Header text (centered)
+                    ctx.fillStyle = '#228B57';
+                    ctx.font = 'bold 22px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('SKalinga Youth', 300, 95);
+
+                    ctx.fillStyle = '#333333';
+                    ctx.font = '12px Arial';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('San Antonio Chapter', 300, 125);
+
+                    // Main content area starts
+                    let currentY = 180;
+
+                    // Member name (centered, prominent)
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.font = 'bold 28px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText(originalData.name || 'Member Name', 300, currentY);
+
+                    currentY += 55;
+
+                    // Avatar circle (centered, larger)
+                    const avatarImg = document.getElementById('profile-avatar');
+                    if (avatarImg && avatarImg.src) {
+                        const avatar = new Image();
+                        avatar.crossOrigin = 'anonymous';
+                        avatar.onload = function() {
+                            try {
+                                const avatarX = 300;
+                                const avatarY = currentY;
+                                const avatarSize = 140;
+
+                                // Outer green border circle
+                                ctx.strokeStyle = '#228B57';
+                                ctx.lineWidth = 4;
+                                ctx.beginPath();
+                                ctx.arc(avatarX, avatarY, avatarSize / 2 + 3, 0, Math.PI * 2);
+                                ctx.stroke();
+
+                                // Avatar image clipped
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.arc(avatarX, avatarY, avatarSize / 2, 0, Math.PI * 2);
+                                ctx.clip();
+                                ctx.drawImage(avatar, avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize);
+                                ctx.restore();
+                            } catch (e) {
+                                console.warn('Error drawing avatar:', e);
+                            }
+                            drawMemberInfo();
+                        };
+
+                        avatar.onerror = function() {
+                            drawMemberInfo();
+                        };
+
+                        avatar.src = avatarImg.src;
+                    } else {
+                        drawMemberInfo();
+                    }
+
+                    function drawMemberInfo() {
+                        currentY += 100;
+
+                        // MEMBER ID label
+                        ctx.fillStyle = '#888888';
+                        ctx.font = 'bold 10px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'top';
+                        ctx.fillText('MEMBER ID', 300, currentY);
+
+                        currentY += 18;
+
+                        // Member ID value
+                        ctx.fillStyle = '#228B57';
+                        ctx.font = 'bold 20px Arial';
+                        ctx.textBaseline = 'top';
+                        ctx.fillText(originalData.member_id || 'SK-XXXX-XXXX', 300, currentY);
+
+                        currentY += 30;
+
+                        // Status
+                        ctx.fillStyle = '#666666';
+                        ctx.font = '11px Arial';
+                        ctx.textBaseline = 'top';
+                        ctx.fillText('Status: Active Member', 300, currentY);
+
+                        currentY += 20;
+
+                        // Issue date
+                        ctx.fillStyle = '#666666';
+                        ctx.font = '11px Arial';
+                        ctx.textBaseline = 'top';
+                        ctx.fillText('Issued: January 2025', 300, currentY);
+
+                        currentY += 40;
+
+                        // QR Code section
+                        const qrCodeImg = document.getElementById('qr-code');
+                        if (qrCodeImg && qrCodeImg.src) {
+                            const qrImg = new Image();
+                            qrImg.crossOrigin = 'anonymous';
+                            qrImg.onload = function() {
+                                try {
+                                    const qrX = 300;
+                                    const qrY = currentY;
+                                    const qrSize = 110;
+
+                                    // QR border
+                                    ctx.strokeStyle = '#228B57';
+                                    ctx.lineWidth = 2;
+                                    ctx.strokeRect(qrX - qrSize / 2 - 4, qrY - 4, qrSize + 8, qrSize + 8);
+
+                                    // QR image
+                                    ctx.drawImage(qrImg, qrX - qrSize / 2, qrY, qrSize, qrSize);
+                                } catch (e) {
+                                    console.warn('Error drawing QR code:', e);
+                                    drawQRPlaceholder();
+                                }
+                                finalizeDownload();
+                            };
+
+                            qrImg.onerror = function() {
+                                drawQRPlaceholder();
+                                finalizeDownload();
+                            };
+
+                            qrImg.src = qrCodeImg.src;
+                        } else {
+                            drawQRPlaceholder();
+                            finalizeDownload();
+                        }
+                    }
+
+                    function drawQRPlaceholder() {
+                        const qrX = 300;
+                        const qrY = currentY;
+                        const qrSize = 110;
+
+                        ctx.strokeStyle = '#228B57';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(qrX - qrSize / 2 - 4, qrY - 4, qrSize + 8, qrSize + 8);
+
+                        ctx.fillStyle = '#f0f0f0';
+                        ctx.fillRect(qrX - qrSize / 2, qrY, qrSize, qrSize);
+
+                        ctx.fillStyle = '#999999';
+                        ctx.font = '11px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('QR Code', qrX, qrY + qrSize / 2 - 10);
+                        ctx.fillText('Scan to verify', qrX, qrY + qrSize / 2 + 10);
+                    }
+
+                    function finalizeDownload() {
+                        // Footer section
+                        ctx.fillStyle = '#f5f7fa';
+                        ctx.fillRect(0, 780, 600, 160);
+
+                        ctx.strokeStyle = '#228B57';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(0, 780);
+                        ctx.lineTo(600, 780);
+                        ctx.stroke();
+
+                        // Footer text
+                        ctx.fillStyle = '#666666';
+                        ctx.font = '9px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'top';
+                        let footerY = 800;
+
+                        ctx.fillText('This ID serves as proof of active membership', 300, footerY);
+                        footerY += 14;
+                        ctx.fillText('in SKalinga Youth Program', 300, footerY);
+                        footerY += 18;
+
+                        ctx.fillText('For verification, visit www.skalingyouth.org', 300, footerY);
+                        footerY += 14;
+                        ctx.fillText('or scan the QR code above', 300, footerY);
+                        footerY += 20;
+
+                        ctx.fillStyle = '#999999';
+                        ctx.font = '8px Arial';
+                        ctx.fillText('© 2025 SKalinga Youth - San Antonio Chapter', 300, footerY);
+
+                        // Download the image
+                        const link = document.createElement('a');
+                        link.download = `SK-ID-${originalData.member_id || 'unknown'}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        showSuccessMessage('ID Card downloaded successfully!');
+                    }
+                }
+            }
+        }
+
+        // Show email verification modal
+        function showEmailVerification() {
+            const email = document.getElementById('email-input').value.trim();
+            if (!email) {
+                alert('Please enter an email address first.');
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'otp-modal';
+            modal.innerHTML = `
+                <div class="otp-content">
+                    <div class="otp-header">
+                        <h3>Verify Your Email</h3>
+                        <p>We've sent a 6-digit code to <strong>${email}</strong></p>
+                    </div>
+                    <div class="otp-input">
+                        <input type="text" class="otp-digit" maxlength="1" id="otp-1">
+                        <input type="text" class="otp-digit" maxlength="1" id="otp-2">
+                        <input type="text" class="otp-digit" maxlength="1" id="otp-3">
+                        <input type="text" class="otp-digit" maxlength="1" id="otp-4">
+                        <input type="text" class="otp-digit" maxlength="1" id="otp-5">
+                        <input type="text" class="otp-digit" maxlength="1" id="otp-6">
+                    </div>
+                    <div class="otp-actions">
+                        <button class="otp-btn secondary" onclick="closeOtpModal()">Cancel</button>
+                        <button class="otp-btn primary" onclick="verifyOtp()">Verify</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            document.getElementById('otp-1').focus();
+            setupOtpInputs();
+        }
+
+        function setupOtpInputs() {
+            const inputs = document.querySelectorAll('.otp-digit');
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    if (e.target.value && index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    }
+                });
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const paste = e.clipboardData.getData('text');
+                    const digits = paste.replace(/\D/g, '').slice(0, 6);
+                    digits.split('').forEach((digit, i) => {
+                        if (inputs[i]) inputs[i].value = digit;
+                    });
+                    if (digits.length === 6) inputs[5].focus();
+                });
+            });
+        }
+
+        function verifyOtp() {
+            const inputs = document.querySelectorAll('.otp-digit');
+            const otp = Array.from(inputs).map(input => input.value).join('');
+            if (otp.length !== 6) {
+                alert('Please enter the complete 6-digit code.');
+                return;
+            }
+            const verifyBtn = document.querySelector('.otp-btn.primary');
+            verifyBtn.textContent = 'Verifying...';
+            verifyBtn.disabled = true;
+            setTimeout(() => {
+                const emailBtn = document.getElementById('verify-email-btn');
+                emailBtn.classList.add('verified');
+                emailBtn.innerHTML = '<i class="fas fa-check"></i> Verified';
+                emailBtn.disabled = true;
+                closeOtpModal();
+                showSuccessMessage('Email verified successfully!');
+            }, 1500);
+        }
+
+        function closeOtpModal() {
+            const modal = document.querySelector('.otp-modal');
+            if (modal) modal.remove();
+        }
+
+        // Show success message
+        function showSuccessMessage(message) {
+            const successDiv = document.createElement('div');
+            successDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+                color: white;
+                padding: 16px 24px;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(34, 139, 87, 0.3);
+                z-index: 3000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease-out;
+            `;
+            successDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+
+            document.body.appendChild(successDiv);
+
+            setTimeout(() => {
+                successDiv.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    document.body.removeChild(successDiv);
+                }, 300);
+            }, 3000);
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                fetch('api/logout.php', {
+                    method: 'POST',
+                    credentials: 'include'
+                }).then(() => {
+                    window.location.href = 'index.html';
+                }).catch(() => {
+                    window.location.href = 'index.html';
+                });
+            }
+        }
+
+        // Add slide animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>

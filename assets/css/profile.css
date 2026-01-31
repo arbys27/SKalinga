@@ -1,257 +1,310 @@
-/* assets/css/profile.css */
+/* ==============================================
+   SKalinga Profile Page – Mobile-First Redesign
+   ============================================== */
 
-/* Main Content Wrapper */
-.profile-main {
-  padding: 0 24px 40px;
+:root {
+  --primary: #228B57;
+  --primary-dark: #1a6b43;
+  --light-bg: #f8fdfa;
+  --card-bg: white;
+  --text: #1a1a1a;
+  --muted: #666;
+  --border: #e0e0e0;
+  --shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
-/* Profile Card Container */
-.profile-card {
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--light-bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container { flex: 1; display: flex; flex-direction: column; }
+
+/* Top Bar */
+.top-bar {
   background: white;
-  border-radius: 24px;
-  padding: 40px;
-  box-shadow: 0 8px 32px rgba(93, 173, 226, 0.18);
-  max-width: 900px;
-  margin: 0 auto;
-  border: 2px solid rgba(168, 230, 207, 0.4);
+  padding: 16px 20px;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-/* Header with Avatar + Name + ID */
-.profile-header {
-  text-align: center;
-  margin-bottom: 40px;
+.logo-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 
-/* Avatar Container */
-.profile-picture-wrap {
-  position: relative;
-  width: 80px;               /* ← reduced from 160px */
-  height: 80px;
-  margin: 0 auto 16px;       /* less bottom margin */
-}
-
-/* Profile Photo */
-.profile-photo {
-  width: 100%;
-  height: 100%;
+.official-logo {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid white;   /* slightly thinner border */
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  border: 2px solid var(--primary);
 }
 
-/* Change Photo Button */
-.photo-upload-btn {
+.logo-text h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0;
+}
+
+.logo-text p {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* Profile Content */
+.profile-container {
+  flex: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+}
+
+/* Header Card */
+.profile-header {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.avatar-section { position: relative; }
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #e8f5e9;
+  box-shadow: var(--shadow);
+}
+
+.edit-avatar {
   position: absolute;
   bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.7);
+  right: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary);
   color: white;
-  font-size: 12px;
-  padding: 5px 12px;
-  border-radius: 16px;
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
   cursor: pointer;
-  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-/* Form Grid Layout */
+.profile-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 8px 0 4px;
+}
+
+.member-id {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.quick-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin: 12px 0;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0f9f4;
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-size: 0.95rem;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.status.active { background: #d4edda; color: #155724; }
+
+/* Actions */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn.primary    { background: var(--primary); color: white; }
+.btn.secondary  { background: #e8f5e9; color: var(--primary); }
+.btn.danger     { background: #ffebee; color: #c62828; }
+
+.btn:hover { transform: translateY(-1px); }
+
+/* Edit Form */
+.edit-form {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.edit-form h2 {
+  font-size: 1.4rem;
+  color: var(--primary);
+  margin-bottom: 20px;
+}
+
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
-.form-group.full-width {
-  grid-column: 1 / -1;
+@media (min-width: 768px) {
+  .form-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+.form-group.full-width { grid-column: 1 / -1; }
 
 .form-group label {
-  font-weight: 600;
-  margin-bottom: 8px;
   display: block;
-  color: #444;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: var(--muted);
 }
 
-.form-group input {
+.form-group input,
+.form-group textarea,
+.form-group select {
   width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  font-size: 15px;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
 }
 
-/* Form Action Buttons */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(34,139,87,0.15);
+}
+
 .form-actions {
   display: flex;
-  gap: 16px;
+  gap: 12px;
+  margin-top: 24px;
   justify-content: center;
-  margin-top: 32px;
 }
 
-/* Digital ID Section */
-.digital-id-section {
-  text-align: center;
-  margin-top: 48px;
-  padding-top: 32px;
-  border-top: 1px solid #eee;
+/* Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+  z-index: 1000;
 }
 
-/* Modal (Digital ID) */
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.75rem;
+  gap: 4px;
+  padding: 6px 12px;
+}
+
+.nav-item.active,
+.nav-item:hover { color: var(--primary); }
+
+.nav-item i { font-size: 1.5rem; }
+
+/* Modal */
 .modal {
   display: none;
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.6);
-  z-index: 2000;
   align-items: center;
   justify-content: center;
+  z-index: 1000;
+  padding: 20px;
 }
 
 .modal-content {
   background: white;
   border-radius: 20px;
   padding: 32px;
-  max-width: 500px;
-  width: 90%;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
   position: relative;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.3);
 }
 
 .close-modal {
   position: absolute;
   top: 16px;
-  right: 24px;
-  font-size: 32px;
+  right: 20px;
+  font-size: 2rem;
   cursor: pointer;
-  color: #777;
+  color: #999;
 }
 
-.close-modal:hover {
-  color: #000;
-}
-
-/* ID Card Preview Inside Modal */
-.id-card-preview {
-  background: linear-gradient(135deg, #f8f9fa, #ffffff);
-  border-radius: 16px;
-  padding: 24px;
-  border: 2px solid var(--light-green);
-  text-align: center;
-}
-
-.id-header {
-  margin-bottom: 20px;
-}
-
-.id-header img.id-logo {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  margin-bottom: 8px;
-}
-
-.id-body {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-bottom: 24px;
-  justify-content: center;
-}
-
-/* ID Photo (smaller now) */
-.id-photo {
-  width: 90px;               /* ← reduced from 120px */
-  height: 90px;
-  border-radius: 12px;
-  object-fit: cover;
-  border: 4px solid white;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-}
-
-.id-info h4 {
-  font-size: 22px;
-  margin-bottom: 8px;
-}
-
-.id-number {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--primary-green);
-}
-
-.qr-section {
-  margin-top: 20px;
-}
-
-.qr-code {
-  width: 180px;
-  height: 180px;
-  margin: 16px auto;
-  display: block;
-}
-
-/* Logout button in digital-id-section */
-.digital-id-section .btn.danger {
-  background: #e74c3c;               /* red danger color */
-  color: white;
-  margin-top: 16px;                  /* space between View Digital ID and Logout */
-  width: 100%;                       /* full width for emphasis */
-  max-width: 300px;
-  margin-left: auto;
-  margin-right: auto;
-  display: block;
-}
-
-.digital-id-section .btn.danger:hover {
-  background: #c0392b;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
-}
-
-/* Tighter spacing for buttons */
-.form-actions {
-  margin-top: 16px !important;
-  margin-bottom: 12px !important;
-}
-
-.digital-id-section {
-  margin-top: 20px !important;
-}
-
-.digital-id-section .btn {
-  margin-top: 8px !important; /* very small gap between View Digital ID and Logout */
-}
-
-.top-nav .official-logo {
-  width: 82px;
-  height: 82px;
-}
-.top-nav .logo-text h1 {
-  font-size: 82px;
-}
-
-.top-nav {
-  padding: 28px 32px !important; /* more breathing room */
-}
-
-.logo-area {
-  gap: 32px !important; /* space between logos and title */
-}
-
-.logo-area .official-logo {
-  width: 60px !important;
-  height: 60px !important;
-  border: 4px solid white !important;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important;
-}
-
-.logo-text h1 {
-  font-size: 40px !important;
-  margin: 0 !important;
-}
-
-.logo-text p {
-  font-size: 16px !important;
-  margin-top: 4px !important;
+/* Responsive */
+@media (max-width: 480px) {
+  .profile-container { padding: 16px; }
+  .profile-header { padding: 20px; }
 }
