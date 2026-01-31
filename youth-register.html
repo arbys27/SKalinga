@@ -50,7 +50,7 @@
     <h1>Create Your Account</h1>
     <div class="subtitle">Join the SK youth movement today</div>
 
-    <form action="youth-portal.html" method="get" id="registerForm">
+    <form action="api/register.php" method="post" id="registerForm">
 
       <div class="form-row">
     <div class="form-group half">
@@ -139,6 +139,7 @@
   const submitBtn = document.getElementById('submitBtn');
   const password = document.getElementById('password');
   const confirmPassword = document.getElementById('confirm-password');
+  const registerForm = document.getElementById('registerForm');
 
   function checkFormValidity() {
     const passwordsMatch = password.value === confirmPassword.value && password.value.length >= 8;
@@ -182,25 +183,71 @@
   // Real-time password match feedback
   const warning = document.getElementById('password-warning');
 
-function checkFormValidity() {
-  const passwordsMatch = password.value === confirmPassword.value;
-  const strongEnough = password.value.length >= 8;
+  function checkFormValidity() {
+    const passwordsMatch = password.value === confirmPassword.value;
+    const strongEnough = password.value.length >= 8;
 
-  if (!passwordsMatch && confirmPassword.value.length > 0) {
-    warning.style.display = "block";
-    confirmPassword.classList.add("error");
-  } else {
-    warning.style.display = "none";
-    confirmPassword.classList.remove("error");
+    if (!passwordsMatch && confirmPassword.value.length > 0) {
+      warning.style.display = "block";
+      confirmPassword.classList.add("error");
+    } else {
+      warning.style.display = "none";
+      confirmPassword.classList.remove("error");
+    }
+
+    submitBtn.disabled = !privacy.checked || !passwordsMatch || !strongEnough;
   }
 
-  submitBtn.disabled = !privacy.checked || !passwordsMatch || !strongEnough;
-}
+  password.addEventListener('input', checkFormValidity);
+  confirmPassword.addEventListener('input', checkFormValidity);
+  privacy.addEventListener('change', checkFormValidity);
 
-password.addEventListener('input', checkFormValidity);
-confirmPassword.addEventListener('input', checkFormValidity);
-privacy.addEventListener('change', checkFormValidity);
+  // Handle form submission with AJAX
+  registerForm.addEventListener('submit', function(e) {
+    e.preventDefault();
 
+    // Disable submit button to prevent double submission
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating Account...';
+
+    // Create FormData object
+    const formData = new FormData(this);
+
+    // Send AJAX request
+    fetch('api/register.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Registration successful
+        alert('🎉 Registration successful! Your Member ID is: ' + data.member_id + '\n\nPlease login to access your account.');
+
+        // Redirect to login page for user to login manually
+        window.location.href = 'index.html';
+      } else {
+        // Registration failed
+        let errorMessage = data.message;
+        if (data.errors && data.errors.length > 0) {
+          errorMessage += '\n\nErrors:\n' + data.errors.join('\n');
+        }
+        alert('❌ ' + errorMessage);
+
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Account';
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('❌ An error occurred. Please try again.');
+
+      // Re-enable submit button
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create Account';
+    });
+  });
 </script>
 
 </body>
