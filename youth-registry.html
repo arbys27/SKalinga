@@ -279,13 +279,9 @@
                 </div>
             </div>
             <div class="qr-section">
-                <img id="previewQRImg" src="" alt="QR Code" class="qr-code" />
+                <div id="previewQRImg" class="qr-code"></div>
             </div>
         </div>
-
-        <button class="btn-print" onclick="window.print()">
-            <i class="fas fa-print"></i> Print ID Card
-        </button>
     </div>
 </div>
 
@@ -313,13 +309,9 @@
                 </div>
             </div>
             <div class="qr-section">
-                <img id="viewQRImg" src="" alt="QR Code" class="qr-code" />
+                <div id="viewQRImg" class="qr-code"></div>
             </div>
         </div>
-
-        <button class="btn-print" onclick="window.print()">
-            <i class="fas fa-print"></i> Print Full Details & ID
-        </button>
     </div>
 </div>
 
@@ -587,7 +579,12 @@ function viewYouth(id) {
     document.getElementById('viewDate').textContent = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
     const qrData = `${youth.id}-${youth.first}${youth.last}`.replace(/\s+/g, '');
-    document.getElementById('viewQRImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrData)}`;
+    document.getElementById('viewQRImg').innerHTML = '';
+    new QRCode(document.getElementById('viewQRImg'), {
+        text: qrData,
+        width: 128,
+        height: 128
+    });
 
     viewModal.style.display = 'flex';
 }
@@ -601,7 +598,12 @@ function showIdPreview(youth) {
     document.getElementById('previewDate').textContent = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
     const qrData = `${youth.id}-${youth.first}${youth.last}`.replace(/\s+/g, '');
-    document.getElementById('previewQRImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrData)}`;
+    document.getElementById('previewQRImg').innerHTML = '';
+    new QRCode(document.getElementById('previewQRImg'), {
+        text: qrData,
+        width: 128,
+        height: 128
+    });
 
     idPreview.style.display = 'flex';
 }
