@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKalinga - Youth Registry</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- QR Code library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+    <!-- Your shared dashboard CSS -->
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+
+    
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo-section">
+            <div class="logo-content">
+                <div class="logo-icons-group">
+                    <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo">
+                    <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo">
+                </div>
+                <div class="logo-text">
+                    <h1>SKalinga Admin</h1>
+                    <p>San Antonio</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="nav-section">
+            <div class="nav-group">
+                <div class="nav-group-title">Overview</div>
+                <a href="admin-dashboard.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    Analytics
+                </a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Management</div>
+                <a href="youth-registry.html" class="nav-item active">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Youth Registry
+                </a>
+                <a href="admin-events.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    Events
+                    <span class="nav-badge">3</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    </svg>
+                    Resources
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                    Printing
+                </a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Emergency</div>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    Incidents
+                    <span class="nav-badge">7</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    Health Services
+                </a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">System</div>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    Settings
+                </a>
+                <a href="api/logout.php" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-left">
+                <h2>Youth Registry</h2>
+                <p id="dashboard-datetime">Loading date and time...</p>
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="user-avatar">NM</div>
+                    <div class="user-info">
+                        <h4>Noel Marcellana</h4>
+                        <p>SK Official</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="search-filter-bar">
+                <div class="search-group">
+                    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search by name, ID, address...">
+                    <select id="filterBarangay" class="filter-select">
+                        <option value="">All Barangays</option>
+                        <option value="Poblacion">Poblacion</option>
+                        <option value="San Antonio">San Antonio</option>
+                        <option value="Binan">Binan</option>
+                    </select>
+                </div>
+                <button class="btn-add-youth" id="addYouthBtn">
+                    <i class="fas fa-plus"></i> Register Youth
+                </button>
+            </div>
+
+            <table class="admin-table" id="youthTable">
+                <thead>
+                    <tr>
+                        <th>Member ID</th>
+                        <th>Full Name</th>
+                        <th>Contact Number</th>
+                        <th>Full Address</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="youthTableBody"></tbody>
+            </table>
+        </div>
+    </main>
+
+</div>
+
+<!-- Add/Edit Youth Modal -->
+<div class="modal" id="addYouthModal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeAddModal">×</span>
+        <h2 id="modalTitle">Register New Youth Member</h2>
+        
+        <form id="addYouthForm">
+            <input type="hidden" id="editId">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="firstName">First Name *</label>
+                    <input type="text" id="firstName" placeholder="Juan" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Last Name *</label>
+                    <input type="text" id="lastName" placeholder="Dela Cruz" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="birthday">Birthday *</label>
+                    <input type="date" id="birthday" required>
+                </div>
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" min="13" max="35" placeholder="Auto-calculated" readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="gender">Gender *</label>
+                <select id="gender" required>
+                    <option value="" disabled selected>Select gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Full Address *</label>
+                <input type="text" id="address" placeholder="1111 Avocado St. Garcia Subd. Brgy. San Antonio, Binan, Laguna" required>
+            </div>
+
+            <div class="form-group">
+                <label for="contact">Contact Number *</label>
+                <input type="tel" id="contact" placeholder="09123456789" pattern="[0-9]{11}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" placeholder="juan@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Create Password *</label>
+                <input type="password" id="password" placeholder="At least 8 characters" minlength="8">
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password *</label>
+                <input type="password" id="confirmPassword" placeholder="Re-type password">
+                <small id="passwordWarning" class="password-warning">⚠ Passwords do not match</small>
+            </div>
+
+            <div class="form-group privacy">
+                <input type="checkbox" id="privacyConsent" required>
+                <label for="privacyConsent">
+                    I agree to the <a href="#" target="_blank">Data Privacy Policy</a> and consent to processing of personal information.
+                </label>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn" disabled>Register Youth Member</button>
+        </form>
+    </div>
+</div>
+
+<!-- Digital Youth ID Preview Modal -->
+<div class="modal" id="idPreviewModal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeIdPreview">×</span>
+        <h2>Digital Youth ID Generated</h2>
+        <p>Print or save this ID for the member.</p>
+
+        <div class="id-card-preview">
+            <div class="id-header">
+                <img src="assets/images/sklogo.jpg" alt="SK Logo" class="id-logo" />
+                <h3>SKalinga Youth</h3>
+                <p>San Antonio Chapter</p>
+            </div>
+            <div class="id-body">
+                <img src="assets/images/default-avatar.png" alt="Member Photo" class="id-photo" />
+                <div class="id-info">
+                    <h4 id="previewName">New Member</h4>
+                    <p class="id-number">Member ID: <strong id="previewId">SK-XXXX-XXXX</strong></p>
+                    <p class="id-date">Issued: <span id="previewDate"></span></p>
+                </div>
+            </div>
+            <div class="qr-section">
+                <img id="previewQRImg" src="" alt="QR Code" class="qr-code" />
+            </div>
+        </div>
+
+        <button class="btn-print" onclick="window.print()">
+            <i class="fas fa-print"></i> Print ID Card
+        </button>
+    </div>
+</div>
+
+<!-- View Youth Detail Modal -->
+<div class="modal" id="viewYouthModal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeViewModal">×</span>
+        <h2>Youth Member Full Details</h2>
+
+        <div id="viewPersonalInfo" style="margin-bottom: 32px; line-height: 1.8;"></div>
+
+        <h3>Digital Youth ID</h3>
+        <div class="id-card-preview">
+            <div class="id-header">
+                <img src="assets/images/sklogo.jpg" alt="SK Logo" class="id-logo" />
+                <h3>SKalinga Youth</h3>
+                <p>San Antonio Chapter</p>
+            </div>
+            <div class="id-body">
+                <img src="assets/images/default-avatar.png" alt="Member Photo" class="id-photo" />
+                <div class="id-info">
+                    <h4 id="viewName"></h4>
+                    <p class="id-number">Member ID: <strong id="viewId"></strong></p>
+                    <p class="id-date">Issued: <span id="viewDate"></span></p>
+                </div>
+            </div>
+            <div class="qr-section">
+                <img id="viewQRImg" src="" alt="QR Code" class="qr-code" />
+            </div>
+        </div>
+
+        <button class="btn-print" onclick="window.print()">
+            <i class="fas fa-print"></i> Print Full Details & ID
+        </button>
+    </div>
+</div>
+
+<script>
+// ────────────────────────────────────────────────
+// Live Date & Time
+// ────────────────────────────────────────────────
+function updateDashboardDateTime() {
+    const el = document.getElementById('dashboard-datetime');
+    if (!el) return;
+    const now = new Date();
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const day = days[now.getDay()];
+    const month = months[now.getMonth()];
+    const date = now.getDate();
+    const year = now.getFullYear();
+    let hour = now.getHours();
+    let min = now.getMinutes();
+    let ampm = 'AM';
+    if (hour >= 12) { ampm = 'PM'; if (hour > 12) hour -= 12; }
+    if (hour === 0) hour = 12;
+    min = min < 10 ? '0' + min : min;
+    el.textContent = `${day}, ${month} ${date}, ${year} • ${hour}:${min} ${ampm}`;
+}
+setInterval(updateDashboardDateTime, 1000);
+updateDashboardDateTime();
+
+// ────────────────────────────────────────────────
+// Data Management
+// ────────────────────────────────────────────────
+let youthData = JSON.parse(localStorage.getItem('youthData')) || [
+    { 
+        id: "SK-2024-0789", 
+        first: "Arby", 
+        last: "Barnuevo", 
+        contact: "09171234567", 
+        address: "123 Main St. Poblacion, San Antonio, Laguna", 
+        barangay: "Poblacion" 
+    }
+];
+
+function saveData() {
+    localStorage.setItem('youthData', JSON.stringify(youthData));
+}
+
+function renderYouthTable(filtered = youthData) {
+    const tbody = document.getElementById('youthTableBody');
+    tbody.innerHTML = '';
+
+    filtered.forEach(youth => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${youth.id}</td>
+            <td style="font-weight: 600;">${youth.first} ${youth.last}</td>
+            <td>${youth.contact}</td>
+            <td class="address-column" title="${youth.address || 'N/A'}">${youth.address || 'N/A'}</td>
+            <td class="action-buttons">
+                <button class="action-btn btn-view" onclick="viewYouth('${youth.id}')" title="View Full Details & ID">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="action-btn btn-edit" onclick="editYouth('${youth.id}')" title="Edit Member">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn btn-delete" onclick="deleteYouth('${youth.id}')" title="Delete Member">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// ────────────────────────────────────────────────
+// Search & Filter (now includes full address)
+// ────────────────────────────────────────────────
+function filterTable() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const barangay = document.getElementById('filterBarangay').value;
+
+    const filtered = youthData.filter(y => {
+        const text = `${y.first} ${y.last} ${y.id} ${y.address || ''} ${y.barangay || ''}`.toLowerCase();
+        return text.includes(search) && (!barangay || y.barangay === barangay);
+    });
+
+    renderYouthTable(filtered);
+}
+
+document.getElementById('searchInput')?.addEventListener('input', filterTable);
+document.getElementById('filterBarangay')?.addEventListener('change', filterTable);
+
+// ────────────────────────────────────────────────
+// Modal Controls
+// ────────────────────────────────────────────────
+const addModal    = document.getElementById('addYouthModal');
+const idPreview   = document.getElementById('idPreviewModal');
+const viewModal   = document.getElementById('viewYouthModal');
+
+document.getElementById('addYouthBtn').onclick = () => {
+    document.getElementById('modalTitle').textContent = "Register New Youth Member";
+    document.getElementById('submitBtn').textContent = "Register Youth Member";
+    document.getElementById('editId').value = "";
+    addModal.classList.add('show');
+    addModal.style.display = 'flex';
+    form.reset();
+    validateForm();
+};
+
+document.getElementById('closeAddModal').onclick = () => {
+    addModal.classList.remove('show');
+    setTimeout(() => addModal.style.display = 'none', 300);
+};
+
+document.getElementById('closeIdPreview').onclick = () => idPreview.style.display = 'none';
+document.getElementById('closeViewModal').onclick = () => viewModal.style.display = 'none';
+
+window.onclick = e => {
+    if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('show');
+        setTimeout(() => e.target.style.display = 'none', 300);
+    }
+};
+
+// ────────────────────────────────────────────────
+// Form Validation & Age Calculation
+// ────────────────────────────────────────────────
+const form = document.getElementById('addYouthForm');
+const password = document.getElementById('password');
+const confirmPassword = document.getElementById('confirmPassword');
+const privacy = document.getElementById('privacyConsent');
+const submitBtn = document.getElementById('submitBtn');
+const warning = document.getElementById('passwordWarning');
+
+function validateForm() {
+    const match = password.value === confirmPassword.value && password.value.length >= 8;
+    warning.classList.toggle('show', confirmPassword.value && !match);
+    submitBtn.disabled = !privacy.checked || !match || !form.checkValidity();
+}
+
+password.addEventListener('input', validateForm);
+confirmPassword.addEventListener('input', validateForm);
+privacy.addEventListener('change', validateForm);
+form.querySelectorAll('input, select').forEach(el => el.addEventListener('input', validateForm));
+
+// Auto Age
+document.getElementById('birthday').addEventListener('change', function() {
+    if (!this.value) return;
+    const birth = new Date(this.value);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    document.getElementById('age').value = age;
+});
+
+// ────────────────────────────────────────────────
+// Register / Edit Submit
+// ────────────────────────────────────────────────
+form.addEventListener('submit', e => {
+    e.preventDefault();
+
+    const id = document.getElementById('editId').value || `SK-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const youth = {
+        id,
+        first: document.getElementById('firstName').value.trim(),
+        last: document.getElementById('lastName').value.trim(),
+        contact: document.getElementById('contact').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        barangay: document.getElementById('address').value.split(',').pop().trim() || "Unknown"
+    };
+
+    if (document.getElementById('editId').value) {
+        const index = youthData.findIndex(y => y.id === id);
+        if (index !== -1) youthData[index] = { ...youthData[index], ...youth };
+    } else {
+        youthData.unshift(youth);
+    }
+
+    saveData();
+    renderYouthTable();
+    filterTable();
+
+    // Close modal with animation
+    addModal.classList.remove('show');
+    setTimeout(() => {
+        addModal.style.display = 'none';
+        form.reset();
+        validateForm();
+    }, 300);
+
+    // Show success feedback
+    const msg = document.getElementById('editId').value ? 'updated' : 'registered';
+    alert(`Youth member ${msg} successfully!`);
+
+    // Show ID preview for new registrations only
+    if (!document.getElementById('editId').value) {
+        showIdPreview(youth);
+    }
+});
+
+// Show ID Preview
+function showIdPreview(youth) {
+    document.getElementById('previewName').textContent = `${youth.first} ${youth.last}`;
+    document.getElementById('previewId').textContent = youth.id;
+    document.getElementById('previewDate').textContent = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    const qrData = `${youth.id}-${youth.first}${youth.last}`.replace(/\s+/g, '');
+    document.getElementById('previewQRImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrData)}`;
+
+    idPreview.style.display = 'flex';
+}
+
+// Edit Youth
+function editYouth(id) {
+    const youth = youthData.find(y => y.id === id);
+    if (!youth) return alert("Member not found");
+
+    document.getElementById('modalTitle').textContent = "Edit Youth Member";
+    document.getElementById('submitBtn').textContent = "Save Changes";
+    document.getElementById('editId').value = youth.id;
+
+    document.getElementById('firstName').value = youth.first || '';
+    document.getElementById('lastName').value = youth.last || '';
+    document.getElementById('address').value = youth.address || '';
+    document.getElementById('contact').value = youth.contact || '';
+    document.getElementById('birthday').value = youth.birthday || '';
+    document.getElementById('gender').value = youth.gender || '';
+    // Add more pre-fill if needed (birthday, gender, etc.)
+
+    validateForm();
+    addModal.classList.add('show');
+    addModal.style.display = 'flex';
+}
+
+// Delete Youth
+function deleteYouth(id) {
+    if (!confirm("Are you sure you want to delete this youth member? This action cannot be undone.")) return;
+
+    youthData = youthData.filter(y => y.id !== id);
+    saveData();
+    renderYouthTable();
+    filterTable();
+
+    alert("Youth member deleted successfully.");
+}
+
+// View Youth
+function viewYouth(id) {
+    const youth = youthData.find(y => y.id === id);
+    if (!youth) return alert("Member not found");
+
+    const info = `
+        <div style="line-height: 1.8; font-size: 15px; margin-bottom: 24px;">
+            <p><strong>Member ID:</strong> ${youth.id}</p>
+            <p><strong>Full Name:</strong> ${youth.first} ${youth.last}</p>
+            <p><strong>Contact:</strong> ${youth.contact || 'N/A'}</p>
+            <p><strong>Full Address:</strong> ${youth.address || 'N/A'}</p>
+        </div>
+    `;
+
+    document.getElementById('viewPersonalInfo').innerHTML = info;
+
+    document.getElementById('viewName').textContent = `${youth.first} ${youth.last}`;
+    document.getElementById('viewId').textContent = youth.id;
+    document.getElementById('viewDate').textContent = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    const qrData = `${youth.id}-${youth.first}${youth.last}`.replace(/\s+/g, '');
+    document.getElementById('viewQRImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrData)}`;
+
+    viewModal.style.display = 'flex';
+}
+
+// Initial load
+renderYouthTable();
+filterTable();
+</script>
+</body>
+</html>
