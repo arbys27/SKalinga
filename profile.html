@@ -10,9 +10,52 @@
 
     <link rel="stylesheet" href="assets/css/portal.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+      /* Back Button – Top-Left Corner */
+.back-btn {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 1000;
+  width: 48px;
+  height: 48px;
+  background: white;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.back-btn:hover {
+  background: var(--light-green);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(168, 230, 207, 0.4);
+}
+
+.back-btn svg {
+  stroke: var(--primary-green);
+  stroke-width: 2.5;
+}
+
+.back-btn:hover svg {
+  stroke: white;
+}
+    </style>
 </head>
 <body>
     <div class="app-container">
+
+      <button class="back-btn" onclick="window.location.href='youth-portal.html'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5"></path>
+      <path d="M12 19l-7-7 7-7"></path>
+    </svg>
+  </button>
         <!-- Top Navigation -->
         <nav class="top-nav">
             <div class="logo-area">
@@ -227,7 +270,7 @@
                     </div>
                     <div class="id-qr">
                         <img id="qr-code" src="" alt="QR Code" class="qr-code">
-                        <p>Scan to verify membership</p>
+                        <p>Scan for Official SK Services</p>
                     </div>
                 </div>
                 <button class="action-btn primary full-width" id="download-id">
@@ -1077,21 +1120,31 @@
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
-            // Set canvas size (portrait: width x height) - Higher DPI
+            // Set canvas size (portrait: width x height) - Compact size
             canvas.width = 600;
-            canvas.height = 950;
+            canvas.height = 800;
 
             // White background
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, 600, 950);
+            ctx.fillRect(0, 0, 600, 800);
+
+            // Add subtle watermark pattern (light SK logo pattern)
+            ctx.fillStyle = 'rgba(168, 230, 207, 0.08)';
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    ctx.beginPath();
+                    ctx.arc(75 + i * 150, 200 + j * 150, 40, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
 
             // Add subtle San Antonio logo watermark background
             const sanAntonioLogo = new Image();
             sanAntonioLogo.crossOrigin = 'anonymous';
             sanAntonioLogo.onload = function() {
                 try {
-                    ctx.globalAlpha = 0.06;
-                    ctx.drawImage(sanAntonioLogo, 350, 550, 220, 220);
+                    ctx.globalAlpha = 0.05;
+                    ctx.drawImage(sanAntonioLogo, 350, 500, 200, 200);
                     ctx.globalAlpha = 1.0;
                 } catch (e) {
                     console.warn('Error drawing San Antonio watermark:', e);
@@ -1107,24 +1160,60 @@
             sanAntonioLogo.src = 'assets/images/logosanantonio.jpg';
 
             function drawCardContent() {
-                // Green border
+                // Green border (matching modal)
                 ctx.fillStyle = '#228B57';
-                ctx.fillRect(0, 0, 600, 10);
-                ctx.fillRect(0, 940, 600, 10);
-                ctx.fillRect(0, 0, 10, 950);
-                ctx.fillRect(590, 0, 10, 950);
+                ctx.fillRect(0, 0, 600, 12);
+                ctx.fillRect(0, 788, 600, 12);
+                ctx.fillRect(0, 0, 12, 800);
+                ctx.fillRect(588, 0, 12, 800);
 
-                // Header section with background
-                ctx.fillStyle = '#f5f7fa';
-                ctx.fillRect(0, 10, 600, 140);
+                // White background overlay
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+                ctx.fillRect(12, 12, 576, 776);
 
-                // Header divider line
-                ctx.strokeStyle = '#228B57';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(0, 150);
-                ctx.lineTo(600, 150);
-                ctx.stroke();
+                // Add large SK logo watermark (bottom-right positioned, very subtle)
+                const skWatermark = new Image();
+                skWatermark.crossOrigin = 'anonymous';
+                skWatermark.onload = function() {
+                    try {
+                        // Set very subtle opacity (4%)
+                        ctx.globalAlpha = 0.04;
+                        
+                        // Watermark size: 75% of card width = 450px
+                        const watermarkSize = 450;
+                        // Position: bottom-right with 30px offset from edges
+                        const watermarkX = 600 - watermarkSize - 30;
+                        const watermarkY = 800 - watermarkSize - 30;
+                        
+                        // Draw the watermark
+                        ctx.drawImage(skWatermark, watermarkX, watermarkY, watermarkSize, watermarkSize);
+                        
+                        // Reset opacity
+                        ctx.globalAlpha = 1.0;
+                    } catch (e) {
+                        console.warn('Error drawing SK watermark:', e);
+                        ctx.globalAlpha = 1.0;
+                    }
+                    proceedWithContent();
+                };
+
+                skWatermark.onerror = function() {
+                    console.warn('Failed to load SK watermark');
+                    proceedWithContent();
+                };
+
+                skWatermark.src = 'assets/images/sklogo.jpg';
+
+                function proceedWithContent() {
+
+                const cardWidth = 600;
+                const contentStartX = 30;
+                const contentWidth = 540;
+
+                // SECTION 1: HEADER (Compressed)
+                let currentY = 18;
+                const logoSize = 44;
+                const logoX = (cardWidth - logoSize) / 2;
 
                 // Draw SK Logo in header (top center)
                 const skLogo = new Image();
@@ -1133,238 +1222,275 @@
                     try {
                         ctx.save();
                         ctx.beginPath();
-                        ctx.arc(300, 50, 30, 0, Math.PI * 2);
+                        ctx.arc(logoX + logoSize / 2, currentY + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
                         ctx.clip();
-                        ctx.drawImage(skLogo, 270, 20, 60, 60);
+                        ctx.drawImage(skLogo, logoX, currentY, logoSize, logoSize);
                         ctx.restore();
+
+                        // Draw circle border around logo
+                        ctx.strokeStyle = '#228B57';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(logoX + logoSize / 2, currentY + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
+                        ctx.stroke();
                     } catch (e) {
                         console.warn('Error drawing SK logo:', e);
                         drawSKFallback();
                     }
-                    drawAfterLogos();
+                    continueLayout();
                 };
 
                 skLogo.onerror = function() {
                     drawSKFallback();
-                    drawAfterLogos();
+                    continueLayout();
                 };
 
                 function drawSKFallback() {
                     ctx.fillStyle = '#228B57';
                     ctx.beginPath();
-                    ctx.arc(300, 50, 30, 0, Math.PI * 2);
+                    ctx.arc(logoX + logoSize / 2, currentY + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = 'bold 22px Arial';
+                    ctx.font = 'bold 16px Arial';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText('SK', 300, 50);
+                    ctx.fillText('SK', logoX + logoSize / 2, currentY + logoSize / 2);
                 }
 
-                skLogo.src = 'assets/images/sklogo.jpg';
+                function continueLayout() {
+                    currentY += logoSize + 8;
 
-                function drawAfterLogos() {
-                    // Header text (centered)
+                    // Organization name (centered, bold)
                     ctx.fillStyle = '#228B57';
-                    ctx.font = 'bold 22px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('SKalinga Youth', 300, 95);
-
-                    ctx.fillStyle = '#333333';
-                    ctx.font = '12px Arial';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('San Antonio Chapter', 300, 125);
-
-                    // Main content area starts
-                    let currentY = 180;
-
-                    // Member name (centered, prominent)
-                    ctx.fillStyle = '#1a1a1a';
-                    ctx.font = 'bold 28px Arial';
+                    ctx.font = 'bold 16px Arial';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'top';
-                    ctx.fillText(originalData.name || 'Member Name', 300, currentY);
+                    ctx.fillText('SKalinga Youth', 300, currentY);
 
-                    currentY += 55;
+                    currentY += 18;
 
-                    // Avatar circle (centered, larger)
+                    // Chapter name (centered, smaller)
+                    ctx.fillStyle = '#666666';
+                    ctx.font = '11px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('San Antonio Chapter', 300, currentY);
+
+                    currentY += 14;
+
+                    // Horizontal divider line
+                    ctx.strokeStyle = '#d8d8d8';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(contentStartX, currentY);
+                    ctx.lineTo(contentStartX + contentWidth, currentY);
+                    ctx.stroke();
+
+                    currentY += 12;
+
+                    // SECTION 2: IDENTITY (Avatar, Name, Member ID)
+                    const avatarSize = 64;
+                    const avatarX = (cardWidth - avatarSize) / 2;
+                    const avatarY = currentY;
+
+                    // Draw avatar
                     const avatarImg = document.getElementById('profile-avatar');
                     if (avatarImg && avatarImg.src) {
                         const avatar = new Image();
                         avatar.crossOrigin = 'anonymous';
                         avatar.onload = function() {
                             try {
-                                const avatarX = 300;
-                                const avatarY = currentY;
-                                const avatarSize = 140;
-
-                                // Outer green border circle
+                                // Avatar border circle
                                 ctx.strokeStyle = '#228B57';
-                                ctx.lineWidth = 4;
+                                ctx.lineWidth = 3;
                                 ctx.beginPath();
-                                ctx.arc(avatarX, avatarY, avatarSize / 2 + 3, 0, Math.PI * 2);
+                                ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 1, 0, Math.PI * 2);
                                 ctx.stroke();
 
                                 // Avatar image clipped
                                 ctx.save();
                                 ctx.beginPath();
-                                ctx.arc(avatarX, avatarY, avatarSize / 2, 0, Math.PI * 2);
+                                ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
                                 ctx.clip();
-                                ctx.drawImage(avatar, avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize);
+                                ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
                                 ctx.restore();
                             } catch (e) {
                                 console.warn('Error drawing avatar:', e);
                             }
-                            drawMemberInfo();
+                            drawProfileInfo();
                         };
 
                         avatar.onerror = function() {
-                            drawMemberInfo();
+                            drawProfileInfo();
                         };
 
                         avatar.src = avatarImg.src;
                     } else {
-                        drawMemberInfo();
+                        drawProfileInfo();
                     }
 
-                    function drawMemberInfo() {
-                        currentY += 100;
+                    function drawProfileInfo() {
+                        currentY += avatarSize + 11;
 
-                        // MEMBER ID label
-                        ctx.fillStyle = '#888888';
-                        ctx.font = 'bold 10px Arial';
+                        // Member name (centered, prominent)
+                        ctx.fillStyle = '#228B57';
+                        ctx.font = 'bold 17px Arial';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'top';
-                        ctx.fillText('MEMBER ID', 300, currentY);
-
-                        currentY += 18;
-
-                        // Member ID value
-                        ctx.fillStyle = '#228B57';
-                        ctx.font = 'bold 20px Arial';
-                        ctx.textBaseline = 'top';
-                        ctx.fillText(originalData.member_id || 'SK-XXXX-XXXX', 300, currentY);
-
-                        currentY += 30;
-
-                        // Status
-                        ctx.fillStyle = '#666666';
-                        ctx.font = '11px Arial';
-                        ctx.textBaseline = 'top';
-                        ctx.fillText('Status: Active Member', 300, currentY);
+                        ctx.fillText(originalData.name || 'Member Name', 300, currentY);
 
                         currentY += 20;
 
-                        // Issue date
-                        ctx.fillStyle = '#666666';
-                        ctx.font = '11px Arial';
-                        ctx.textBaseline = 'top';
-                        ctx.fillText('Issued: January 2025', 300, currentY);
+                        // Member ID label and value (centered)
+                        ctx.fillStyle = '#999999';
+                        ctx.font = '9px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('MEMBER ID', 300, currentY);
 
-                        currentY += 40;
+                        currentY += 11;
 
-                        // QR Code section
+                        ctx.fillStyle = '#333333';
+                        ctx.font = 'bold 12px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(originalData.member_id || 'SK-XXXX-XXXX', 300, currentY);
+
+                        currentY += 14;
+
+                        // Status and date (smaller text, centered)
+                        ctx.fillStyle = '#888888';
+                        ctx.font = '8px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Status: Active Member  •  Issued: Jan 2025', 300, currentY);
+
+                        currentY += 14;
+
+                        // Horizontal divider line
+                        ctx.strokeStyle = '#d8d8d8';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(contentStartX, currentY);
+                        ctx.lineTo(contentStartX + contentWidth, currentY);
+                        ctx.stroke();
+
+                        currentY += 12;
+
+                        // SECTION 3: VERIFICATION (QR Code)
                         const qrCodeImg = document.getElementById('qr-code');
                         if (qrCodeImg && qrCodeImg.src) {
                             const qrImg = new Image();
                             qrImg.crossOrigin = 'anonymous';
                             qrImg.onload = function() {
                                 try {
-                                    const qrX = 300;
+                                    const qrSize = 92;
+                                    const qrX = (cardWidth - qrSize) / 2;
                                     const qrY = currentY;
-                                    const qrSize = 110;
 
-                                    // QR border
+                                    // QR frame border
                                     ctx.strokeStyle = '#228B57';
                                     ctx.lineWidth = 2;
-                                    ctx.strokeRect(qrX - qrSize / 2 - 4, qrY - 4, qrSize + 8, qrSize + 8);
+                                    ctx.strokeRect(qrX - 3, qrY - 3, qrSize + 6, qrSize + 6);
 
                                     // QR image
-                                    ctx.drawImage(qrImg, qrX - qrSize / 2, qrY, qrSize, qrSize);
+                                    ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
                                 } catch (e) {
                                     console.warn('Error drawing QR code:', e);
                                     drawQRPlaceholder();
                                 }
-                                finalizeDownload();
+                                finalizeCard();
                             };
 
                             qrImg.onerror = function() {
                                 drawQRPlaceholder();
-                                finalizeDownload();
+                                finalizeCard();
                             };
 
                             qrImg.src = qrCodeImg.src;
                         } else {
                             drawQRPlaceholder();
-                            finalizeDownload();
+                            finalizeCard();
+                        }
+
+                        function drawQRPlaceholder() {
+                            const qrSize = 92;
+                            const qrX = (cardWidth - qrSize) / 2;
+                            const qrY = currentY;
+
+                            ctx.strokeStyle = '#228B57';
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(qrX - 3, qrY - 3, qrSize + 6, qrSize + 6);
+
+                            ctx.fillStyle = '#f5f5f5';
+                            ctx.fillRect(qrX, qrY, qrSize, qrSize);
+
+                            ctx.fillStyle = '#999999';
+                            ctx.font = '10px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText('QR Code', 300, qrY + qrSize / 2 - 8);
+                            ctx.fillText('Scan', 300, qrY + qrSize / 2 + 8);
+                        }
+
+                        function finalizeCard() {
+                            currentY += 106; // QR size + minimal spacing
+
+                            // Instruction text (stronger, semi-bold)
+                            ctx.fillStyle = '#228B57';
+                            ctx.font = '600 11px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'top';
+                            ctx.fillText('Scan for Member Services', 300, currentY);
+
+                            currentY += 16;
+
+                            // Horizontal divider line before footer
+                            ctx.strokeStyle = '#d8d8d8';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(contentStartX, currentY);
+                            ctx.lineTo(contentStartX + contentWidth, currentY);
+                            ctx.stroke();
+
+                            currentY += 10;
+
+                            // Footer section (centered, compact)
+                            ctx.fillStyle = '#333333';
+                            ctx.font = 'bold 8px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'top';
+                            ctx.fillText('VERIFICATION DETAILS', 300, currentY);
+
+                            currentY += 10;
+
+                            ctx.fillStyle = '#666666';
+                            ctx.font = '7px Arial';
+                            ctx.fillText('This ID certifies active membership in', 300, currentY);
+                            currentY += 8;
+                            ctx.fillText('SKalinga Youth Program', 300, currentY);
+
+                            currentY += 9;
+
+                            ctx.fillText('For verification: www.skalingayouth.org', 300, currentY);
+
+                            currentY += 9;
+
+                            ctx.fillStyle = '#888888';
+                            ctx.font = '6px Arial';
+                            ctx.fillText('© 2025 SKalinga Youth - San Antonio Chapter', 300, currentY);
+
+                            // Download the image
+                            const link = document.createElement('a');
+                            link.download = `SK-ID-${originalData.member_id || 'unknown'}.png`;
+                            link.href = canvas.toDataURL('image/png');
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            showSuccessMessage('ID Card downloaded successfully!');
                         }
                     }
-
-                    function drawQRPlaceholder() {
-                        const qrX = 300;
-                        const qrY = currentY;
-                        const qrSize = 110;
-
-                        ctx.strokeStyle = '#228B57';
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(qrX - qrSize / 2 - 4, qrY - 4, qrSize + 8, qrSize + 8);
-
-                        ctx.fillStyle = '#f0f0f0';
-                        ctx.fillRect(qrX - qrSize / 2, qrY, qrSize, qrSize);
-
-                        ctx.fillStyle = '#999999';
-                        ctx.font = '11px Arial';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText('QR Code', qrX, qrY + qrSize / 2 - 10);
-                        ctx.fillText('Scan to verify', qrX, qrY + qrSize / 2 + 10);
-                    }
-
-                    function finalizeDownload() {
-                        // Footer section
-                        ctx.fillStyle = '#f5f7fa';
-                        ctx.fillRect(0, 780, 600, 160);
-
-                        ctx.strokeStyle = '#228B57';
-                        ctx.lineWidth = 3;
-                        ctx.beginPath();
-                        ctx.moveTo(0, 780);
-                        ctx.lineTo(600, 780);
-                        ctx.stroke();
-
-                        // Footer text
-                        ctx.fillStyle = '#666666';
-                        ctx.font = '9px Arial';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'top';
-                        let footerY = 800;
-
-                        ctx.fillText('This ID serves as proof of active membership', 300, footerY);
-                        footerY += 14;
-                        ctx.fillText('in SKalinga Youth Program', 300, footerY);
-                        footerY += 18;
-
-                        ctx.fillText('For verification, visit www.skalingyouth.org', 300, footerY);
-                        footerY += 14;
-                        ctx.fillText('or scan the QR code above', 300, footerY);
-                        footerY += 20;
-
-                        ctx.fillStyle = '#999999';
-                        ctx.font = '8px Arial';
-                        ctx.fillText('© 2025 SKalinga Youth - San Antonio Chapter', 300, footerY);
-
-                        // Download the image
-                        const link = document.createElement('a');
-                        link.download = `SK-ID-${originalData.member_id || 'unknown'}.png`;
-                        link.href = canvas.toDataURL('image/png');
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        showSuccessMessage('ID Card downloaded successfully!');
-                    }
                 }
+
+                skLogo.src = 'assets/images/sklogo.jpg';
             }
+            } // Close proceedWithContent function
         }
 
         // Show email verification modal
@@ -1379,20 +1505,6 @@
             modal.className = 'otp-modal';
             modal.innerHTML = `
                 <div class="otp-content">
-                    <div class="otp-header">
-                        <h3>Verify Your Email</h3>
-                        <p>We've sent a 6-digit code to <strong>${email}</strong></p>
-                    </div>
-                    <div class="otp-input">
-                        <input type="text" class="otp-digit" maxlength="1" id="otp-1">
-                        <input type="text" class="otp-digit" maxlength="1" id="otp-2">
-                        <input type="text" class="otp-digit" maxlength="1" id="otp-3">
-                        <input type="text" class="otp-digit" maxlength="1" id="otp-4">
-                        <input type="text" class="otp-digit" maxlength="1" id="otp-5">
-                        <input type="text" class="otp-digit" maxlength="1" id="otp-6">
-                    </div>
-                    <div class="otp-actions">
-                        <button class="otp-btn secondary" onclick="closeOtpModal()">Cancel</button>
                         <button class="otp-btn primary" onclick="verifyOtp()">Verify</button>
                     </div>
                 </div>
