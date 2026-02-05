@@ -1106,110 +1106,64 @@
 
         // Download digital ID
         function downloadDigitalId() {
-            // Create canvas for ID card (PORTRAIT orientation)
+            // Create canvas for ID card (portrait orientation)
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
-            // Set canvas size (portrait: width x height) - Compact size
-            canvas.width = 600;
-            canvas.height = 800;
+            // Set canvas size (portrait: 500x700px)
+            canvas.width = 500;
+            canvas.height = 700;
 
             // White background
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, 600, 800);
+            ctx.fillRect(0, 0, 500, 700);
 
-            // Add subtle watermark pattern (light SK logo pattern)
-            ctx.fillStyle = 'rgba(168, 230, 207, 0.08)';
-            for (let i = 0; i < 4; i++) {
-                for (let j = 0; j < 4; j++) {
-                    ctx.beginPath();
-                    ctx.arc(75 + i * 150, 200 + j * 150, 40, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
-
-            // Add subtle San Antonio logo watermark background
-            const sanAntonioLogo = new Image();
-            sanAntonioLogo.crossOrigin = 'anonymous';
-            sanAntonioLogo.onload = function() {
+            // Add subtle SK logo watermark background
+            const skWatermark = new Image();
+            skWatermark.crossOrigin = 'anonymous';
+            skWatermark.onload = function() {
                 try {
-                    ctx.globalAlpha = 0.05;
-                    ctx.drawImage(sanAntonioLogo, 350, 500, 200, 200);
+                    ctx.globalAlpha = 0.08;
+                    const watermarkSize = 350;
+                    const watermarkX = (500 - watermarkSize) / 2;
+                    const watermarkY = (700 - watermarkSize) / 2;
+                    ctx.drawImage(skWatermark, watermarkX, watermarkY, watermarkSize, watermarkSize);
                     ctx.globalAlpha = 1.0;
                 } catch (e) {
-                    console.warn('Error drawing San Antonio watermark:', e);
+                    console.warn('Error drawing watermark:', e);
                 }
                 drawCardContent();
             };
 
-            sanAntonioLogo.onerror = function() {
-                console.warn('Failed to load San Antonio logo watermark');
+            skWatermark.onerror = function() {
+                console.warn('Failed to load watermark');
                 drawCardContent();
             };
 
-            sanAntonioLogo.src = 'assets/images/logosanantonio.jpg';
+            skWatermark.src = 'assets/images/sklogo.jpg';
 
             function drawCardContent() {
-                // Green border (matching modal)
-                ctx.fillStyle = '#228B57';
-                ctx.fillRect(0, 0, 600, 12);
-                ctx.fillRect(0, 788, 600, 12);
-                ctx.fillRect(0, 0, 12, 800);
-                ctx.fillRect(588, 0, 12, 800);
+                // Dark green border (prominent)
+                ctx.strokeStyle = '#228B57';
+                ctx.lineWidth = 6;
+                ctx.strokeRect(3, 3, 494, 694);
 
-                // White background overlay
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
-                ctx.fillRect(12, 12, 576, 776);
+                // Light green inner border
+                ctx.strokeStyle = '#A8E6CF';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(6, 6, 488, 688);
 
-                // Add large SK logo watermark (bottom-right positioned, very subtle)
-                const skWatermark = new Image();
-                skWatermark.crossOrigin = 'anonymous';
-                skWatermark.onload = function() {
-                    try {
-                        // Set very subtle opacity (4%)
-                        ctx.globalAlpha = 0.04;
-                        
-                        // Watermark size: 75% of card width = 450px
-                        const watermarkSize = 450;
-                        // Position: bottom-right with 30px offset from edges
-                        const watermarkX = 600 - watermarkSize - 30;
-                        const watermarkY = 800 - watermarkSize - 30;
-                        
-                        // Draw the watermark
-                        ctx.drawImage(skWatermark, watermarkX, watermarkY, watermarkSize, watermarkSize);
-                        
-                        // Reset opacity
-                        ctx.globalAlpha = 1.0;
-                    } catch (e) {
-                        console.warn('Error drawing SK watermark:', e);
-                        ctx.globalAlpha = 1.0;
-                    }
-                    proceedWithContent();
-                };
+                let currentY = 20;
 
-                skWatermark.onerror = function() {
-                    console.warn('Failed to load SK watermark');
-                    proceedWithContent();
-                };
-
-                skWatermark.src = 'assets/images/sklogo.jpg';
-
-                function proceedWithContent() {
-
-                const cardWidth = 600;
-                const contentStartX = 30;
-                const contentWidth = 540;
-
-                // SECTION 1: HEADER (Compressed)
-                let currentY = 18;
-                const logoSize = 44;
-                const logoX = (cardWidth - logoSize) / 2;
-
-                // Draw SK Logo in header (top center)
+                // Load SK Logo and draw rest
                 const skLogo = new Image();
                 skLogo.crossOrigin = 'anonymous';
                 skLogo.onload = function() {
                     try {
+                        const logoSize = 70;
+                        const logoX = (500 - logoSize) / 2;
+                        
+                        // Draw circular logo with border
                         ctx.save();
                         ctx.beginPath();
                         ctx.arc(logoX + logoSize / 2, currentY + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
@@ -1217,254 +1171,195 @@
                         ctx.drawImage(skLogo, logoX, currentY, logoSize, logoSize);
                         ctx.restore();
 
-                        // Draw circle border around logo
+                        // Logo border circle
                         ctx.strokeStyle = '#228B57';
                         ctx.lineWidth = 2;
                         ctx.beginPath();
                         ctx.arc(logoX + logoSize / 2, currentY + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
                         ctx.stroke();
                     } catch (e) {
-                        console.warn('Error drawing SK logo:', e);
-                        drawSKFallback();
+                        console.warn('Error drawing logo:', e);
                     }
-                    continueLayout();
+                    drawContent();
                 };
 
                 skLogo.onerror = function() {
-                    drawSKFallback();
-                    continueLayout();
+                    console.warn('Failed to load logo');
+                    drawContent();
                 };
 
-                function drawSKFallback() {
-                    ctx.fillStyle = '#228B57';
-                    ctx.beginPath();
-                    ctx.arc(logoX + logoSize / 2, currentY + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = 'bold 16px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('SK', logoX + logoSize / 2, currentY + logoSize / 2);
-                }
+                skLogo.src = 'assets/images/sklogo.jpg';
 
-                function continueLayout() {
-                    currentY += logoSize + 8;
+                function drawContent() {
+                    currentY = 100;
 
-                    // Organization name (centered, bold)
+                    // Organization name
                     ctx.fillStyle = '#228B57';
-                    ctx.font = 'bold 16px Arial';
+                    ctx.font = 'bold 20px Arial';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'top';
-                    ctx.fillText('SKalinga Youth', 300, currentY);
+                    ctx.fillText('SKalinga Youth', 250, currentY);
 
-                    currentY += 18;
+                    currentY += 24;
 
-                    // Chapter name (centered, smaller)
+                    // Chapter name
                     ctx.fillStyle = '#666666';
-                    ctx.font = '11px Arial';
+                    ctx.font = '14px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillText('San Antonio Chapter', 300, currentY);
+                    ctx.fillText('San Antonio Chapter', 250, currentY);
 
-                    currentY += 14;
+                    currentY += 22;
 
                     // Horizontal divider line
                     ctx.strokeStyle = '#d8d8d8';
                     ctx.lineWidth = 1;
                     ctx.beginPath();
-                    ctx.moveTo(contentStartX, currentY);
-                    ctx.lineTo(contentStartX + contentWidth, currentY);
+                    ctx.moveTo(30, currentY);
+                    ctx.lineTo(470, currentY);
                     ctx.stroke();
 
-                    currentY += 12;
+                    currentY += 18;
 
-                    // SECTION 2: IDENTITY (Avatar, Name, Member ID)
-                    const avatarSize = 64;
-                    const avatarX = (cardWidth - avatarSize) / 2;
+                    // Avatar image
+                    const avatarSize = 120;
+                    const avatarX = (500 - avatarSize) / 2;
                     const avatarY = currentY;
 
-                    // Draw avatar
                     const avatarImg = document.getElementById('profile-avatar');
                     if (avatarImg && avatarImg.src) {
                         const avatar = new Image();
                         avatar.crossOrigin = 'anonymous';
                         avatar.onload = function() {
                             try {
-                                // Avatar border circle
-                                ctx.strokeStyle = '#228B57';
-                                ctx.lineWidth = 3;
+                                // Avatar border (rounded rectangle)
+                                ctx.fillStyle = '#A8E6CF';
                                 ctx.beginPath();
-                                ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 1, 0, Math.PI * 2);
-                                ctx.stroke();
+                                ctx.roundRect(avatarX - 4, avatarY - 4, avatarSize + 8, avatarSize + 8, 12);
+                                ctx.fill();
 
                                 // Avatar image clipped
                                 ctx.save();
                                 ctx.beginPath();
-                                ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+                                ctx.roundRect(avatarX, avatarY, avatarSize, avatarSize, 8);
                                 ctx.clip();
                                 ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
                                 ctx.restore();
                             } catch (e) {
                                 console.warn('Error drawing avatar:', e);
                             }
-                            drawProfileInfo();
+                            drawMemberInfo();
                         };
 
                         avatar.onerror = function() {
-                            drawProfileInfo();
+                            drawMemberInfo();
                         };
 
                         avatar.src = avatarImg.src;
                     } else {
-                        drawProfileInfo();
+                        drawMemberInfo();
                     }
 
-                    function drawProfileInfo() {
-                        currentY += avatarSize + 11;
+                    function drawMemberInfo() {
+                        currentY += avatarSize + 16;
 
-                        // Member name (centered, prominent)
+                        // Member name
                         ctx.fillStyle = '#228B57';
-                        ctx.font = 'bold 17px Arial';
+                        ctx.font = 'bold 18px Arial';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'top';
-                        ctx.fillText(originalData.name || 'Member Name', 300, currentY);
+                        ctx.fillText(originalData.firstname + ' ' + originalData.lastname, 250, currentY);
 
-                        currentY += 20;
+                        currentY += 26;
 
-                        // Member ID label and value (centered)
+                        // Member ID label
                         ctx.fillStyle = '#999999';
-                        ctx.font = '9px Arial';
+                        ctx.font = '11px Arial';
                         ctx.textAlign = 'center';
-                        ctx.fillText('MEMBER ID', 300, currentY);
+                        ctx.fillText('MEMBER ID', 250, currentY);
 
-                        currentY += 11;
+                        currentY += 16;
 
+                        // Member ID value
                         ctx.fillStyle = '#333333';
-                        ctx.font = 'bold 12px Arial';
+                        ctx.font = 'bold 14px Arial';
                         ctx.textAlign = 'center';
-                        ctx.fillText(originalData.member_id || 'SK-XXXX-XXXX', 300, currentY);
+                        ctx.fillText(originalData.member_id || 'SK-XXXX-XXXX', 250, currentY);
 
-                        currentY += 14;
+                        currentY += 18;
 
-                        // Status and date (smaller text, centered)
-                        ctx.fillStyle = '#888888';
-                        ctx.font = '8px Arial';
+                        // Issue date
+                        ctx.fillStyle = '#666666';
+                        ctx.font = '11px Arial';
                         ctx.textAlign = 'center';
-                        ctx.fillText('Status: Active Member  •  Issued: Jan 2025', 300, currentY);
+                        const today = new Date();
+                        const issueDate = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                        ctx.fillText('Issued: ' + issueDate, 250, currentY);
 
-                        currentY += 14;
+                        currentY += 24;
 
                         // Horizontal divider line
                         ctx.strokeStyle = '#d8d8d8';
                         ctx.lineWidth = 1;
                         ctx.beginPath();
-                        ctx.moveTo(contentStartX, currentY);
-                        ctx.lineTo(contentStartX + contentWidth, currentY);
+                        ctx.moveTo(30, currentY);
+                        ctx.lineTo(470, currentY);
                         ctx.stroke();
 
-                        currentY += 12;
+                        currentY += 50;
 
-                        // SECTION 3: VERIFICATION (QR Code)
+                        // QR Code section
+                        const qrSize = 130;
+                        const qrX = (500 - qrSize) / 2;
+                        const qrY = currentY;
+
+                        // QR frame border
+                        ctx.strokeStyle = '#228B57';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(qrX - 4, qrY - 4, qrSize + 8, qrSize + 8);
+
+                        // QR code image
                         const qrCodeImg = document.getElementById('qr-code');
                         if (qrCodeImg && qrCodeImg.src) {
                             const qrImg = new Image();
                             qrImg.crossOrigin = 'anonymous';
                             qrImg.onload = function() {
                                 try {
-                                    const qrSize = 92;
-                                    const qrX = (cardWidth - qrSize) / 2;
-                                    const qrY = currentY;
-
-                                    // QR frame border
-                                    ctx.strokeStyle = '#228B57';
-                                    ctx.lineWidth = 2;
-                                    ctx.strokeRect(qrX - 3, qrY - 3, qrSize + 6, qrSize + 6);
-
-                                    // QR image
                                     ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
                                 } catch (e) {
                                     console.warn('Error drawing QR code:', e);
-                                    drawQRPlaceholder();
                                 }
                                 finalizeCard();
                             };
 
                             qrImg.onerror = function() {
-                                drawQRPlaceholder();
                                 finalizeCard();
                             };
 
                             qrImg.src = qrCodeImg.src;
                         } else {
-                            drawQRPlaceholder();
                             finalizeCard();
                         }
 
-                        function drawQRPlaceholder() {
-                            const qrSize = 92;
-                            const qrX = (cardWidth - qrSize) / 2;
-                            const qrY = currentY;
-
-                            ctx.strokeStyle = '#228B57';
-                            ctx.lineWidth = 2;
-                            ctx.strokeRect(qrX - 3, qrY - 3, qrSize + 6, qrSize + 6);
-
-                            ctx.fillStyle = '#f5f5f5';
-                            ctx.fillRect(qrX, qrY, qrSize, qrSize);
-
-                            ctx.fillStyle = '#999999';
-                            ctx.font = '10px Arial';
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            ctx.fillText('QR Code', 300, qrY + qrSize / 2 - 8);
-                            ctx.fillText('Scan', 300, qrY + qrSize / 2 + 8);
-                        }
-
                         function finalizeCard() {
-                            currentY += 106; // QR size + minimal spacing
+                            currentY += qrSize + 12;
 
-                            // Instruction text (stronger, semi-bold)
+                            // QR label
                             ctx.fillStyle = '#228B57';
-                            ctx.font = '600 11px Arial';
+                            ctx.font = 'bold 12px Arial';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'top';
-                            ctx.fillText('Scan for Member Services', 300, currentY);
+                            ctx.fillText('Scan for Verification', 250, currentY);
 
-                            currentY += 16;
+                            currentY += 20;
 
-                            // Horizontal divider line before footer
-                            ctx.strokeStyle = '#d8d8d8';
-                            ctx.lineWidth = 1;
-                            ctx.beginPath();
-                            ctx.moveTo(contentStartX, currentY);
-                            ctx.lineTo(contentStartX + contentWidth, currentY);
-                            ctx.stroke();
-
-                            currentY += 10;
-
-                            // Footer section (centered, compact)
-                            ctx.fillStyle = '#333333';
-                            ctx.font = 'bold 8px Arial';
+                            // Footer text
+                            ctx.fillStyle = '#999999';
+                            ctx.font = '9px Arial';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'top';
-                            ctx.fillText('VERIFICATION DETAILS', 300, currentY);
-
-                            currentY += 10;
-
-                            ctx.fillStyle = '#666666';
-                            ctx.font = '7px Arial';
-                            ctx.fillText('This ID certifies active membership in', 300, currentY);
-                            currentY += 8;
-                            ctx.fillText('SKalinga Youth Program', 300, currentY);
-
-                            currentY += 9;
-
-                            ctx.fillText('For verification: www.skalingayouth.org', 300, currentY);
-
-                            currentY += 9;
-
-                            ctx.fillStyle = '#888888';
-                            ctx.font = '6px Arial';
-                            ctx.fillText('© 2025 SKalinga Youth - San Antonio Chapter', 300, currentY);
+                            ctx.fillText('This ID certifies active membership', 250, currentY);
+                            currentY += 12;
+                            ctx.fillText('in SKalinga Youth Program', 250, currentY);
 
                             // Download the image
                             const link = document.createElement('a');
@@ -1477,10 +1372,7 @@
                         }
                     }
                 }
-
-                skLogo.src = 'assets/images/sklogo.jpg';
             }
-            } // Close proceedWithContent function
         }
 
         // Show email verification modal

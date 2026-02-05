@@ -11,6 +11,144 @@
     <!-- Your shared dashboard CSS -->
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
+    <style>
+        /* User Profile Card - Themed Design */
+        .user-profile-card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.88) 100%);
+            border-radius: 14px;
+            border: 2px solid rgba(93, 173, 226, 0.3);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 24px rgba(93, 173, 226, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Animated gradient border on hover */
+        .user-profile-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.1), rgba(93, 173, 226, 0.1));
+            border-radius: 14px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .user-profile-card:hover::before {
+            opacity: 1;
+        }
+
+        .user-profile-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(93, 173, 226, 0.25);
+            border-color: rgba(93, 173, 226, 0.6);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 100%);
+        }
+
+        /* Avatar */
+        .user-avatar-new {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #FF6B9D 0%, #5DADE2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            flex-shrink: 0;
+            position: relative;
+            box-shadow: 0 4px 16px rgba(93, 173, 226, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .user-profile-card:hover .user-avatar-new {
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(93, 173, 226, 0.4);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .user-greeting {
+            font-size: 11px;
+            color: #5DADE2;
+            font-weight: 600;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            opacity: 0.85;
+        }
+
+        #userFullName {
+            font-size: 15px;
+            font-weight: 700;
+            color: #222;
+            margin: 0;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .user-role-badge {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #228B57 0%, #1a6b43 100%);
+            color: #A8E6CF;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            width: fit-content;
+            box-shadow: 0 2px 8px rgba(34, 139, 87, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .user-profile-card:hover .user-role-badge {
+            box-shadow: 0 4px 12px rgba(34, 139, 87, 0.3);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .user-profile-card {
+                padding: 12px 16px;
+                gap: 12px;
+            }
+
+            .user-avatar-new {
+                width: 44px;
+                height: 44px;
+                font-size: 14px;
+            }
+
+            #userFullName {
+                font-size: 14px;
+            }
+
+            .user-greeting {
+                font-size: 10px;
+            }
+
+            .user-role-badge {
+                font-size: 9px;
+                padding: 3px 9px;
+            }
+        }
+    </style>
     
 </head>
 <body>
@@ -137,11 +275,11 @@
                 <p id="dashboard-datetime">Loading date and time...</p>
             </div>
             <div class="header-right">
-                <div class="user-profile">
-                    <div class="user-avatar">NM</div>
-                    <div class="user-info">
-                        <h4>Noel Marcellana</h4>
-                        <p>SK Official</p>
+                <div class="user-profile-card">
+                    <div class="user-avatar-new" id="userAvatarInitials">--</div>
+                    <div class="user-details">
+                        <h4 id="userFullName">Loading...</h4>
+                        <span class="user-role-badge" id="userRole">Administrator</span>
                     </div>
                 </div>
             </div>
@@ -203,8 +341,12 @@
                     <input type="date" id="eventDate" required>
                 </div>
                 <div class="form-group">
-                    <label for="eventTime">Time *</label>
-                    <input type="time" id="eventTime" required>
+                    <label for="eventStartTime">Start Time *</label>
+                    <input type="time" id="eventStartTime" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventEndTime">End Time</label>
+                    <input type="time" id="eventEndTime">
                 </div>
             </div>
 
@@ -213,21 +355,37 @@
                 <input type="text" id="eventLocation" placeholder="Barangay Hall, San Antonio" required>
             </div>
 
-            <div class="form-group">
-                <label for="eventType">Event Type *</label>
-                <select id="eventType" required>
-                    <option value="" disabled selected>Select type</option>
-                    <option value="Training">Training / Seminar</option>
-                    <option value="Sports">Sports / Tournament</option>
-                    <option value="Cultural">Cultural / Festival</option>
-                    <option value="Community">Community Service</option>
-                    <option value="Other">Other</option>
-                </select>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="eventType">Event Type *</label>
+                    <select id="eventType" required>
+                        <option value="" disabled selected>Select type</option>
+                        <option value="Training">Training / Seminar</option>
+                        <option value="Sports">Sports / Tournament</option>
+                        <option value="Cultural">Cultural / Festival</option>
+                        <option value="Community">Community Service</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="eventCapacity">Capacity (Attendees)</label>
+                    <input type="number" id="eventCapacity" placeholder="50" min="0">
+                    <small style="color: #666; font-size: 13px;">Maximum number of participants</small>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="eventDescription">Description</label>
                 <textarea id="eventDescription" placeholder="Brief description of the event..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="eventImage">Event Image</label>
+                <input type="file" id="eventImage" accept="image/*">
+                <small style="color: #666; font-size: 13px;">Upload a JPG or PNG image for the event (optional)</small>
+                <div id="imagePreview" style="margin-top: 12px; display: none;">
+                    <img id="previewImg" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                </div>
             </div>
 
             <div class="form-group">
@@ -282,26 +440,54 @@ setInterval(updateDashboardDateTime, 1000);
 updateDashboardDateTime();
 
 // ────────────────────────────────────────────────
-// Data & Storage
+// Load user profile dynamically
 // ────────────────────────────────────────────────
-let eventsData = JSON.parse(localStorage.getItem('skalingaEvents')) || [];
-
-// ────────────────────────────────────────────────
-// Generate incremental Event ID (EVT-YYYY-NNNN)
-// ────────────────────────────────────────────────
-function generateEventId() {
-    const year = new Date().getFullYear();
-    const thisYearEvents = eventsData.filter(e => e.id.startsWith(`EVT-${year}-`));
-    const highest = thisYearEvents.length > 0 
-        ? Math.max(...thisYearEvents.map(e => parseInt(e.id.split('-')[2])))
-        : 0;
-    const nextNum = String(highest + 1).padStart(4, '0');
-    return `EVT-${year}-${nextNum}`;
+async function loadUserProfile() {
+    try {
+        const response = await fetch('api/get_user_profile.php');
+        const result = await response.json();
+        
+        if (result.success) {
+            const user = result.user;
+            document.getElementById('userAvatarInitials').textContent = user.initials;
+            document.getElementById('userFullName').textContent = user.name;
+            document.getElementById('userRole').textContent = user.role;
+        } else {
+            console.error('Error loading user profile:', result.error);
+            // Fallback to defaults if not logged in
+            document.getElementById('userFullName').textContent = 'Guest User';
+        }
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+    }
 }
+loadUserProfile();
 
-// Save to localStorage
-function saveEvents() {
-    localStorage.setItem('skalingaEvents', JSON.stringify(eventsData));
+// ────────────────────────────────────────────────
+// Data & Storage - Using MySQL API
+// ────────────────────────────────────────────────
+let eventsData = [];
+
+// ────────────────────────────────────────────────
+// Load events from API
+// ────────────────────────────────────────────────
+async function loadEvents() {
+    try {
+        const response = await fetch('api/get_events.php');
+        const result = await response.json();
+        
+        if (result.success) {
+            eventsData = result.data || [];
+            renderEventsTable();
+            filterEvents();
+        } else {
+            console.error('Failed to load events:', result.error);
+            alert('Error loading events: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error fetching events:', error);
+        alert('Error loading events from server');
+    }
 }
 
 // Render table
@@ -372,8 +558,24 @@ document.getElementById('addEventBtn').onclick = () => {
     document.getElementById('eventModalTitle').textContent = "Add New Event";
     document.getElementById('eventForm').reset();
     document.getElementById('editEventId').value = "";
+    document.getElementById('imagePreview').style.display = 'none';
     addEventModal.style.display = 'flex';
 };
+
+// Image preview when file is selected
+document.getElementById('eventImage').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            document.getElementById('previewImg').src = event.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        document.getElementById('imagePreview').style.display = 'none';
+    }
+});
 
 document.getElementById('closeEventModal').onclick = () => addEventModal.style.display = 'none';
 document.getElementById('closeViewEvent').onclick = () => viewEventModal.style.display = 'none';
@@ -385,38 +587,63 @@ window.onclick = e => {
 // ────────────────────────────────────────────────
 // Save / Edit Event
 // ────────────────────────────────────────────────
-document.getElementById('eventForm').addEventListener('submit', e => {
+document.getElementById('eventForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const id = document.getElementById('editEventId').value || generateEventId();
-
-    const event = {
-        id,
-        title: document.getElementById('eventTitle').value.trim(),
-        date: document.getElementById('eventDate').value,
-        time: document.getElementById('eventTime').value,
-        location: document.getElementById('eventLocation').value.trim(),
-        type: document.getElementById('eventType').value,
-        description: document.getElementById('eventDescription').value.trim(),
-        regLink: document.getElementById('registrationLink').value.trim(),
-        status: document.getElementById('eventStatus').value
-    };
-
-    if (document.getElementById('editEventId').value) {
-        const index = eventsData.findIndex(e => e.id === id);
-        if (index !== -1) eventsData[index] = event;
-    } else {
-        eventsData.unshift(event);
+    const editId = document.getElementById('editEventId').value;
+    
+    const formData = new FormData();
+    formData.append('title', document.getElementById('eventTitle').value.trim());
+    formData.append('date', document.getElementById('eventDate').value);
+    formData.append('startTime', document.getElementById('eventStartTime').value);
+    formData.append('endTime', document.getElementById('eventEndTime').value);
+    formData.append('location', document.getElementById('eventLocation').value.trim());
+    formData.append('type', document.getElementById('eventType').value);
+    formData.append('capacity', document.getElementById('eventCapacity').value || 0);
+    formData.append('description', document.getElementById('eventDescription').value.trim());
+    formData.append('regLink', document.getElementById('registrationLink').value.trim());
+    formData.append('status', document.getElementById('eventStatus').value);
+    
+    // Add image file if selected
+    const fileInput = document.getElementById('eventImage');
+    if (fileInput.files && fileInput.files[0]) {
+        formData.append('image', fileInput.files[0]);
     }
 
-    saveEvents();
-    renderEventsTable();
-    filterEvents();
-
-    addEventModal.style.display = 'none';
-    document.getElementById('eventForm').reset();
-
-    alert(`Event ${document.getElementById('editEventId').value ? 'updated' : 'added'} successfully!`);
+    try {
+        let response;
+        let endpoint;
+        
+        if (editId) {
+            // Update existing event
+            formData.append('id', editId);
+            endpoint = 'api/update_event.php';
+        } else {
+            // Add new event
+            endpoint = 'api/add_event.php';
+        }
+        
+        response = await fetch(endpoint, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Reload events from server
+            await loadEvents();
+            addEventModal.style.display = 'none';
+            document.getElementById('eventForm').reset();
+            document.getElementById('imagePreview').style.display = 'none';
+            alert(`Event ${editId ? 'updated' : 'added'} successfully!`);
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error saving event:', error);
+        alert('Error saving event: ' + error.message);
+    }
 });
 
 // ────────────────────────────────────────────────
@@ -431,12 +658,22 @@ function editEvent(id) {
 
     document.getElementById('eventTitle').value = event.title;
     document.getElementById('eventDate').value = event.date;
-    document.getElementById('eventTime').value = event.time;
+    document.getElementById('eventStartTime').value = event.time;
+    document.getElementById('eventEndTime').value = event.endTime || '';
     document.getElementById('eventLocation').value = event.location;
     document.getElementById('eventType').value = event.type;
+    document.getElementById('eventCapacity').value = event.capacity || '';
     document.getElementById('eventDescription').value = event.description || '';
     document.getElementById('registrationLink').value = event.regLink || '';
     document.getElementById('eventStatus').value = event.status;
+    
+    // Show existing image if available
+    if (event.imagePath) {
+        document.getElementById('previewImg').src = event.imagePath;
+        document.getElementById('imagePreview').style.display = 'block';
+    } else {
+        document.getElementById('imagePreview').style.display = 'none';
+    }
 
     addEventModal.style.display = 'flex';
 }
@@ -444,13 +681,30 @@ function editEvent(id) {
 // ────────────────────────────────────────────────
 // Delete Event
 // ────────────────────────────────────────────────
-function deleteEvent(id) {
+async function deleteEvent(id) {
     if (!confirm("Delete this event?")) return;
 
-    eventsData = eventsData.filter(e => e.id !== id);
-    saveEvents();
-    renderEventsTable();
-    filterEvents();
+    try {
+        const response = await fetch('api/delete_event.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            await loadEvents();
+            alert('Event deleted successfully');
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error deleting event:', error);
+        alert('Error deleting event: ' + error.message);
+    }
 }
 
 // ────────────────────────────────────────────────
@@ -464,25 +718,31 @@ function viewEvent(id) {
         month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
     });
 
-    document.getElementById('eventDetails').innerHTML = `
+    let html = `
+        ${event.imagePath ? `<div style="margin-bottom: 20px; text-align: center;"><img src="${event.imagePath}" style="max-width: 100%; max-height: 300px; border-radius: 8px;"></div>` : ''}
         <p><strong>Event ID:</strong> ${event.id}</p>
         <p><strong>Title:</strong> ${event.title}</p>
-        <p><strong>Date & Time:</strong> ${dateTime}</p>
+        <p><strong>Date & Time:</strong> ${dateTime}${event.endTime ? ` - ${event.endTime}` : ''}</p>
         <p><strong>Location:</strong> ${event.location}</p>
         <p><strong>Type:</strong> ${event.type}</p>
         <p><strong>Status:</strong> ${event.status}</p>
+        ${event.capacity ? `<p><strong>Capacity:</strong> ${event.capacity} participants</p>` : ''}
         <p><strong>Description:</strong> ${event.description || 'No description'}</p>
-        ${event.regLink ? `<p><strong>Registration Link:</strong> <a href="${event.regLink}" target="_blank">Open Google Form</a></p>` : ''}
+        ${event.regLink ? `<p><strong>Registration Link:</strong> <a href="${event.regLink}" target="_blank">Open Registration Form</a></p>` : ''}
     `;
 
+    document.getElementById('eventDetails').innerHTML = html;
     viewEventModal.style.display = 'flex';
 }
 
 // ────────────────────────────────────────────────
 // Initial load
 // ────────────────────────────────────────────────
-renderEventsTable();
-filterEvents();
+// Setup events table on first load
+fetch('api/setup_events_table.php').catch(() => {});
+
+// Load events from API
+loadEvents();
 </script>
 </body>
 </html>
