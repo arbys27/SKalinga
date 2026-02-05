@@ -29,7 +29,7 @@
                     <div class="user-avatar">
                         <img src="assets/images/default-avatar.png" alt="Profile" id="mini-avatar">
                     </div>
-                    <span class="user-name"></span>
+                    <span class="user-name" id="nav-user-name">Loading...</span>
                 </a>
             </div>
         </nav>
@@ -38,26 +38,26 @@
         <section class="welcome-section">
             <div class="welcome-content">
                 <h2>Hey! 👋</h2>
-                <p>Welcome back to your youth portal. Ready to make a difference today?</p>
+                <p id="welcome-subtitle">Ready to make a difference today?</p>
                 <div class="status-badges">
-                    <div class="status-badge">
+                    <div class="status-badge" id="badge-member-since">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                             <polyline points="22 4 12 14.01 9 11.01"></polyline>
                         </svg>
-                        Member Since 2024
+                        Loading...
                     </div>
-                    <div class="status-badge">
+                    <div class="status-badge" id="badge-status">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                         </svg>
-                        Active Status
+                        Loading...
                     </div>
-                    <div class="status-badge">
+                    <div class="status-badge" id="badge-events">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                         </svg>
-                        5 Events Attended
+                        Loading...
                     </div>
                 </div>
             </div>
@@ -180,27 +180,84 @@
 
     <script>
         // Load user data from server
-        fetch('api/get_user.php', {
-            credentials: 'include'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Update user name in navigation
-                document.querySelector('.user-name').textContent = data.name;
-
-                // Update welcome message
-                document.querySelector('.welcome-content h2').textContent = `Hey ${data.firstname}! 👋`;
-            } else {
-                // Not logged in, redirect to login
+        async function loadUserProfile() {
+            try {
+                const response = await fetch('api/get_user.php', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update user name in navigation
+                    document.querySelector('.user-name').textContent = `${data.firstname} ${data.lastname}`;
+                    
+                    // Update avatar if available
+                    if (data.avatar_path) {
+                        document.getElementById('mini-avatar').src = data.avatar_path;
+                    }
+                    
+                    // Update welcome message with time-aware greeting
+                    const hour = new Date().getHours();
+                    let greeting = "Ready to make a difference today?";
+                    if (hour < 12) {
+                        greeting = "Good morning! Ready to make a difference today?";
+                    } else if (hour < 18) {
+                        greeting = "Good afternoon! Let's make an impact today!";
+                    } else {
+                        greeting = "Good evening! Keep up the great work!";
+                    }
+                    document.getElementById('welcome-subtitle').textContent = greeting;
+                    
+                    // Update greeting with firstname
+                    document.querySelector('.welcome-content h2').textContent = `Hey ${data.firstname}! 👋`;
+                    
+                    // Update Member Since badge
+                    const createdDate = new Date(data.created_at);
+                    const monthYear = createdDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+                    document.getElementById('badge-member-since').innerHTML = `
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        Member Since ${monthYear}
+                    `;
+                    
+                    // Update Status badge
+                    const statusIcon = data.status === 'active' ? '✓' : data.status === 'suspended' ? '⚠' : '⊘';
+                    const statusText = data.status === 'active' ? 'Active Status' : 
+                                      data.status === 'suspended' ? 'Suspended' : 'Inactive Member';
+                    document.getElementById('badge-status').innerHTML = `
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        ${statusIcon} ${statusText}
+                    `;
+                    
+                    // Update Events Attended badge
+                    const eventCount = data.events_attended || 0;
+                    const eventText = eventCount === 1 ? '1 Event Attended' : `${eventCount} Events Attended`;
+                    document.getElementById('badge-events').innerHTML = `
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        ${eventText}
+                    `;
+                    
+                } else {
+                    // Not logged in, redirect to login
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                // On error, redirect to login
                 window.location.href = 'index.html';
             }
-        })
-        .catch(error => {
-            console.error('Error fetching user data:', error);
-            // On error, redirect to login
-            window.location.href = 'index.html';
-        });
+        }
+        
+        // Load user profile on page load
+        document.addEventListener('DOMContentLoaded', loadUserProfile);
     </script>
 </body>
 </html>

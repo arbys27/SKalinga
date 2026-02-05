@@ -32,8 +32,19 @@ if (empty($password)) {
     exit;
 }
 
-// Check if user exists and verify password
-$stmt = $conn->prepare("SELECT member_id, firstname, lastname, password_hash, status FROM youth_registrations WHERE email = ?");
+// Check if user exists and verify password (JOIN with profile data)
+$stmt = $conn->prepare("
+    SELECT 
+        u.id, 
+        u.member_id, 
+        u.password_hash, 
+        u.status,
+        p.firstname, 
+        p.lastname
+    FROM users u
+    LEFT JOIN youth_profiles p ON u.id = p.user_id
+    WHERE u.email = ?
+");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -65,12 +76,19 @@ if (!password_verify($password, $user['password_hash'])) {
     exit;
 }
 
-// Login successful
+// Update last login timestamp
+$update_stmt = $conn->prepare("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?");
+$update_stmt->bind_param("i", $user['id']);
+$update_stmt->execute();
+$update_stmt->close();
+
+// Login successful - start session
 session_start();
+$_SESSION['user_id'] = $user['id'];
 $_SESSION['member_id'] = $user['member_id'];
+$_SESSION['email'] = $email;
 $_SESSION['firstname'] = $user['firstname'];
 $_SESSION['lastname'] = $user['lastname'];
-$_SESSION['email'] = $email;
 
 echo json_encode([
     'success' => true,

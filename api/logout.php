@@ -1,10 +1,18 @@
 <?php
-// Start session
+/**
+ * Admin Logout Function
+ * Destroys the session and redirects to login page
+ */
+
 session_start();
+
+// Unset all session variables
+$_SESSION = [];
 
 // Destroy the session
 session_destroy();
 
-// Return success
-echo json_encode(['success' => true, 'message' => 'Logged out successfully']);
+// Redirect to login page
+header('Location: ../login-admin.html');
+exit;
 ?>

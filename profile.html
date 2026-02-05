@@ -928,7 +928,7 @@
                     populateProfileData(data);
                     originalData = { ...data };
                     updateNavUser(data);
-                    updateQRCode(data.member_id, data.name);
+                    updateQRCode(data.member_id, `${data.firstname} ${data.lastname}`);
                 } else {
                     alert('Failed to load profile: ' + data.message);
                     window.location.href = 'index.html';
@@ -943,7 +943,7 @@
         // Populate profile data
         function populateProfileData(data) {
             // Header
-            document.getElementById('profile-name').textContent = data.name;
+            document.getElementById('profile-name').textContent = `${data.firstname} ${data.lastname}`;
             document.getElementById('member-id').textContent = data.member_id;
             document.getElementById('profile-age').textContent = data.age;
             document.getElementById('profile-barangay').textContent = data.barangay;
@@ -955,19 +955,21 @@
             document.getElementById('birthday').textContent = formatDate(data.birthday);
             document.getElementById('age').textContent = data.age;
             document.getElementById('gender').textContent = data.gender;
-            document.getElementById('contact').textContent = data.contact;
+            document.getElementById('contact').textContent = data.phone || 'Not provided';
             document.getElementById('email').textContent = data.email;
             document.getElementById('address').textContent = data.address;
 
             // Digital ID
-            document.getElementById('id-name').textContent = data.name;
+            document.getElementById('id-name').textContent = `${data.firstname} ${data.lastname}`;
             document.getElementById('id-member-id').textContent = data.member_id;
         }
 
         // Update navigation user info
         function updateNavUser(data) {
-            document.getElementById('nav-user-name').textContent = data.name;
-            document.getElementById('mini-avatar').src = 'assets/images/default-avatar.png'; // Could be updated with actual avatar
+            document.getElementById('nav-user-name').textContent = `${data.firstname} ${data.lastname}`;
+            if (data.avatar_path) {
+                document.getElementById('mini-avatar').src = data.avatar_path;
+            }
         }
 
         // Handle avatar upload
@@ -1019,37 +1021,25 @@
 
         // Save changes
         async function saveChanges() {
-            const formData = {
-                firstname: document.getElementById('first-name-input').value.trim(),
-                lastname: document.getElementById('last-name-input').value.trim(),
-                birthday: document.getElementById('birthday-input').value,
-                age: calculateAge(document.getElementById('birthday-input').value),
-                gender: document.getElementById('gender-input').value,
-                contact: document.getElementById('contact-input').value.trim(),
-                email: document.getElementById('email-input').value.trim(),
-                address: document.getElementById('address-input').value.trim(),
-                barangay: originalData.barangay // Keep existing barangay
-            };
-
-            // Update age display
-            document.getElementById('age').textContent = formData.age;
+            const formData = new FormData();
+            formData.append('firstname', document.getElementById('first-name-input').value.trim());
+            formData.append('lastname', document.getElementById('last-name-input').value.trim());
+            formData.append('phone', document.getElementById('contact-input').value.trim());
+            formData.append('address', document.getElementById('address-input').value.trim());
+            formData.append('bio', ''); // Optional field
 
             try {
-                const response = await fetch('api/update_user.php', {
+                const response = await fetch('api/update_profile.php', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
                     credentials: 'include',
-                    body: JSON.stringify(formData)
+                    body: formData
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
-                    // Update original data and UI
-                    originalData = { ...originalData, ...formData };
-                    populateProfileData(originalData);
+                    // Reload profile data
+                    await loadUserProfile();
 
                     // Success animation
                     document.getElementById('save-changes').classList.add('success-animation');

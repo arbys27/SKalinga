@@ -51,7 +51,7 @@ if (!empty($errors)) {
 function generateMemberId($conn) {
     do {
         $id = 'SK-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-        $stmt = $conn->prepare("SELECT id FROM youth_registrations WHERE member_id = ?");
+        $stmt = $conn->prepare("SELECT id FROM users WHERE member_id = ?");
         $stmt->bind_param("s", $id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -63,7 +63,7 @@ function generateMemberId($conn) {
 }
 
 // Check if email already exists
-$stmt = $conn->prepare("SELECT id FROM youth_registrations WHERE email = ?");
+$stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -93,29 +93,58 @@ if (stripos($address, 'brgy') !== false || stripos($address, 'barangay') !== fal
     }
 }
 
-// Insert user data
-$stmt = $conn->prepare("INSERT INTO youth_registrations
-    (member_id, firstname, lastname, birthday, age, gender, contact, address, email, password_hash, barangay)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+// Start transaction for data consistency
+$conn->begin_transaction();
 
-$stmt->bind_param("ssssissssss",
-    $member_id, $firstname, $lastname, $birthday, $age, $gender,
-    $contact, $address, $email, $password_hash, $barangay
-);
-
-if ($stmt->execute()) {
+try {
+    // Step 1: Insert into users table (authentication)
+    $stmt = $conn->prepare("
+        INSERT INTO users (email, password_hash, member_id, status, email_verified, created_at)
+        VALUES (?, ?, ?, 'active', 0, CURRENT_TIMESTAMP)
+    ");
+    $stmt->bind_param("sss", $email, $password_hash, $member_id);
+    
+    if (!$stmt->execute()) {
+        throw new Exception("Users table insert failed: " . $stmt->error);
+    }
+    
+    $user_id = $conn->insert_id;
+    $stmt->close();
+    
+    // Step 2: Insert into youth_profiles table (profile data)
+    $stmt = $conn->prepare("
+        INSERT INTO youth_profiles 
+        (user_id, firstname, lastname, birthday, age, gender, phone, address, barangay, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    ");
+    
+    $stmt->bind_param("issssisss",
+        $user_id, $firstname, $lastname, $birthday, $age, $gender,
+        $contact, $address, $barangay
+    );
+    
+    if (!$stmt->execute()) {
+        throw new Exception("Youth profiles table insert failed: " . $stmt->error);
+    }
+    
+    $stmt->close();
+    
+    // Commit transaction
+    $conn->commit();
+    
     // Registration successful
     echo json_encode([
         'success' => true,
         'message' => 'Registration successful!',
         'member_id' => $member_id,
-        'redirect' => 'youth-portal.html'
+        'user_id' => $user_id,
+        'redirect' => 'index.html'
     ]);
-} else {
+    
+} catch (Exception $e) {
+    // Rollback transaction on error
+    $conn->rollback();
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Registration failed: ' . $stmt->error]);
+    echo json_encode(['success' => false, 'message' => 'Registration failed: ' . $e->getMessage()]);
 }
-
-$stmt->close();
-$conn->close();
 ?>

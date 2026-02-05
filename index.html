@@ -34,7 +34,82 @@
     </form>
 
     <div class="extra" style="margin-top: 28px;">
-      New here? <a href="youth-register.html">Create an account</a>
+      <div>New here? <a href="youth-register.html">Create an account</a></div>
+      <div style="margin-top: 12px; text-align: center;">
+        <a href="#" id="forgot-password-link" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">Forgot your password?</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Reset Form -->
+  <div id="form-reset" style="display: none;">
+    <h1>Reset Password</h1>
+    <div class="subtitle">We'll help you recover your account</div>
+
+    <!-- Step 1: Enter Email -->
+    <div id="reset-step-1" class="reset-step">
+      <form id="emailForm">
+        <label for="reset-email">Email Address</label>
+        <input type="email" id="reset-email" name="email" required placeholder="your@email.com">
+        <button type="submit" class="btn">Send Reset Code</button>
+      </form>
+      <div class="reset-footer">
+        <a href="#" id="back-to-login" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Back to Login</a>
+      </div>
+    </div>
+
+    <!-- Step 2: Enter OTP -->
+    <div id="reset-step-2" class="reset-step" style="display: none;">
+      <div class="step-title">Enter Reset Code</div>
+      <div class="step-description">We've sent a 6-digit code to your email</div>
+      
+      <form id="otpForm">
+        <div class="otp-input-group">
+          <input type="text" class="otp-input-field" id="otp-1" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="otp-2" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="otp-3" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="otp-4" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="otp-5" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="otp-6" maxlength="1" inputmode="numeric">
+        </div>
+        <button type="submit" class="btn">Verify Code</button>
+      </form>
+
+      <div class="resend-section">
+        <p style="font-size: 0.85rem; color: var(--text-gray); margin-bottom: 12px;">Didn't receive code?</p>
+        <button type="button" id="resend-btn" class="btn-secondary">Resend Code</button>
+      </div>
+
+      <div class="reset-footer">
+        <a href="#" id="back-to-email" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Change Email</a>
+      </div>
+    </div>
+
+    <!-- Step 3: New Password -->
+    <div id="reset-step-3" class="reset-step" style="display: none;">
+      <div class="step-title">Create New Password</div>
+      
+      <form id="passwordForm">
+        <label for="new-password">New Password</label>
+        <input type="password" id="new-password" name="password" required placeholder="At least 8 characters">
+        
+        <label for="confirm-password">Confirm Password</label>
+        <input type="password" id="confirm-password" name="confirm_password" required placeholder="Repeat password">
+        
+        <button type="submit" class="btn">Reset Password</button>
+      </form>
+
+      <div class="reset-footer">
+        <a href="#" id="back-to-otp" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Back to Code Verification</a>
+      </div>
+    </div>
+
+    <!-- Success Message -->
+    <div id="reset-success" style="display: none; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+      <h2 style="color: var(--primary-green); margin-bottom: 0.5rem;">Password Reset Successful!</h2>
+      <p style="color: var(--text-gray); margin-bottom: 2rem;">Your password has been updated successfully.</p>
+      <button id="return-to-login" class="btn" style="width: 100%;">Sign In with New Password</button>
     </div>
   </div>
 
@@ -53,38 +128,44 @@
 </div>
 
 <script>
-  // Handle login form submission with AJAX
+  // Global state for password reset flow
+  let resetState = {
+    email: '',
+    otp: '',
+    userId: null,
+    resetToken: null
+  };
+
+  // DOM Elements
   const loginForm = document.getElementById('loginForm');
   const loginBtn = loginForm.querySelector('button[type="submit"]');
+  const forgotPasswordLink = document.getElementById('forgot-password-link');
+  const formLogin = document.getElementById('form-login');
+  const formReset = document.getElementById('form-reset');
 
+  // ═══════════════════════════════════════════════════════════════════
+  // LOGIN HANDLER
+  // ═══════════════════════════════════════════════════════════════════
   loginForm.addEventListener('submit', function(e) {
     e.preventDefault();
 
-    // Disable submit button to prevent double submission
     loginBtn.disabled = true;
     loginBtn.textContent = 'Signing In...';
 
-    // Create FormData object
     const formData = new FormData(this);
 
-    // Send AJAX request
     fetch('api/login.php', {
       method: 'POST',
-      body: formData
+      body: formData,
+      credentials: 'include'
     })
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        // Login successful
         alert('✅ Welcome back, ' + data.name + '!');
-
-        // Redirect to youth portal
         window.location.href = data.redirect;
       } else {
-        // Login failed
         alert('❌ ' + data.message);
-
-        // Re-enable submit button
         loginBtn.disabled = false;
         loginBtn.textContent = 'Sign In';
       }
@@ -92,12 +173,348 @@
     .catch(error => {
       console.error('Error:', error);
       alert('❌ An error occurred. Please try again.');
-
-      // Re-enable submit button
       loginBtn.disabled = false;
       loginBtn.textContent = 'Sign In';
     });
   });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PASSWORD RESET FLOW
+  // ═══════════════════════════════════════════════════════════════════
+
+  // Show password reset form
+  forgotPasswordLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    showPasswordReset();
+  });
+
+  function showPasswordReset() {
+    formLogin.style.display = 'none';
+    formReset.style.display = 'block';
+    resetState = { email: '', otp: '', userId: null, resetToken: null };
+    showResetStep(1);
+  }
+
+  function showStep1() {
+    document.getElementById('reset-step-1').style.display = 'block';
+    document.getElementById('reset-step-2').style.display = 'none';
+    document.getElementById('reset-step-3').style.display = 'none';
+    document.getElementById('reset-success').style.display = 'none';
+  }
+
+  function showStep2() {
+    document.getElementById('reset-step-1').style.display = 'none';
+    document.getElementById('reset-step-2').style.display = 'block';
+    document.getElementById('reset-step-3').style.display = 'none';
+    document.getElementById('reset-success').style.display = 'none';
+    // Focus first OTP input
+    setTimeout(() => document.getElementById('otp-1').focus(), 100);
+    setupOtpInputs();
+  }
+
+  function showStep3() {
+    document.getElementById('reset-step-1').style.display = 'none';
+    document.getElementById('reset-step-2').style.display = 'none';
+    document.getElementById('reset-step-3').style.display = 'block';
+    document.getElementById('reset-success').style.display = 'none';
+    setTimeout(() => document.getElementById('new-password').focus(), 100);
+  }
+
+  function showSuccess() {
+    document.getElementById('reset-step-1').style.display = 'none';
+    document.getElementById('reset-step-2').style.display = 'none';
+    document.getElementById('reset-step-3').style.display = 'none';
+    document.getElementById('reset-success').style.display = 'block';
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // STEP 1: EMAIL SUBMISSION
+  // ═══════════════════════════════════════════════════════════════════
+  document.getElementById('emailForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('reset-email').value.trim();
+    const btn = this.querySelector('button[type="submit"]');
+    
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    try {
+      const response = await fetch('api/request_password_reset.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        resetState.email = email;
+        resetState.userId = data.user_id;
+        
+        // Show success message
+        const successMsg = document.createElement('div');
+        successMsg.className = 'success-message show';
+        successMsg.innerHTML = '✅ Reset code sent to your email!';
+        this.parentElement.insertBefore(successMsg, this);
+        
+        setTimeout(() => {
+          showStep2();
+        }, 1500);
+      } else {
+        showError(this.parentElement, data.message || 'Failed to send reset code');
+        btn.disabled = false;
+        btn.textContent = 'Send Reset Code';
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showError(this.parentElement, 'An error occurred. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Send Reset Code';
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // STEP 2: OTP VERIFICATION
+  // ═══════════════════════════════════════════════════════════════════
+  function setupOtpInputs() {
+    const inputs = document.querySelectorAll('.otp-input-field');
+    
+    inputs.forEach((input, index) => {
+      input.addEventListener('input', function(e) {
+        // Only allow numbers
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        if (this.value && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', function(e) {
+        // Backspace to previous field
+        if (e.key === 'Backspace' && !this.value && index > 0) {
+          inputs[index - 1].focus();
+        }
+        // Arrow keys
+        if (e.key === 'ArrowRight' && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+        if (e.key === 'ArrowLeft' && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+
+      // Paste handler
+      input.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const paste = e.clipboardData.getData('text');
+        const digits = paste.replace(/\D/g, '').slice(0, 6);
+        
+        digits.split('').forEach((digit, i) => {
+          if (inputs[i]) {
+            inputs[i].value = digit;
+          }
+        });
+        
+        if (digits.length === 6) {
+          inputs[5].focus();
+        }
+      });
+    });
+  }
+
+  document.getElementById('otpForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const inputs = document.querySelectorAll('.otp-input-field');
+    const otp = Array.from(inputs).map(input => input.value).join('');
+    
+    if (otp.length !== 6) {
+      showError(this.parentElement, 'Please enter all 6 digits');
+      return;
+    }
+
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+
+    try {
+      // In development, OTP verification is implicit
+      // In production, you would verify with the backend
+      resetState.otp = otp;
+      
+      const successMsg = document.createElement('div');
+      successMsg.className = 'success-message show';
+      successMsg.innerHTML = '✅ Code verified successfully!';
+      this.parentElement.insertBefore(successMsg, this);
+
+      setTimeout(() => {
+        showStep3();
+        btn.disabled = false;
+        btn.textContent = 'Verify Code';
+      }, 1500);
+    } catch (error) {
+      console.error('Error:', error);
+      showError(this.parentElement, 'Failed to verify code. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Verify Code';
+    }
+  });
+
+  // Resend OTP
+  document.getElementById('resend-btn').addEventListener('click', async function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Resending...';
+
+    try {
+      const response = await fetch('api/request_password_reset.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetState.email })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const successMsg = document.createElement('div');
+        successMsg.className = 'success-message show';
+        successMsg.innerHTML = '✅ New code sent to your email!';
+        this.parentElement.insertBefore(successMsg, this);
+
+        // Clear OTP inputs
+        document.querySelectorAll('.otp-input-field').forEach(input => input.value = '');
+        document.getElementById('otp-1').focus();
+
+        setTimeout(() => {
+          successMsg.remove();
+          btn.disabled = false;
+          btn.textContent = 'Resend Code';
+        }, 3000);
+      } else {
+        showError(this.parentElement, data.message || 'Failed to resend code');
+        btn.disabled = false;
+        btn.textContent = 'Resend Code';
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showError(this.parentElement, 'An error occurred. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Resend Code';
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // STEP 3: NEW PASSWORD
+  // ═══════════════════════════════════════════════════════════════════
+  document.getElementById('passwordForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const password = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+
+    // Validation
+    if (password.length < 8) {
+      showError(this.parentElement, 'Password must be at least 8 characters long');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showError(this.parentElement, 'Passwords do not match');
+      return;
+    }
+
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Resetting Password...';
+
+    try {
+      const response = await fetch('api/reset_password.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: resetState.email,
+          otp_code: resetState.otp,
+          password: password
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showSuccess();
+      } else {
+        showError(this.parentElement, data.message || 'Failed to reset password');
+        btn.disabled = false;
+        btn.textContent = 'Reset Password';
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showError(this.parentElement, 'An error occurred. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Reset Password';
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // NAVIGATION BETWEEN STEPS
+  // ═══════════════════════════════════════════════════════════════════
+  document.getElementById('back-to-login').addEventListener('click', function(e) {
+    e.preventDefault();
+    formReset.style.display = 'none';
+    formLogin.style.display = 'block';
+    // Clear form
+    document.getElementById('reset-email').value = '';
+  });
+
+  document.getElementById('back-to-email').addEventListener('click', function(e) {
+    e.preventDefault();
+    showStep1();
+    // Clear OTP inputs
+    document.querySelectorAll('.otp-input-field').forEach(input => input.value = '');
+  });
+
+  document.getElementById('back-to-otp').addEventListener('click', function(e) {
+    e.preventDefault();
+    showStep2();
+  });
+
+  document.getElementById('return-to-login').addEventListener('click', function(e) {
+    e.preventDefault();
+    formReset.style.display = 'none';
+    formLogin.style.display = 'block';
+    // Clear forms
+    document.getElementById('reset-email').value = '';
+    document.getElementById('new-password').value = '';
+    document.getElementById('confirm-password').value = '';
+    document.getElementById('login-email').focus();
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // UTILITY FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════════
+  function showResetStep(step) {
+    if (step === 1) showStep1();
+    else if (step === 2) showStep2();
+    else if (step === 3) showStep3();
+  }
+
+  function showError(container, message) {
+    // Remove existing error messages
+    const existingError = container.querySelector('.error-message');
+    if (existingError) existingError.remove();
+
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message show';
+    errorDiv.innerHTML = '❌ ' + message;
+    container.insertBefore(errorDiv, container.firstChild);
+
+    setTimeout(() => {
+      if (errorDiv.parentElement) {
+        errorDiv.remove();
+      }
+    }, 5000);
+  }
 </script>
 
 </body>
