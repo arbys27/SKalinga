@@ -14,6 +14,144 @@
     <!-- Your shared dashboard CSS -->
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
+    <style>
+        /* User Profile Card - Themed Design */
+        .user-profile-card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.88) 100%);
+            border-radius: 14px;
+            border: 2px solid rgba(93, 173, 226, 0.3);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 24px rgba(93, 173, 226, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Animated gradient border on hover */
+        .user-profile-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.1), rgba(93, 173, 226, 0.1));
+            border-radius: 14px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .user-profile-card:hover::before {
+            opacity: 1;
+        }
+
+        .user-profile-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(93, 173, 226, 0.25);
+            border-color: rgba(93, 173, 226, 0.6);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 100%);
+        }
+
+        /* Avatar */
+        .user-avatar-new {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #FF6B9D 0%, #5DADE2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            flex-shrink: 0;
+            position: relative;
+            box-shadow: 0 4px 16px rgba(93, 173, 226, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .user-profile-card:hover .user-avatar-new {
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(93, 173, 226, 0.4);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .user-greeting {
+            font-size: 11px;
+            color: #5DADE2;
+            font-weight: 600;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            opacity: 0.85;
+        }
+
+        #userFullName {
+            font-size: 15px;
+            font-weight: 700;
+            color: #222;
+            margin: 0;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .user-role-badge {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #228B57 0%, #1a6b43 100%);
+            color: #A8E6CF;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            width: fit-content;
+            box-shadow: 0 2px 8px rgba(34, 139, 87, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .user-profile-card:hover .user-role-badge {
+            box-shadow: 0 4px 12px rgba(34, 139, 87, 0.3);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .user-profile-card {
+                padding: 12px 16px;
+                gap: 12px;
+            }
+
+            .user-avatar-new {
+                width: 44px;
+                height: 44px;
+                font-size: 14px;
+            }
+
+            #userFullName {
+                font-size: 14px;
+            }
+
+            .user-greeting {
+                font-size: 10px;
+            }
+
+            .user-role-badge {
+                font-size: 9px;
+                padding: 3px 9px;
+            }
+        }
+    </style>
     
 </head>
 <body>
@@ -121,7 +259,7 @@
                     </svg>
                     Settings
                 </a>
-                <a href="api/logout.php" class="nav-item">
+                <a href="#" class="nav-item" onclick="confirmLogout(event)">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                         <polyline points="16 17 21 12 16 7"></polyline>
@@ -141,11 +279,12 @@
                 <p id="dashboard-datetime">Loading date and time...</p>
             </div>
             <div class="header-right">
-                <div class="user-profile">
-                    <div class="user-avatar">NM</div>
-                    <div class="user-info">
-                        <h4>Noel Marcellana</h4>
-                        <p>SK Official</p>
+                <div class="user-profile-card">
+                    <div class="user-avatar-new" id="userAvatar">AD</div>
+                    <div class="user-details">
+                        
+                        <h4 id="userFullName">Admin</h4>
+                        <span class="user-role-badge" id="userRole">Staff</span>
                     </div>
                 </div>
             </div>
@@ -317,6 +456,53 @@
 
 <script>
 // ────────────────────────────────────────────────
+// Session Check & Admin Info
+// ────────────────────────────────────────────────
+let adminInfo = null;
+
+async function checkAdminSession() {
+    try {
+        const response = await fetch('api/check_admin_session.php');
+        const data = await response.json();
+        
+        if (!data.authenticated) {
+            window.location.href = 'login-admin.html';
+            return;
+        }
+        
+        adminInfo = data.admin;
+        console.log('Authenticated as:', adminInfo.username);
+        loadAdminProfile();
+        
+    } catch (error) {
+        console.error('Session check error:', error);
+        window.location.href = 'login-admin.html';
+    }
+}
+
+function loadAdminProfile() {
+    if (!adminInfo) return;
+    
+    // Get initials from username
+    const initials = adminInfo.username.substring(0, 2).toUpperCase();
+    
+    // Determine role display text
+    const roleDisplay = adminInfo.role === 'superadmin' ? 'Super Admin' : 'Staff Admin';
+    
+    // Update avatar
+    document.getElementById('userAvatar').textContent = initials;
+    
+    // Update user name
+    document.getElementById('userFullName').textContent = adminInfo.username.charAt(0).toUpperCase() + adminInfo.username.slice(1);
+    
+    // Update role
+    document.getElementById('userRole').textContent = roleDisplay;
+}
+
+// Check session on page load
+checkAdminSession();
+
+// ────────────────────────────────────────────────
 // Live Date & Time
 // ────────────────────────────────────────────────
 function updateDashboardDateTime() {
@@ -341,20 +527,25 @@ setInterval(updateDashboardDateTime, 1000);
 updateDashboardDateTime();
 
 // ────────────────────────────────────────────────
-// Data Management
+// Data Management - Load from API
 // ────────────────────────────────────────────────
-let youthData = JSON.parse(localStorage.getItem('youthData')) || [
-    { 
-        id: "SK-2024-0789", 
-        first: "Arby", 
-        last: "Barnuevo", 
-        contact: "09171234567", 
-        address: "123 Main St. Garcia Subd., Brgy. Poblacion, San Antonio, Laguna" 
-    }
-];
+let youthData = [];
 
-function saveData() {
-    localStorage.setItem('youthData', JSON.stringify(youthData));
+async function loadYouthData() {
+    try {
+        const response = await fetch('api/get_youth.php');
+        const data = await response.json();
+        
+        if (data.success) {
+            youthData = data.data;
+            renderYouthTable();
+        } else {
+            alert('Error loading youth data: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Load error:', error);
+        alert('Failed to load youth data');
+    }
 }
 
 function renderYouthTable(filtered = youthData) {
@@ -363,19 +554,20 @@ function renderYouthTable(filtered = youthData) {
 
     filtered.forEach(youth => {
         const tr = document.createElement('tr');
+        const fullName = `${youth.firstname} ${youth.lastname}`;
         tr.innerHTML = `
-            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${youth.id}</td>
-            <td style="font-weight: 600;">${youth.first} ${youth.last}</td>
-            <td>${youth.contact}</td>
+            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${youth.member_id}</td>
+            <td style="font-weight: 600;">${fullName}</td>
+            <td>${youth.phone || 'N/A'}</td>
             <td class="address-column" title="${youth.address || 'N/A'}">${youth.address || 'N/A'}</td>
             <td class="action-buttons">
-                <button class="action-btn btn-view" onclick="viewYouth('${youth.id}')" title="View Full Details & ID">
+                <button class="action-btn btn-view" onclick="viewYouth('${youth.member_id}')" title="View Full Details & ID">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="action-btn btn-edit" onclick="editYouth('${youth.id}')" title="Edit Member">
+                <button class="action-btn btn-edit" onclick="editYouth('${youth.member_id}')" title="Edit Member">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="action-btn btn-delete" onclick="deleteYouth('${youth.id}')" title="Delete Member">
+                <button class="action-btn btn-delete" onclick="deleteYouth('${youth.member_id}')" title="Delete Member">
                     <i class="fas fa-trash"></i>
                 </button>
             </td>
@@ -385,17 +577,14 @@ function renderYouthTable(filtered = youthData) {
 }
 
 // ────────────────────────────────────────────────
-// Search & Filter – search by name, ID, contact
+// Search & Filter
 // ────────────────────────────────────────────────
 function filterTable() {
     const search = document.getElementById('searchInput').value.toLowerCase().trim();
 
     const filtered = youthData.filter(y => {
-        // Search ONLY name, ID, contact (NO address)
-        const searchableText = `${y.first} ${y.last} ${y.id} ${y.contact || ''}`.toLowerCase();
-        const matchesSearch = searchableText.includes(search);
-
-        return matchesSearch;
+        const searchableText = `${y.firstname} ${y.lastname} ${y.member_id} ${y.phone || ''}`.toLowerCase();
+        return searchableText.includes(search);
     });
 
     renderYouthTable(filtered);
@@ -460,79 +649,130 @@ document.getElementById('birthday').addEventListener('change', function() {
 });
 
 // ────────────────────────────────────────────────
-// Register / Edit Submit – still extract barangay for data, but filter is independent
+// Register / Edit Submit
 // ────────────────────────────────────────────────
-form.addEventListener('submit', e => {
+form.addEventListener('submit', async e => {
     e.preventDefault();
 
-    const id = document.getElementById('editId').value || `SK-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    const fullAddress = document.getElementById('address').value.trim();
-    let barangay = "Unknown";
-
-    // Attempt to extract barangay from address (for data consistency)
-    const brgyMatch = fullAddress.match(/Brgy\.?\s*([^,]+)/i) || 
-                      fullAddress.match(/Barangay\s*([^,]+)/i) ||
-                      fullAddress.match(/Brgy\s+([^\s,]+)/i);
-    if (brgyMatch && brgyMatch[1]) {
-        barangay = brgyMatch[1].trim();
-    }
-
-    const youth = {
-        id,
-        first: document.getElementById('firstName').value.trim(),
-        last: document.getElementById('lastName').value.trim(),
-        birthday: document.getElementById('birthday').value,
-        age: document.getElementById('age').value,
-        gender: document.getElementById('gender').value,
-        address: fullAddress,
-        contact: document.getElementById('contact').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        barangay: barangay
-    };
-
-    if (document.getElementById('editId').value) {
-        const index = youthData.findIndex(y => y.id === id);
-        if (index !== -1) youthData[index] = { ...youthData[index], ...youth };
+    const formData = new FormData();
+    const isEdit = document.getElementById('editId').value;
+    
+    if (isEdit) {
+        // Edit mode
+        formData.append('member_id', isEdit);
+        formData.append('firstname', document.getElementById('firstName').value.trim());
+        formData.append('lastname', document.getElementById('lastName').value.trim());
+        formData.append('birthday', document.getElementById('birthday').value);
+        formData.append('age', document.getElementById('age').value);
+        formData.append('gender', document.getElementById('gender').value);
+        formData.append('contact', document.getElementById('contact').value.trim());
+        formData.append('address', document.getElementById('address').value.trim());
+        
+        // Extract barangay
+        const fullAddress = document.getElementById('address').value.trim();
+        const brgyMatch = fullAddress.match(/Brgy\.?\s*([^,]+)/i) || 
+                          fullAddress.match(/Barangay\s*([^,]+)/i);
+        if (brgyMatch && brgyMatch[1]) {
+            formData.append('barangay', brgyMatch[1].trim());
+        }
+        
+        try {
+            const response = await fetch('api/update_youth.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Youth member updated successfully!');
+                addModal.style.display = 'none';
+                form.reset();
+                validateForm();
+                loadYouthData();
+            } else {
+                alert('Error: ' + (data.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Update error:', error);
+            alert('Failed to update youth member');
+        }
+        
     } else {
-        youthData.unshift(youth);
-    }
-
-    saveData();
-    renderYouthTable();
-    filterTable();
-
-    addModal.style.display = 'none';
-    form.reset();
-    validateForm();
-
-    const msg = document.getElementById('editId').value ? 'updated' : 'registered';
-    alert(`Youth member ${msg} successfully!`);
-
-    if (!document.getElementById('editId').value) {
-        showIdPreview(youth);
+        // Add mode
+        formData.append('firstname', document.getElementById('firstName').value.trim());
+        formData.append('lastname', document.getElementById('lastName').value.trim());
+        formData.append('email', document.getElementById('email').value.trim());
+        formData.append('birthday', document.getElementById('birthday').value);
+        formData.append('age', document.getElementById('age').value);
+        formData.append('gender', document.getElementById('gender').value);
+        formData.append('contact', document.getElementById('contact').value.trim());
+        formData.append('address', document.getElementById('address').value.trim());
+        formData.append('password', document.getElementById('password').value);
+        
+        // Extract barangay
+        const fullAddress = document.getElementById('address').value.trim();
+        const brgyMatch = fullAddress.match(/Brgy\.?\s*([^,]+)/i) || 
+                          fullAddress.match(/Barangay\s*([^,]+)/i);
+        if (brgyMatch && brgyMatch[1]) {
+            formData.append('barangay', brgyMatch[1].trim());
+        }
+        
+        try {
+            const response = await fetch('api/add_youth.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Youth member registered successfully!');
+                addModal.style.display = 'none';
+                form.reset();
+                validateForm();
+                loadYouthData();
+                
+                // Show ID preview
+                const youthInfo = {
+                    firstname: data.data.firstname,
+                    lastname: data.data.lastname,
+                    member_id: data.data.member_id
+                };
+                showIdPreview(youthInfo);
+            } else {
+                alert('Error: ' + (data.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Add error:', error);
+            alert('Failed to register youth member');
+        }
     }
 });
 
 // ────────────────────────────────────────────────
 // Edit Youth
 // ────────────────────────────────────────────────
-function editYouth(id) {
-    const youth = youthData.find(y => y.id === id);
+function editYouth(member_id) {
+    const youth = youthData.find(y => y.member_id === member_id);
     if (!youth) return alert("Member not found");
 
     document.getElementById('modalTitle').textContent = "Edit Youth Member";
     document.getElementById('submitBtn').textContent = "Save Changes";
-    document.getElementById('editId').value = youth.id;
+    document.getElementById('editId').value = youth.member_id;
 
-    document.getElementById('firstName').value = youth.first || '';
-    document.getElementById('lastName').value = youth.last || '';
+    document.getElementById('firstName').value = youth.firstname || '';
+    document.getElementById('lastName').value = youth.lastname || '';
     document.getElementById('birthday').value = youth.birthday || '';
     document.getElementById('age').value = youth.age || '';
     document.getElementById('gender').value = youth.gender || '';
     document.getElementById('address').value = youth.address || '';
-    document.getElementById('contact').value = youth.contact || '';
+    document.getElementById('contact').value = youth.phone || '';
     document.getElementById('email').value = youth.email || '';
+    
+    // Hide password fields on edit
+    document.querySelector('label[for="password"]').closest('.form-group').style.display = 'none';
+    document.querySelector('label[for="confirmPassword"]').closest('.form-group').style.display = 'none';
 
     validateForm();
     addModal.style.display = 'flex';
@@ -541,44 +781,60 @@ function editYouth(id) {
 // ────────────────────────────────────────────────
 // Delete Youth
 // ────────────────────────────────────────────────
-function deleteYouth(id) {
+async function deleteYouth(member_id) {
     if (!confirm("Are you sure you want to delete this youth member?")) return;
 
-    youthData = youthData.filter(y => y.id !== id);
-    saveData();
-    renderYouthTable();
-    filterTable();
-
-    alert("Youth member deleted successfully.");
+    const formData = new FormData();
+    formData.append('member_id', member_id);
+    
+    try {
+        const response = await fetch('api/delete_youth.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert("Youth member deleted successfully.");
+            loadYouthData();
+        } else {
+            alert('Error: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Delete error:', error);
+        alert('Failed to delete youth member');
+    }
 }
 
 // ────────────────────────────────────────────────
 // View Youth
 // ────────────────────────────────────────────────
-function viewYouth(id) {
-    const youth = youthData.find(y => y.id === id);
+function viewYouth(member_id) {
+    const youth = youthData.find(y => y.member_id === member_id);
     if (!youth) return alert("Member not found");
 
     const info = `
         <div style="line-height: 1.8; font-size: 15px; margin-bottom: 24px;">
-            <p><strong>Member ID:</strong> ${youth.id}</p>
-            <p><strong>Full Name:</strong> ${youth.first} ${youth.last}</p>
+            <p><strong>Member ID:</strong> ${youth.member_id}</p>
+            <p><strong>Full Name:</strong> ${youth.firstname} ${youth.lastname}</p>
             <p><strong>Birthday:</strong> ${youth.birthday ? new Date(youth.birthday).toLocaleDateString('en-US') : 'N/A'}</p>
             <p><strong>Age:</strong> ${youth.age || 'N/A'}</p>
             <p><strong>Gender:</strong> ${youth.gender || 'N/A'}</p>
-            <p><strong>Contact:</strong> ${youth.contact || 'N/A'}</p>
+            <p><strong>Contact:</strong> ${youth.phone || 'N/A'}</p>
             <p><strong>Email:</strong> ${youth.email || 'N/A'}</p>
             <p><strong>Full Address:</strong> ${youth.address || 'N/A'}</p>
+            <p><strong>Barangay:</strong> ${youth.barangay || 'N/A'}</p>
         </div>
     `;
 
     document.getElementById('viewPersonalInfo').innerHTML = info;
 
-    document.getElementById('viewName').textContent = `${youth.first} ${youth.last}`;
-    document.getElementById('viewId').textContent = youth.id;
+    document.getElementById('viewName').textContent = `${youth.firstname} ${youth.lastname}`;
+    document.getElementById('viewId').textContent = youth.member_id;
     document.getElementById('viewDate').textContent = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-    const qrData = `${youth.id}-${youth.first}${youth.last}`.replace(/\s+/g, '');
+    const qrData = `${youth.member_id}-${youth.firstname}${youth.lastname}`.replace(/\s+/g, '');
     document.getElementById('viewQRImg').innerHTML = '';
     new QRCode(document.getElementById('viewQRImg'), {
         text: qrData,
@@ -593,11 +849,11 @@ function viewYouth(id) {
 // Show ID Preview
 // ────────────────────────────────────────────────
 function showIdPreview(youth) {
-    document.getElementById('previewName').textContent = `${youth.first} ${youth.last}`;
-    document.getElementById('previewId').textContent = youth.id;
+    document.getElementById('previewName').textContent = `${youth.firstname} ${youth.lastname}`;
+    document.getElementById('previewId').textContent = youth.member_id;
     document.getElementById('previewDate').textContent = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-    const qrData = `${youth.id}-${youth.first}${youth.last}`.replace(/\s+/g, '');
+    const qrData = `${youth.member_id}-${youth.firstname}${youth.lastname}`.replace(/\s+/g, '');
     document.getElementById('previewQRImg').innerHTML = '';
     new QRCode(document.getElementById('previewQRImg'), {
         text: qrData,
@@ -609,10 +865,117 @@ function showIdPreview(youth) {
 }
 
 // ────────────────────────────────────────────────
-// Initial load
+// Logout Confirmation
 // ────────────────────────────────────────────────
-renderYouthTable();
-filterTable();
+function confirmLogout(event) {
+    event.preventDefault();
+    
+    const modal = document.createElement('div');
+    modal.id = 'logoutModal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        backdrop-filter: blur(2px);
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        max-width: 400px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease-out;
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="text-align: center;">
+            <div style="width: 64px; height: 64px; background: #fff3cd; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#ff9800" stroke-width="2" style="width: 36px; height: 36px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h2 style="margin: 0 0 8px 0; color: #333; font-size: 20px; font-weight: 600;">Confirm Logout?</h2>
+            <p style="margin: 0 0 24px 0; color: #666; font-size: 14px; line-height: 1.6;">
+                Are you sure you want to log out from your admin account?
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button id="cancelBtn" style="
+                    padding: 12px 24px;
+                    background: #f0f0f0;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #333;
+                    transition: all 0.2s;
+                    min-width: 100px;
+                ">Cancel</button>
+                <button id="confirmBtn" style="
+                    padding: 12px 24px;
+                    background: linear-gradient(135deg, #FF6B9D, #e04f7e);
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: white;
+                    transition: all 0.2s;
+                    min-width: 100px;
+                    box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+                ">Logout</button>
+            </div>
+        </div>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.getElementById('cancelBtn').addEventListener('click', function() {
+        modal.remove();
+    });
+    
+    document.getElementById('confirmBtn').addEventListener('click', function() {
+        window.location.href = 'api/logout.php';
+    });
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// ────────────────────────────────────────────────
+// Initial Load
+// ────────────────────────────────────────────────
+loadYouthData();
 </script>
 </body>
 </html>

@@ -12,7 +12,7 @@ $_SESSION = [];
 // Destroy the session
 session_destroy();
 
-// Redirect to login page
-header('Location: ../login-admin.html');
+// Redirect to login page with logout parameter
+header('Location: ../login-admin.html?logout=1');
 exit;
 ?>

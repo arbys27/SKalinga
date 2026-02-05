@@ -232,6 +232,16 @@ document.getElementById('adminLoginForm').addEventListener('submit', async funct
 
 // Check if already logged in and redirect
 window.addEventListener('load', async function() {
+    // Check if there's a logout parameter in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const logoutParam = urlParams.get('logout');
+    
+    // If logout parameter exists, clear it from URL and show login form
+    if (logoutParam === '1') {
+        window.history.replaceState({}, document.title, 'login-admin.html');
+        return; // Stay on login page
+    }
+    
     try {
         const response = await fetch('api/check_admin_session.php');
         const data = await response.json();
