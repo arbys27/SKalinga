@@ -275,10 +275,11 @@
             <table class="admin-table" id="lendingTable">
                 <thead>
     <tr>
-        <th>Item ID</th>  <!-- New column for unique item identifier -->
-        <th>Item Name</th>  <!-- Renamed from "Item" for clarity -->
-        <th>Member ID</th>  <!-- New column for youth ID -->
-        <th>Borrower Name</th>  <!-- New column for borrower name -->
+        <th>Item ID</th>
+        <th>Item Name</th>
+        <th>Qty</th>
+        <th>Member ID</th>
+        <th>Borrower Name</th>
         <th>Borrow Date</th>
         <th>Due Date</th>
         <th>Status</th>
@@ -339,10 +340,16 @@
         <div id="borrowForm" style="display: none;">
             <form id="borrowFormElement">
                 <input type="hidden" id="borrowYouthId">
+                <input type="hidden" id="borrowerFullName">
 
                 <div class="form-group">
                     <label for="borrowItem">Select Item to Borrow *</label>
                     <select id="borrowItem" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="borrowQuantity">Quantity to Borrow *</label>
+                    <input type="number" id="borrowQuantity" min="1" value="1" required>
                 </div>
 
                 <div class="form-row">
@@ -391,19 +398,45 @@ updateDashboardDateTime();
 // ────────────────────────────────────────────────
 // Data
 // ────────────────────────────────────────────────
-let youthData = JSON.parse(localStorage.getItem('youthData')) || [];
+let itemsData = [];
+let lendingData = [];
 
-let itemsData = JSON.parse(localStorage.getItem('skResources')) || [
-    { id: "ITEM-001", name: "Projector", description: "Epson 1080p", quantity: 2, available: 2 },
-    { id: "ITEM-002", name: "Wireless Microphone", description: "Shure", quantity: 4, available: 4 },
-    { id: "ITEM-003", name: "Basketball", description: "Molten official size", quantity: 5, available: 5 }
-];
+// Fetch resources from API
+async function loadResources() {
+    try {
+        const response = await fetch('api/get_resources.php');
+        const result = await response.json();
+        
+        if (result.success) {
+            itemsData = result.data || [];
+            return itemsData;
+        } else {
+            console.error('Error loading resources:', result.error);
+            return [];
+        }
+    } catch (error) {
+        console.error('Error fetching resources:', error);
+        return [];
+    }
+}
 
-let lendingData = JSON.parse(localStorage.getItem('skLending')) || [];
-
-function saveData() {
-    localStorage.setItem('skResources', JSON.stringify(itemsData));
-    localStorage.setItem('skLending', JSON.stringify(lendingData));
+// Fetch borrow records from API
+async function loadBorrowRecords() {
+    try {
+        const response = await fetch('api/get_borrow_records.php');
+        const result = await response.json();
+        
+        if (result.success) {
+            lendingData = result.data || [];
+            return lendingData;
+        } else {
+            console.error('Error loading borrow records:', result.error);
+            return [];
+        }
+    } catch (error) {
+        console.error('Error fetching borrow records:', error);
+        return [];
+    }
 }
 
 // ────────────────────────────────────────────────
@@ -413,40 +446,44 @@ function renderLendingTable(filtered = lendingData) {
     const tbody = document.getElementById('lendingTableBody');
     tbody.innerHTML = '';
 
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #999;">No borrowing records found</td></tr>';
+        return;
+    }
+
     filtered.forEach(record => {
-        const borrowDate = new Date(record.borrowDate);
-        const dueDate = new Date(record.dueDate);
+        const borrowDate = new Date(record.borrow_date);
+        const dueDate = new Date(record.due_date);
         const today = new Date();
-        let status = "Borrowed";
+        
+        let status = record.status || "Borrowed";
         let statusClass = "status-borrowed";
 
-        if (record.returned) {
-            status = "Returned";
+        if (status === "Returned") {
             statusClass = "status-returned";
-        } else if (dueDate < today) {
+        } else if (status === "Overdue" || (record.status === "Borrowed" && dueDate < today)) {
             status = "Overdue";
             statusClass = "status-overdue";
         }
 
-        const borrower = youthData.find(y => y.id === record.youthId) || { first: "Unknown", last: "" };
-
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${record.itemId}</td>  <!-- New: Display item ID -->
-            <td>${record.itemName}</td>  <!-- Updated: Now just the item name -->
-            <td>${record.youthId}</td>  <!-- New: Display member ID separately -->
-            <td>${borrower.first} ${borrower.last}</td>  <!-- New: Display borrower name separately -->
+            <td>${record.item_id}</td>
+            <td>${record.item_name}</td>
+            <td>${record.quantity || 1}</td>
+            <td>${record.member_id}</td>
+            <td>${record.borrower_name}</td>
             <td>${borrowDate.toLocaleDateString()}</td>
             <td>${dueDate.toLocaleDateString()}</td>
             <td><span class="status-badge ${statusClass}">${status}</span></td>
             <td class="action-buttons">
-                <button class="action-btn btn-view" onclick="viewLending('${record.id}')" title="View Details">
+                <button class="action-btn btn-view" onclick="viewLending(${record.borrow_id})" title="View Details">
                     <i class="fas fa-eye"></i>
                 </button>
-                ${!record.returned ? `<button class="action-btn btn-return" onclick="returnItem('${record.id}')" title="Mark as Returned">
+                ${status !== "Returned" ? `<button class="action-btn btn-return" onclick="returnItem(${record.borrow_id})" title="Mark as Returned">
                     <i class="fas fa-undo"></i>
                 </button>` : ''}
-                <button class="action-btn btn-delete" onclick="deleteLending('${record.id}')" title="Delete Record">
+                <button class="action-btn btn-delete" onclick="deleteLending(${record.borrow_id})" title="Delete Record">
                     <i class="fas fa-trash"></i>
                 </button>
             </td>
@@ -463,12 +500,16 @@ function filterLending() {
     const status = document.getElementById('filterStatus').value;
 
     const filtered = lendingData.filter(r => {
-        const text = `${r.itemName} ${r.youthId}`.toLowerCase();
+        const text = `${r.item_name} ${r.member_id} ${r.borrower_name}`.toLowerCase();
         const matchesSearch = text.includes(search);
-        const matchesStatus = !status || 
-            (status === "Borrowed" && !r.returned && new Date(r.dueDate) >= new Date()) ||
-            (status === "Returned" && r.returned) ||
-            (status === "Overdue" && !r.returned && new Date(r.dueDate) < new Date());
+        
+        let recordStatus = r.status;
+        const dueDate = new Date(r.due_date);
+        if (recordStatus === "Borrowed" && dueDate < new Date()) {
+            recordStatus = "Overdue";
+        }
+        
+        const matchesStatus = !status || recordStatus === status;
 
         return matchesSearch && matchesStatus;
     });
@@ -508,57 +549,120 @@ window.onclick = e => {
 };
 
 // ────────────────────────────────────────────────
+// Populate Borrow Item Dropdown
+// ────────────────────────────────────────────────
+function populateBorrowItemDropdown() {
+    const select = document.getElementById('borrowItem');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="" disabled selected>Select item</option>';
+    
+    if (itemsData.length === 0) {
+        select.innerHTML += '<option disabled>No items available</option>';
+        return;
+    }
+    
+    itemsData.filter(i => i.available > 0).forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.item_id;
+        opt.textContent = `${item.name} (${item.available}/${item.quantity} available)`;
+        select.appendChild(opt);
+    });
+}
+
+// ────────────────────────────────────────────────
 // Add / Edit Item
 // ────────────────────────────────────────────────
-document.getElementById('itemForm').addEventListener('submit', e => {
+document.getElementById('itemForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    const id = `ITEM-${String(Date.now()).slice(-6)}`;
+    const itemName = document.getElementById('itemName').value.trim();
+    const itemDescription = document.getElementById('itemDescription').value.trim();
+    const itemQuantity = parseInt(document.getElementById('itemQuantity').value);
 
-    const item = {
-        id,
-        name: document.getElementById('itemName').value.trim(),
-        description: document.getElementById('itemDescription').value.trim(),
-        quantity: parseInt(document.getElementById('itemQuantity').value),
-        available: parseInt(document.getElementById('itemQuantity').value)
-    };
+    if (!itemName || itemQuantity < 1) {
+        alert("Please fill in all required fields with valid values");
+        return;
+    }
 
-    itemsData.push(item);
-    saveData();
+    try {
+        const response = await fetch('api/add_resource.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: itemName,
+                description: itemDescription,
+                quantity: itemQuantity
+            })
+        });
 
-    addItemModal.style.display = 'none';
-    alert("Item added successfully!");
+        const result = await response.json();
+
+        if (result.success) {
+            alert("Item added successfully!");
+            document.getElementById('itemForm').reset();
+            addItemModal.style.display = 'none';
+            
+            // Reload resources and refresh table
+            await loadResources();
+            filterLending();
+            populateBorrowItemDropdown();
+        } else {
+            alert("Error: " + result.error);
+        }
+    } catch (error) {
+        console.error('Error adding item:', error);
+        alert("Failed to add item. Please try again.");
+    }
 });
 
 // ────────────────────────────────────────────────
 // Scan / Lookup Youth
 // ────────────────────────────────────────────────
-document.getElementById('lookupYouthBtn').onclick = () => {
+document.getElementById('lookupYouthBtn').onclick = async () => {
     const inputId = document.getElementById('manualYouthId').value.trim().toUpperCase();
-    if (!inputId) return alert("Please enter a Youth ID");
+    if (!inputId) {
+        alert("Please enter a Youth ID");
+        return;
+    }
 
-    const youth = youthData.find(y => y.id.toUpperCase() === inputId);
-    if (!youth) return alert("Youth ID not found");
+    try {
+        // Fetch user data from the API
+        const response = await fetch('api/get_user.php?member_id=' + encodeURIComponent(inputId));
+        const result = await response.json();
 
-    document.getElementById('borrowerInfo').innerHTML = `
-        <strong>Found:</strong> ${youth.first} ${youth.last}<br>
-        <strong>ID:</strong> ${youth.id}<br>
-        <strong>Contact:</strong> ${youth.contact || 'N/A'}
-    `;
-    document.getElementById('borrowerInfo').style.display = 'block';
-    document.getElementById('borrowYouthId').value = youth.id;
+        if (!result.success || !result.user) {
+            alert("Member ID not found in system. Please verify and try again.");
+            return;
+        }
 
-    // Populate available items
-    const select = document.getElementById('borrowItem');
-    select.innerHTML = '<option value="" disabled selected>Select item</option>';
-    itemsData.filter(i => i.available > 0).forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item.id;
-        opt.textContent = `${item.name} (${item.available} available)`;
-        select.appendChild(opt);
-    });
+        const youth = result.user;
+        const borrowerName = youth.name || (youth.firstname + ' ' + (youth.lastname || '')) || 'User';
+        const phoneContact = youth.phone || 'N/A';
 
-    document.getElementById('borrowForm').style.display = 'block';
+        document.getElementById('borrowerInfo').innerHTML = `
+            <div style="padding: 12px; background: #f0f8ff; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #5DADE2;">
+                <strong style="color: #228B57;">✓ Member Found</strong><br>
+                <strong>Member ID:</strong> ${inputId}<br>
+                <strong>Name:</strong> ${borrowerName}<br>
+                <strong>Contact:</strong> ${phoneContact}
+            </div>
+        `;
+        document.getElementById('borrowerInfo').style.display = 'block';
+        document.getElementById('borrowYouthId').value = inputId;
+        document.getElementById('borrowerFullName').value = borrowerName;
+
+        // Populate available items
+        populateBorrowItemDropdown();
+
+        document.getElementById('borrowForm').style.display = 'block';
+
+    } catch (error) {
+        console.error('Error looking up member:', error);
+        alert("Error looking up member ID. Please check your connection and try again.");
+    }
 };
 
 // Auto-lookup on valid ID input (for QR scanner)
@@ -566,100 +670,186 @@ document.getElementById('manualYouthId').addEventListener('input', function() {
     const inputId = this.value.trim().toUpperCase();
     const idPattern = /^SK-\d{4}-\d{4}$/;
     if (idPattern.test(inputId)) {
-        // Valid ID format, auto-lookup
+        // Valid ID format, auto-lookup after a short delay
         setTimeout(() => {
             document.getElementById('lookupYouthBtn').click();
-        }, 500); // Small delay to allow full input
+        }, 500);
     }
 });
 
 // ────────────────────────────────────────────────
 // Borrow Item
 // ────────────────────────────────────────────────
-document.getElementById('borrowFormElement').addEventListener('submit', e => {
+document.getElementById('borrowFormElement').addEventListener('submit', async e => {
     e.preventDefault();
 
-    const youthId = document.getElementById('borrowYouthId').value;
+    const memberId = document.getElementById('borrowYouthId').value.trim();
+    const borrowerName = document.getElementById('borrowerFullName').value.trim();
     const itemId = document.getElementById('borrowItem').value;
+    const quantity = parseInt(document.getElementById('borrowQuantity').value);
     const borrowDate = document.getElementById('borrowDate').value;
     const dueDate = document.getElementById('dueDate').value;
 
-    if (!itemId) return alert("Please select an item");
+    if (!itemId || !memberId || !borrowDate || !dueDate || quantity < 1) {
+        alert("Please fill in all required fields");
+        return;
+    }
 
-    const item = itemsData.find(i => i.id === itemId);
-    if (item.available < 1) return alert("No more available units");
+    if (new Date(dueDate) <= new Date(borrowDate)) {
+        alert("Due date must be after borrow date");
+        return;
+    }
 
-    item.available -= 1;
+    const item = itemsData.find(i => i.item_id === itemId);
+    if (!item) {
+        alert("Item not found");
+        return;
+    }
 
-    const record = {
-        id: `LEND-${Date.now()}`,
-        youthId,
-        itemId,
-        itemName: item.name,
-        borrowDate,
-        dueDate,
-        returned: false
-    };
+    if (item.available < quantity) {
+        alert(`Only ${item.available} unit(s) available. Please adjust the quantity.`);
+        return;
+    }
 
-    lendingData.push(record);
-    saveData();
+    try {
+        const response = await fetch('api/borrow_resource.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                item_id: itemId,
+                member_id: memberId,
+                borrower_name: borrowerName,
+                quantity: quantity,
+                due_date: dueDate
+            })
+        });
 
-    scanQrModal.style.display = 'none';
-    renderLendingTable();
-    filterLending();
+        const result = await response.json();
 
-    alert("Item borrowed successfully!");
+        if (result.success) {
+            alert("Item borrowed successfully!");
+            document.getElementById('borrowFormElement').reset();
+            document.getElementById('borrowerInfo').style.display = 'none';
+            document.getElementById('borrowForm').style.display = 'none';
+            document.getElementById('manualYouthId').value = '';
+            scanQrModal.style.display = 'none';
+            
+            // Reload data and refresh tables
+            await loadResources();
+            await loadBorrowRecords();
+            filterLending();
+        } else {
+            alert("Error: " + result.error);
+        }
+    } catch (error) {
+        console.error('Error borrowing item:', error);
+        alert("Failed to borrow item. Please try again.");
+    }
 });
 
 // ────────────────────────────────────────────────
 // Return Item
 // ────────────────────────────────────────────────
-function returnItem(id) {
+async function returnItem(borrowId) {
     if (!confirm("Mark this item as returned?")) return;
 
-    const record = lendingData.find(r => r.id === id);
-    if (record) {
-        record.returned = true;
-        const item = itemsData.find(i => i.id === record.itemId);
-        if (item) item.available += 1;
+    try {
+        const response = await fetch('api/return_resource.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                borrow_id: borrowId
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert("Item marked as returned successfully!");
+            
+            // Reload data and refresh tables
+            await loadResources();
+            await loadBorrowRecords();
+            filterLending();
+        } else {
+            alert("Error: " + result.error);
+        }
+    } catch (error) {
+        console.error('Error returning item:', error);
+        alert("Failed to return item. Please try again.");
     }
-
-    saveData();
-    renderLendingTable();
-    filterLending();
-
-    alert("Item marked as returned!");
 }
 
 // ────────────────────────────────────────────────
 // Delete Lending Record
 // ────────────────────────────────────────────────
-function deleteLending(id) {
+async function deleteLending(borrowId) {
     if (!confirm("Delete this lending record?")) return;
 
-    lendingData = lendingData.filter(r => r.id !== id);
-    saveData();
-    renderLendingTable();
-    filterLending();
+    try {
+        const response = await fetch('api/delete_borrow_record.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                borrow_id: borrowId
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert("Lending record deleted successfully!");
+            
+            // Reload data and refresh tables
+            await loadResources();
+            await loadBorrowRecords();
+            filterLending();
+        } else {
+            alert("Error: " + result.error);
+        }
+    } catch (error) {
+        console.error('Error deleting record:', error);
+        alert("Failed to delete record. Please try again.");
+    }
 }
 
 // ────────────────────────────────────────────────
 // View Lending Record
 // ────────────────────────────────────────────────
-function viewLending(id) {
-    const record = lendingData.find(r => r.id === id);
-    if (!record) return alert("Record not found");
+function viewLending(borrowId) {
+    const record = lendingData.find(r => r.borrow_id === borrowId);
+    if (!record) {
+        alert("Record not found");
+        return;
+    }
 
-    const youth = youthData.find(y => y.id === record.youthId) || { first: "Unknown", last: "" };
-    const borrowDate = new Date(record.borrowDate).toLocaleDateString();
-    const dueDate = new Date(record.dueDate).toLocaleDateString();
+    const borrowDate = new Date(record.borrow_date).toLocaleString();
+    const dueDate = new Date(record.due_date).toLocaleString();
+    const returnDate = record.return_date ? new Date(record.return_date).toLocaleString() : 'Not yet returned';
+    
+    let statusDisplay = record.status;
+    if (record.status === "Borrowed" && new Date(record.due_date) < new Date()) {
+        statusDisplay = "Overdue";
+    }
 
     document.getElementById('lendingDetails').innerHTML = `
-        <p><strong>Item:</strong> ${record.itemName}</p>
-        <p><strong>Borrower:</strong> ${youth.first} ${youth.last} (${record.youthId})</p>
-        <p><strong>Borrow Date:</strong> ${borrowDate}</p>
-        <p><strong>Due Date:</strong> ${dueDate}</p>
-        <p><strong>Status:</strong> ${record.returned ? 'Returned' : (new Date(record.dueDate) < new Date() ? 'Overdue' : 'Borrowed')}</p>
+        <div style="display: grid; gap: 12px;">
+            <p><strong>Item:</strong> ${record.item_name}</p>
+            <p><strong>Quantity:</strong> ${record.quantity || 1}</p>
+            <p><strong>Borrower:</strong> ${record.borrower_name}</p>
+            <p><strong>Member ID:</strong> ${record.member_id}</p>
+            <p><strong>Borrow Date:</strong> ${borrowDate}</p>
+            <p><strong>Due Date:</strong> ${dueDate}</p>
+            <p><strong>Return Date:</strong> ${returnDate}</p>
+            <p><strong>Status:</strong> <span class="status-badge status-${record.status.toLowerCase()}">${statusDisplay}</span></p>
+            ${record.description ? `<p><strong>Item Description:</strong> ${record.description}</p>` : ''}
+        </div>
     `;
 
     viewLendingModal.style.display = 'flex';
@@ -688,8 +878,27 @@ async function loadUserProfile() {
     }
 }
 
-window.addEventListener('load', () => {
-    loadUserProfile();
+// Set default dates for borrow form
+function setDefaultDates() {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Format as YYYY-MM-DD
+    const todayStr = today.toISOString().split('T')[0];
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
+    document.getElementById('borrowDate').value = todayStr;
+    document.getElementById('dueDate').value = tomorrowStr;
+}
+
+// Initialize on page load
+window.addEventListener('load', async () => {
+    await loadUserProfile();
+    await loadResources();
+    await loadBorrowRecords();
+    populateBorrowItemDropdown();
+    setDefaultDates();
     renderLendingTable();
     filterLending();
 });

@@ -4,9 +4,11 @@ header('Content-Type: application/json');
 
 session_start();
 
+$requestedRole = $_GET['role'] ?? 'any';
+
 try {
-    // Check if admin is logged in
-    if (isset($_SESSION['admin_id'])) {
+    // For youth pages requesting youth profile, skip admin session
+    if ($requestedRole !== 'youth' && isset($_SESSION['admin_id'])) {
         $userId = $_SESSION['admin_id'];
         $userName = $_SESSION['admin_username'] ?? 'Administrator';
         $userRole = 'Super Admin';
@@ -36,7 +38,7 @@ try {
         exit;
     }
     
-    // Check if regular user is logged in
+    // Check if regular user (youth) is logged in (for youth pages)
     if (isset($_SESSION['user_id'])) {
         require_once 'db_connect.php';
         

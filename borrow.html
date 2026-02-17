@@ -53,35 +53,8 @@
     <!-- Recent Borrowings List -->
     <div class="borrow-history">
       <h2>Recent Borrowings</h2>
-      <div class="borrow-list">
-        <!-- Borrow Item Card Example -->
-        <div class="borrow-item">
-          <div class="item-info">
-            <h3>Projector & Screen</h3>
-            <p>Borrowed: Jan 15, 2026 10:00 AM</p>
-            <p>Due: Jan 20, 2026</p>
-            <span class="status borrowed">Borrowed</span>
-          </div>
-        </div>
-
-        <div class="borrow-item">
-          <div class="item-info">
-            <h3>Sports Equipment Set</h3>
-            <p>Borrowed: Jan 10, 2026 2:00 PM</p>
-            <p>Returned: Jan 12, 2026</p>
-            <span class="status returned">Returned</span>
-          </div>
-        </div>
-
-        <!-- Add more items as needed -->
-        <div class="borrow-item">
-          <div class="item-info">
-            <h3>Laptop</h3>
-            <p>Borrowed: Dec 25, 2025 9:00 AM</p>
-            <p>Due: Feb 1, 2026</p>
-            <span class="status borrowed">Borrowed</span>
-          </div>
-        </div>
+      <div class="borrow-list" id="borrowList">
+        <p style="text-align: center; color: var(--text-gray); padding: 20px;">Loading your borrowing history...</p>
       </div>
     </div>
   </section>
@@ -114,41 +87,144 @@
     </div>
   </div>
 
-  <!-- Floating Help Button -->
-  <button class="floating-help">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-      <circle cx="12" cy="12" r="10"></circle>
-      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-      <line x1="12" y1="17" x2="12.01" y2="17"></line>
-    </svg>
-  </button>
-
 </div>
 
 <script>
+  // Global variable to store current user's member ID
+  let currentUser = {};
+
   // Fetch user profile and populate Digital Youth ID
   async function loadUserProfile() {
     try {
-      const response = await fetch('api/get_user_profile.php');
+      const response = await fetch('api/get_user_profile.php?role=youth');
       const data = await response.json();
       
       if (data.success && data.user) {
         const user = data.user;
+        currentUser = user; // Store for use in loadBorrowHistory()
         
         // Update modal with user data
         document.getElementById('userFullName').textContent = user.name;
         document.getElementById('userMemberId').textContent = user.member_id;
         document.getElementById('userIssuedDate').textContent = user.issued_date;
         
-        // Generate dynamic QR code with member ID
-        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(user.member_id + '-' + user.name)}`;
+        // Generate dynamic QR code with member ID and user name
+        const qrData = encodeURIComponent(user.member_id + '-' + user.name);
+        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrData}`;
         document.getElementById('userQRCode').src = qrCodeUrl;
+        
+        // Load borrow history after profile is loaded
+        loadBorrowHistory();
       } else {
         console.error('Failed to load user profile:', data.error);
+        // Show error state
+        document.getElementById('userFullName').textContent = 'Error loading profile';
+        document.getElementById('userMemberId').textContent = 'Not Found';
+        showNoBorrowHistory();
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
+      document.getElementById('userFullName').textContent = 'Error loading profile';
+      document.getElementById('userMemberId').textContent = 'Not Found';
+      showNoBorrowHistory();
     }
+  }
+
+  // Load borrow history from API
+  async function loadBorrowHistory() {
+    try {
+      const response = await fetch('api/get_borrow_records.php');
+      const data = await response.json();
+      
+      if (data.success && data.data && Array.isArray(data.data)) {
+        // Filter records by current user's member_id
+        const userRecords = data.data.filter(record => record.member_id === currentUser.member_id);
+        
+        // Sort by borrow_date descending (most recent first)
+        userRecords.sort((a, b) => new Date(b.borrow_date) - new Date(a.borrow_date));
+        
+        if (userRecords.length > 0) {
+          renderBorrowHistory(userRecords);
+        } else {
+          showNoBorrowHistory();
+        }
+      } else {
+        showNoBorrowHistory();
+      }
+    } catch (error) {
+      console.error('Error loading borrow history:', error);
+      showNoBorrowHistory();
+    }
+  }
+
+  // Render borrow history cards
+  function renderBorrowHistory(records) {
+    const borrowList = document.getElementById('borrowList');
+    borrowList.innerHTML = '';
+    
+    records.forEach(record => {
+      // Determine status
+      let statusClass = 'borrowed';
+      let statusText = 'Borrowed';
+      
+      if (record.status === 'Returned' || record.return_date) {
+        statusClass = 'returned';
+        statusText = 'Returned';
+      } else if (record.due_date) {
+        // Check if overdue
+        const dueDate = new Date(record.due_date);
+        const today = new Date();
+        if (today > dueDate) {
+          statusClass = 'overdue';
+          statusText = 'Overdue';
+        }
+      }
+      
+      // Format dates
+      const borrowDate = new Date(record.borrow_date);
+      const borrowDateStr = borrowDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      const dueDate = new Date(record.due_date);
+      const dueDateStr = dueDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      
+      const returnDateStr = record.return_date ? new Date(record.return_date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      }) : 'Not yet returned';
+      
+      // Create card HTML
+      const card = document.createElement('div');
+      card.className = 'borrow-item';
+      card.innerHTML = `
+        <div class="item-info">
+          <h3>${record.item_name || 'Unknown Item'}</h3>
+          <p><strong>Quantity:</strong> ${record.quantity || 1}</p>
+          <p><strong>Borrowed:</strong> ${borrowDateStr}</p>
+          <p><strong>Due:</strong> ${dueDateStr}</p>
+          <p><strong>Returned:</strong> ${returnDateStr}</p>
+          <span class="status ${statusClass}">${statusText}</span>
+        </div>
+      `;
+      
+      borrowList.appendChild(card);
+    });
+  }
+
+  // Show message when no borrow history exists
+  function showNoBorrowHistory() {
+    const borrowList = document.getElementById('borrowList');
+    borrowList.innerHTML = '<p style="text-align: center; color: var(--text-gray); padding: 40px 20px;">No borrowing history yet. Request items using the "Request New Borrow" button above.</p>';
   }
 
   // Load user profile on page load

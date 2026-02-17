@@ -1,5 +1,5 @@
 <?php
-// Get user profile with session validation
+// Get user profile - supports both logged-in user lookup and admin member lookup by ID
 require_once 'db_connect.php';
 
 header('Content-Type: application/json');
@@ -9,48 +9,104 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Validate session
-if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Not authenticated']);
-    exit;
-}
-
-$user_id = $_SESSION['user_id'];
-
 try {
-    // Get complete user profile by joining users and youth_profiles
-    $stmt = $conn->prepare("
-        SELECT 
-            u.id,
-            u.email,
-            u.member_id,
-            u.status,
-            u.email_verified,
-            u.last_login,
-            u.created_at,
-            p.firstname,
-            p.lastname,
-            p.birthday,
-            p.age,
-            p.gender,
-            p.phone,
-            p.address,
-            p.barangay,
-            p.avatar_path,
-            p.bio
-        FROM users u
-        LEFT JOIN youth_profiles p ON u.id = p.user_id
-        WHERE u.id = ?
-    ");
+    // Check if member_id is provided as query parameter (for admin scanning)
+    $member_id_param = isset($_GET['member_id']) ? trim($_GET['member_id']) : null;
     
-    $stmt->bind_param("i", $user_id);
+    if ($member_id_param) {
+        // Admin is looking up a specific member by member_id (QR scan)
+        // Verify admin is logged in
+        if (!isset($_SESSION['admin_id'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Admin session required']);
+            exit;
+        }
+        
+        // Convert to uppercase for consistent search (member IDs are typically uppercase)
+        $member_id_param = strtoupper($member_id_param);
+        
+        // Look up user by member_id (case-insensitive)
+        $stmt = $conn->prepare("
+            SELECT 
+                u.id,
+                u.email,
+                u.member_id,
+                u.status,
+                u.email_verified,
+                u.last_login,
+                u.created_at,
+                p.firstname,
+                p.lastname,
+                p.birthday,
+                p.age,
+                p.gender,
+                p.phone,
+                p.address,
+                p.barangay,
+                p.avatar_path,
+                p.bio
+            FROM users u
+            LEFT JOIN youth_profiles p ON u.id = p.user_id
+            WHERE UPPER(u.member_id) = UPPER(?)
+        ");
+        
+        if (!$stmt) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Database query error: ' . $conn->error]);
+            exit;
+        }
+        
+        $stmt->bind_param("s", $member_id_param);
+    } else {
+        // Return logged-in user's profile
+        if (!isset($_SESSION['user_id'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+            exit;
+        }
+        
+        $user_id = $_SESSION['user_id'];
+        
+        // Get complete user profile by joining users and youth_profiles
+        $stmt = $conn->prepare("
+            SELECT 
+                u.id,
+                u.email,
+                u.member_id,
+                u.status,
+                u.email_verified,
+                u.last_login,
+                u.created_at,
+                p.firstname,
+                p.lastname,
+                p.birthday,
+                p.age,
+                p.gender,
+                p.phone,
+                p.address,
+                p.barangay,
+                p.avatar_path,
+                p.bio
+            FROM users u
+            LEFT JOIN youth_profiles p ON u.id = p.user_id
+            WHERE u.id = ?
+        ");
+        
+        if (!$stmt) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Database query error: ' . $conn->error]);
+            exit;
+        }
+        
+        $stmt->bind_param("i", $user_id);
+    }
+    
     $stmt->execute();
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
         http_response_code(404);
-        echo json_encode(['success' => false, 'message' => 'User not found']);
+        echo json_encode(['success' => false, 'message' => $member_id_param ? 'Member ID not found' : 'User not found']);
         $stmt->close();
         exit;
     }
@@ -67,7 +123,7 @@ try {
             FROM event_registrations 
             WHERE user_id = ? AND status = 'Attended'
         ");
-        $event_stmt->bind_param("i", $user_id);
+        $event_stmt->bind_param("i", $user['id']);
         $event_stmt->execute();
         $event_result = $event_stmt->get_result();
         $event_data = $event_result->fetch_assoc();
@@ -75,18 +131,18 @@ try {
         $event_stmt->close();
     }
     
-    // Return success response with all user data
-    echo json_encode([
-        'success' => true,
+    // Build user data array
+    $userData = [
         'id' => $user['id'],
         'email' => $user['email'],
         'member_id' => $user['member_id'],
         'firstname' => $user['firstname'],
         'lastname' => $user['lastname'],
+        'name' => trim(($user['firstname'] ?? '') . ' ' . ($user['lastname'] ?? '')),
+        'phone' => $user['phone'],
         'birthday' => $user['birthday'],
         'age' => $user['age'],
         'gender' => $user['gender'],
-        'phone' => $user['phone'],
         'address' => $user['address'],
         'barangay' => $user['barangay'],
         'avatar_path' => $user['avatar_path'],
@@ -96,7 +152,18 @@ try {
         'created_at' => $user['created_at'],
         'last_login' => $user['last_login'],
         'events_attended' => $events_count
-    ]);
+    ];
+    
+    // If member_id was provided (admin lookup), nest under 'user' key
+    // Otherwise, return flat structure for logged-in user pages
+    if ($member_id_param) {
+        echo json_encode([
+            'success' => true,
+            'user' => $userData
+        ]);
+    } else {
+        echo json_encode(array_merge(['success' => true], $userData));
+    }
     
 } catch (Exception $e) {
     http_response_code(500);
