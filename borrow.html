@@ -101,13 +101,13 @@
         <div class="id-body">
           <img src="assets/images/default-avatar.png" alt="Member Photo" class="id-photo" />
           <div class="id-info">
-            <h4>Arby Barnuevo</h4>
-            <p class="id-number">Member ID: <strong>SK-2024-0789</strong></p>
-            <p class="id-date">Issued: January 2025</p>
+            <h4 id="userFullName">Loading...</h4>
+            <p class="id-number">Member ID: <strong id="userMemberId">SK-XXXX-XXXX</strong></p>
+            <p class="id-date">Issued: <span id="userIssuedDate">Loading...</span></p>
           </div>
         </div>
         <div class="qr-section">
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=SK-2024-0789-ArbyBarnuevo" alt="QR Code" class="qr-code" />
+          <img id="userQRCode" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=SK-XXXX-XXXX" alt="QR Code" class="qr-code" />
           <p>Scan to verify and auto-fill borrower details</p>
         </div>
       </div>
@@ -126,6 +126,34 @@
 </div>
 
 <script>
+  // Fetch user profile and populate Digital Youth ID
+  async function loadUserProfile() {
+    try {
+      const response = await fetch('api/get_user_profile.php');
+      const data = await response.json();
+      
+      if (data.success && data.user) {
+        const user = data.user;
+        
+        // Update modal with user data
+        document.getElementById('userFullName').textContent = user.name;
+        document.getElementById('userMemberId').textContent = user.member_id;
+        document.getElementById('userIssuedDate').textContent = user.issued_date;
+        
+        // Generate dynamic QR code with member ID
+        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(user.member_id + '-' + user.name)}`;
+        document.getElementById('userQRCode').src = qrCodeUrl;
+      } else {
+        console.error('Failed to load user profile:', data.error);
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  }
+
+  // Load user profile on page load
+  document.addEventListener('DOMContentLoaded', loadUserProfile);
+
   // Open ID modal for new borrow request
   const requestBtn = document.getElementById('requestBorrowBtn');
   const modal = document.getElementById('digitalIdModal');
