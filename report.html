@@ -12,6 +12,114 @@
   <link rel="stylesheet" href="assets/css/global.css">
   <link rel="stylesheet" href="assets/css/portal.css">
   <link rel="stylesheet" href="assets/css/report.css">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    #toastContainer {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .toast {
+        background: white;
+        padding: 14px 18px;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        font-weight: 500;
+        border-left: 4px solid;
+    }
+
+    .toast.success {
+        border-left-color: #27AE60;
+    }
+
+    .toast.success .toast-icon {
+        color: #27AE60;
+    }
+
+    .toast.error {
+        border-left-color: #E74C3C;
+    }
+
+    .toast.error .toast-icon {
+        color: #E74C3C;
+    }
+
+    .toast.warning {
+        border-left-color: #F39C12;
+    }
+
+    .toast.warning .toast-icon {
+        color: #F39C12;
+    }
+
+    .toast.info {
+        border-left-color: #5DADE2;
+    }
+
+    .toast.info .toast-icon {
+        color: #5DADE2;
+    }
+
+    .toast-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .toast-message {
+        flex: 1;
+        color: #333;
+    }
+
+    .toast.removing {
+        animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        #toastContainer {
+            top: 10px;
+            right: 10px;
+            left: 10px;
+        }
+
+        .toast {
+            max-width: 100%;
+        }
+    }
+  </style>
 </head>
 <body>
 
@@ -80,9 +188,17 @@
       </div>
 
       <div class="form-group">
-        <label for="photo">Attach Photo (Optional)</label>
-        <input type="file" id="photo" name="photo" accept="image/*">
-        <small>Upload clear photo if possible</small>
+        <label>Attach Photos (Optional)</label>
+        <div id="photoUploadArea" style="border: 2px solid #5DADE2; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: #f0f8ff;">
+          <input type="file" id="photo" name="photo" accept="image/*" multiple style="display: none;">
+          <div style="font-size: 32px; margin-bottom: 10px;"><i class="fas fa-images" style="color: #5DADE2;"></i></div>
+          <p style="margin: 10px 0; font-weight: 600; color: #222;">Tap to add photos</p>
+          <p style="margin: 0; font-size: 13px; color: #666;">You can select multiple photos at once</p>
+          <p id="selectedFilesCount" style="margin-top: 8px; font-size: 12px; color: #27AE60; font-weight: 600; display: none;"></p>
+        </div>
+        <!-- Photo Preview Grid -->
+        <div id="photoPreviewGrid" style="display: none; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 15px;">
+        </div>
       </div>
 
       <div class="form-actions">
@@ -106,66 +222,271 @@
     </svg>
   </button>
 
+  <!-- Toast Notification Container -->
+  <div id="toastContainer"></div>
+
 </div>
 
 <script>
-  // Demo: Store reports in localStorage (replace with real backend later)
-  let reports = JSON.parse(localStorage.getItem('userReports')) || [];
+// ────────────────────────────────────────────────
+// Photo Upload UI (Mobile-Friendly)
+// ────────────────────────────────────────────────
+const uploadArea = document.getElementById('photoUploadArea');
+const photoInput = document.getElementById('photo');
+const fileCountDisplay = document.getElementById('selectedFilesCount');
+const previewGrid = document.getElementById('photoPreviewGrid');
 
-  // Render reports
-  function renderReports() {
+// Click to upload - accumulate files instead of replacing
+uploadArea.addEventListener('click', () => {
+    // Create temporary input to get new files
+    const tempInput = document.createElement('input');
+    tempInput.type = 'file';
+    tempInput.accept = 'image/*';
+    tempInput.multiple = true;
+    
+    tempInput.addEventListener('change', () => {
+        if (tempInput.files.length > 0) {
+            // Merge new files with existing files
+            const dataTransfer = new DataTransfer();
+            
+            // Add existing files
+            Array.from(photoInput.files).forEach(file => {
+                dataTransfer.items.add(file);
+            });
+            
+            // Add new files
+            Array.from(tempInput.files).forEach(file => {
+                dataTransfer.items.add(file);
+            });
+            
+            // Update main input with combined files
+            photoInput.files = dataTransfer.files;
+            updateFileCount();
+            showPhotoPreview();
+        }
+    });
+    
+    tempInput.click();
+});
+
+// Update file count display
+function updateFileCount() {
+    const count = photoInput.files.length;
+    if (count > 0) {
+        fileCountDisplay.style.display = 'block';
+        fileCountDisplay.textContent = `✓ ${count} photo${count !== 1 ? 's' : ''} selected`;
+        uploadArea.style.background = '#e8f4fd';
+        uploadArea.style.borderColor = '#27AE60';
+    } else {
+        fileCountDisplay.style.display = 'none';
+        uploadArea.style.background = '#f0f8ff';
+        uploadArea.style.borderColor = '#5DADE2';
+    }
+}
+
+// Show photo preview before submission
+function showPhotoPreview() {
+    previewGrid.innerHTML = '';
+    const files = photoInput.files;
+    
+    if (files.length > 0) {
+        previewGrid.style.display = 'grid';
+        
+        Array.from(files).forEach((file, index) => {
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                const previewItem = document.createElement('div');
+                previewItem.style.position = 'relative';
+                previewItem.style.cursor = 'pointer';
+                previewItem.innerHTML = `
+                    <img src="${e.target.result}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #5DADE2;">
+                    <button type="button" onclick="removePhotoFromSelection(${index})" style="position: absolute; top: -8px; right: -8px; background: #E74C3C; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                previewGrid.appendChild(previewItem);
+            };
+            
+            reader.readAsDataURL(file);
+        });
+    } else {
+        previewGrid.style.display = 'none';
+    }
+}
+
+// Remove photo from selection
+function removePhotoFromSelection(indexToRemove) {
+    const dataTransfer = new DataTransfer();
+    const files = photoInput.files;
+    
+    Array.from(files).forEach((file, index) => {
+        if (index !== indexToRemove) {
+            dataTransfer.items.add(file);
+        }
+    });
+    
+    photoInput.files = dataTransfer.files;
+    updateFileCount();
+    showPhotoPreview();
+}
+
+// ────────────────────────────────────────────────
+// Toast Notification
+// ────────────────────────────────────────────────
+function showAlert(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    
+    let icon = '✓';
+    if (type === 'error') {
+        icon = '❌';
+    } else if (type === 'warning') {
+        icon = '⚠️';
+    } else if (type === 'info') {
+        icon = 'ℹ️';
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icon}</span>
+        <span class="toast-message">${message}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 4000);
+}
+
+// ────────────────────────────────────────────────
+// Data Management - Database API
+// ────────────────────────────────────────────────
+let reports = [];
+
+// Load user's incidents from database
+async function loadUserIncidents() {
+    try {
+        const response = await fetch('api/get_user_incidents.php');
+        const result = await response.json();
+        
+        if (result.success) {
+            reports = result.data || [];
+            renderReports();
+        } else {
+            console.error('Failed to load incidents');
+        }
+    } catch (error) {
+        console.error('Error loading incidents:', error);
+    }
+}
+
+// Render reports from database
+function renderReports() {
     const list = document.getElementById('reportsList');
     const history = document.getElementById('reportsHistory');
     list.innerHTML = '';
 
     if (reports.length === 0) {
-      list.innerHTML = '<p>No reports submitted yet.</p>';
+        list.innerHTML = '<p>No reports submitted yet.</p>';
     } else {
-      reports.forEach((report, index) => {
-        const item = document.createElement('div');
-        item.className = 'report-item';
-        item.innerHTML = `
-          <div class="report-header">
-            <strong>${report.category.toUpperCase()}</strong>
-            <span class="status ${report.status.toLowerCase()}">${report.status}</span>
-          </div>
-          <p class="report-desc">${report.description.substring(0, 120)}${report.description.length > 120 ? '...' : ''}</p>
-          <p class="report-meta">Location: ${report.location} • Submitted: ${report.date}</p>
-          <p class="report-urgency">Urgency: ${report.urgency}</p>
-        `;
-        list.appendChild(item);
-      });
+        reports.forEach((report) => {
+            const item = document.createElement('div');
+            item.className = 'report-item';
+            const submittedDate = new Date(report.submitted_date).toLocaleDateString('en-US');
+            
+            // Parse photos - handle both JSON array and string format
+            let photosHtml = '';
+            if (report.photo_path) {
+                try {
+                    const photoPaths = JSON.parse(report.photo_path);
+                    if (Array.isArray(photoPaths)) {
+                        photosHtml = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 8px;">';
+                        photoPaths.forEach(path => {
+                            photosHtml += `<img src="${path}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 4px; cursor: pointer;" title="Photo" onclick="alert('Photo: ' + '${path}')" onerror="this.src='https://via.placeholder.com/80?text=Error'">`;
+                        });
+                        photosHtml += '</div>';
+                    } else {
+                        photosHtml = `<div style="margin-top: 8px;"><img src="${report.photo_path}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 4px;" onerror="this.src='https://via.placeholder.com/300?text=Error'"></div>`;
+                    }
+                } catch (e) {
+                    // Treat as single image path
+                    photosHtml = `<div style="margin-top: 8px;"><img src="${report.photo_path}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 4px;" onerror="this.src='https://via.placeholder.com/300?text=Error'"></div>`;
+                }
+            }
+            
+            item.innerHTML = `
+                <div class="report-header">
+                    <strong>${report.category.toUpperCase()}</strong>
+                    <span class="status ${report.status.toLowerCase()}">${report.status}</span>
+                </div>
+                <p class="report-desc">${report.description.substring(0, 120)}${report.description.length > 120 ? '...' : ''}</p>
+                <p class="report-meta">Location: ${report.location} • Submitted: ${submittedDate}</p>
+                <p class="report-urgency">Urgency: <strong>${report.urgency.toUpperCase()}</strong></p>
+                ${photosHtml}
+                ${report.admin_notes ? `<p class="admin-notes"><strong>Admin Notes:</strong> ${report.admin_notes}</p>` : ''}
+            `;
+            list.appendChild(item);
+        });
     }
 
     history.style.display = reports.length > 0 ? 'block' : 'none';
-  }
+}
 
-  // Form submission
-  document.getElementById('reportForm').addEventListener('submit', (e) => {
+// ────────────────────────────────────────────────
+// Form Submission
+// ────────────────────────────────────────────────
+document.getElementById('reportForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const formData = new FormData(e.target);
-    const newReport = {
-      category: formData.get('category'),
-      description: formData.get('description'),
-      location: formData.get('location'),
-      urgency: formData.get('urgency'),
-      date: new Date().toLocaleString(),
-      status: 'Pending' // can be: Pending, In Review, Resolved
-    };
+    
+    try {
+        const response = await fetch('api/submit_incident.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert('🎉 Your report has been submitted successfully! SK Office will review it soon. Thank you for helping keep our community safe.', 'success');
+            
+            // Reset form
+            e.target.reset();
+            
+            // Reload incidents
+            await loadUserIncidents();
+        } else {
+            console.error('API Error:', result);
+            showAlert('Error: ' + (result.error || 'Failed to submit report'), 'error');
+        }
+    } catch (error) {
+        console.error('Submit error:', error);
+        showAlert('Network error: ' + error.message, 'error');
+    }
+});
 
-    reports.unshift(newReport); // add to top
-    localStorage.setItem('userReports', JSON.stringify(reports));
+// ────────────────────────────────────────────────
+// Initial Load
+// ────────────────────────────────────────────────
+// Setup incidents table on first load
+async function initializePage() {
+    try {
+        await fetch('api/setup_incidents_table.php');
+    } catch (e) {
+        console.error('Setup warning (non-critical):', e);
+    }
+    
+    loadUserIncidents();
+}
 
-    alert('Your report has been submitted successfully! SK Office will review it soon. Thank you for helping keep our community safe.');
-
-    // Reset form
-    e.target.reset();
-    renderReports();
-  });
-
-  // Load reports on page load
-  renderReports();
+initializePage();
 </script>
 </body>
 </html>

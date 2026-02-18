@@ -54,41 +54,44 @@
       <h2>Upload Document for Printing</h2>
       <form id="printForm" class="print-form">
         <div class="form-group">
-          <label for="document">Select File to Print</label>
+          <label for="documentTitle">Document Title *</label>
+          <input type="text" id="documentTitle" name="document_title" placeholder="e.g., My Resume, Project Report" required>
+        </div>
+
+        <div class="form-group">
+          <label for="document">Select File to Print *</label>
           <input type="file" id="document" name="document" accept=".pdf,.doc,.docx,.jpg,.png,.txt" required>
           <small>Allowed: PDF, Word, JPG, PNG, TXT • Max 10MB</small>
         </div>
 
-        <!-- Pages + Color Option side-by-side -->
+        <!-- Print Type + Paper Size + Copies -->
         <div class="form-row">
           <div class="form-group half">
-            <label for="pages">Number of Pages</label>
-            <input type="number" id="pages" name="pages" min="1" max="100" placeholder="e.g., 5" required>
+            <label for="printType">Print Type *</label>
+            <select id="printType" name="print_type" required>
+              <option value="" disabled selected>Select type</option>
+              <option value="Black & White">Black & White</option>
+              <option value="Colored">Colored</option>
+            </select>
           </div>
           <div class="form-group half">
-            <label for="color">Print Type</label>
-            <select id="color" name="color" required>
-              <option value="" disabled selected>Select type</option>
-              <option value="black-white">Black & White</option>
-              <option value="color">Colored</option>
+            <label for="paperSize">Paper Size *</label>
+            <select id="paperSize" name="paper_size" required>
+              <option value="" disabled selected>Select size</option>
+              <option value="A4">A4</option>
+              <option value="Short">Short Bond</option>
+              <option value="Long">Long Bond</option>
             </select>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="purpose">Purpose of Printing</label>
-          <select id="purpose" name="purpose" required>
-            <option value="" disabled selected>Select purpose</option>
-            <option value="academics">Academics / School Requirements</option>
-            <option value="personal">Personal / Resume</option>
-            <option value="event">Event Poster / Flyer</option>
-            <option value="business">Business / Application</option>
-            <option value="other">Other</option>
-          </select>
+          <label for="copies">Number of Copies *</label>
+          <input type="number" id="copies" name="copies" min="1" max="100" placeholder="e.g., 5" value="1" required>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn primary large">Send Document for Printing</button>
+          <button type="submit" class="btn primary large" id="submitPrintBtn">Send Document for Printing</button>
         </div>
       </form>
     </div>
@@ -106,8 +109,8 @@
   <div class="modal" id="digitalIdModal">
     <div class="modal-content">
       <span class="close-modal" id="closeModal">&times;</span>
-      <h2>Digital Youth ID – For Confirmation Scan</h2>
-      <p>Present this to the admin for scanning to confirm and complete your print request.</p>
+      <h2>Digital Youth ID – For Printing Verification</h2>
+      <p>Present this to the SK Office for printing verification and payment reference.</p>
       <div class="id-card-preview">
         <div class="id-header">
           <img src="assets/images/sklogo.jpg" alt="SK Logo" class="id-logo" />
@@ -117,14 +120,15 @@
         <div class="id-body">
           <img src="assets/images/default-avatar.png" alt="Member Photo" class="id-photo" />
           <div class="id-info">
-            <h4>Arby Barnuevo</h4>
-            <p class="id-number">Member ID: <strong>SK-2024-0789</strong></p>
-            <p class="id-date">Issued: January 2025</p>
+            <h4 id="userFullName">Loading...</h4>
+            <p class="id-number">Member ID: <strong id="userMemberId">SK-XXXX-XXXX</strong></p>
+            <p class="id-date">Issued: <span id="userIssuedDate">Loading...</span></p>
+            <p class="id-request" style="color: #228B57; font-weight: 600; margin-top: 8px;">Request ID: <strong id="requestId">---</strong></p>
           </div>
         </div>
         <div class="qr-section">
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=SK-2024-0789-ArbyBarnuevo" alt="QR Code" class="qr-code" />
-          <p>Scan to confirm printing done</p>
+          <img id="userQRCode" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=SK-XXXX-XXXX" alt="QR Code" class="qr-code" />
+          <p>Scan to verify and complete printing transaction</p>
         </div>
       </div>
     </div>
@@ -133,50 +137,48 @@
 </div>
 
 <script>
+  // Global variables
+  let currentUser = {};
+
   // --- Upload Flow ---
   const requestBtn = document.getElementById('requestPrintBtn');
   const uploadSection = document.getElementById('uploadSection');
   const modal = document.getElementById('digitalIdModal');
   const closeModal = document.getElementById('closeModal');
+  const printForm = document.getElementById('printForm');
 
+  // Load user profile on page load
+  document.addEventListener('DOMContentLoaded', loadUserProfile);
+
+  // Load user profile for Digital Youth ID
+  async function loadUserProfile() {
+    try {
+      const response = await fetch('api/get_user_profile.php?role=youth');
+      const data = await response.json();
+      
+      if (data.success && data.user) {
+        currentUser = data.user;
+        // Don't populate ID yet - only show it after successful submission
+      } else {
+        console.error('Failed to load user profile:', data.error);
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  }
+
+  // Open upload section
   requestBtn.onclick = () => {
     uploadSection.style.display = 'block';
     window.scrollTo({ top: uploadSection.offsetTop - 100, behavior: 'smooth' });
   };
 
+  // Close Digital ID modal
   closeModal.onclick = () => modal.style.display = 'none';
   window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
 
-  // --- Print History ---
-  let printHistory = JSON.parse(localStorage.getItem('printHistory')) || [];
-
-  function renderPrintHistory() {
-    const list = document.getElementById('printList');
-    list.innerHTML = '';
-
-    if (printHistory.length === 0) {
-      list.innerHTML = '<p>No print requests yet.</p>';
-      return;
-    }
-
-    printHistory.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'print-item';
-      div.innerHTML = `
-        <div class="item-info">
-          <h3>${item.filename} (${item.pages} pages)</h3>
-          <p>Submitted: ${item.date}</p>
-          <p>Purpose: ${item.purpose}</p>
-          <p>Print Type: ${item.color === 'color' ? 'Colored' : 'Black & White'}</p>
-          <span class="status ${item.status.toLowerCase()}">${item.status}</span>
-        </div>
-      `;
-      list.appendChild(div);
-    });
-  }
-
-  // --- Form Submission → Show ID Modal ---
-  document.getElementById('printForm').addEventListener('submit', (e) => {
+  // --- Form Submission with File Upload ---
+  printForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const fileInput = document.getElementById('document');
@@ -187,7 +189,10 @@
       return;
     }
 
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'text/plain'];
+    // Validate file
+    const allowedTypes = ['application/pdf', 'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+      'image/jpeg', 'image/png', 'text/plain'];
     const maxSize = 10 * 1024 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
@@ -200,39 +205,123 @@
       return;
     }
 
-    const pages = document.getElementById('pages').value;
-    const purpose = document.getElementById('purpose').value;
-    const color = document.getElementById('color').value;
+    // Disable submit button during upload
+    const submitBtn = document.getElementById('submitPrintBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Uploading...';
 
-    const newPrint = {
-      filename: file.name,
-      pages: pages,
-      purpose: purpose.charAt(0).toUpperCase() + purpose.slice(1),
-      color: color,
-      date: new Date().toLocaleString(),
-      status: 'Pending'
-    };
+    try {
+      // Prepare form data for multipart upload
+      const formData = new FormData();
+      formData.append('document', file);
+      formData.append('document_title', document.getElementById('documentTitle').value);
+      formData.append('print_type', document.getElementById('printType').value);
+      formData.append('paper_size', document.getElementById('paperSize').value);
+      formData.append('copies', document.getElementById('copies').value);
 
-    printHistory.unshift(newPrint);
-    localStorage.setItem('printHistory', JSON.stringify(printHistory));
+      // Send to API
+      const response = await fetch('api/upload_print_request.php', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
 
-    // Reset form and hide upload section
-    e.target.reset();
-    uploadSection.style.display = 'none';
+      const result = await response.json();
 
-    // Show ID modal for final confirmation scan
-    modal.style.display = 'flex';
+      if (result.success) {
+        // Store request ID for QR code
+        const requestId = result.request_id;
+        
+        // Populate Digital Youth ID modal
+        document.getElementById('userFullName').textContent = currentUser.name || 'Loading...';
+        document.getElementById('userMemberId').textContent = currentUser.member_id || 'SK-XXXX-XXXX';
+        document.getElementById('userIssuedDate').textContent = currentUser.issued_date || 'Loading...';
+        document.getElementById('requestId').textContent = 'REQ-' + requestId.toString().padStart(4, '0');
 
-    // After scan (close modal), alert success
-    closeModal.onclick = () => {
-      modal.style.display = 'none';
-      alert(`Your document "${file.name}" (${pages} pages, ${color === 'color' ? 'Colored' : 'Black & White'}) has been confirmed via scan.\nPrinting is done/ready for pickup.`);
-      renderPrintHistory();
-    };
+        // Generate QR code with request ID
+        const qrData = encodeURIComponent('SK-PRINT-' + currentUser.member_id + '-REQ' + requestId);
+        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrData}`;
+        document.getElementById('userQRCode').src = qrCodeUrl;
+
+        // Reset form
+        printForm.reset();
+        uploadSection.style.display = 'none';
+
+        // Show Digital Youth ID modal
+        modal.style.display = 'flex';
+
+        // Show success message
+        setTimeout(() => {
+          alert(`✅ Document "${result.data.document_title}" uploaded successfully!\n\nPresent your Digital Youth ID to the SK Office for verification.`);
+        }, 500);
+
+      } else {
+        alert('❌ Error: ' + (result.error || 'Failed to upload document'));
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Error uploading file. Please try again.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Document for Printing';
+    }
   });
 
-  // Load history on page load
-  renderPrintHistory();
+  // --- Print History ---
+  async function loadPrintHistory() {
+    try {
+      const response = await fetch('api/get_user_print_requests.php', {
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        renderPrintHistory(data.data);
+      }
+    } catch (error) {
+      console.error('Error loading print history:', error);
+    }
+  }
+
+  function renderPrintHistory(requests) {
+    const list = document.getElementById('printList');
+    list.innerHTML = '';
+
+    if (requests.length === 0) {
+      list.innerHTML = '<p style="text-align: center; color: var(--text-gray); padding: 20px;">No print requests yet. Submit your first document above.</p>';
+      return;
+    }
+
+    requests.forEach(item => {
+      const dateTime = new Date(item.created_at).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const statusClass = item.status.toLowerCase().replace(' ', '-');
+      
+      const div = document.createElement('div');
+      div.className = 'print-item';
+      div.innerHTML = `
+        <div class="item-info">
+          <h3>${item.document_title}</h3>
+          <p><strong>Submitted:</strong> ${dateTime}</p>
+          <p><strong>Print Type:</strong> ${item.print_type}</p>
+          <p><strong>Paper Size:</strong> ${item.paper_size}</p>
+          <p><strong>Copies:</strong> ${item.copies}</p>
+          <span class="status ${statusClass}">${item.status}</span>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  // Load print history on page load
+  document.addEventListener('DOMContentLoaded', loadPrintHistory);
 </script>
 </body>
 </html>

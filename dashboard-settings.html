@@ -233,12 +233,13 @@
                         </svg>
                         Incidents
                     </a>
+
                     <a href="dashboard-health.html" class="nav-item">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                        </svg>
-                        Health Services
-                    </a>
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    Health Services
+                </a>
                 </div>
 
                 <div class="nav-group">
@@ -250,7 +251,7 @@
                         </svg>
                         Settings
                     </a>
-                    <a href="api/logout.php" class="nav-item">
+                    <a href="#" class="nav-item" onclick="confirmLogout(event)">
                         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                             <polyline points="16 17 21 12 16 7"></polyline>
@@ -334,6 +335,114 @@ function updateDashboardDateTime() {
 }
 setInterval(updateDashboardDateTime, 1000);
 updateDashboardDateTime();
+
+// ────────────────────────────────────────────────
+// Logout Confirmation
+// ────────────────────────────────────────────────
+function confirmLogout(event) {
+    event.preventDefault();
+    
+    const modal = document.createElement('div');
+    modal.id = 'logoutModal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        backdrop-filter: blur(2px);
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        max-width: 400px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease-out;
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="text-align: center;">
+            <div style="width: 64px; height: 64px; background: #fff3cd; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#ff9800" stroke-width="2" style="width: 36px; height: 36px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h2 style="margin: 0 0 8px 0; color: #333; font-size: 20px; font-weight: 600;">Confirm Logout?</h2>
+            <p style="margin: 0 0 24px 0; color: #666; font-size: 14px; line-height: 1.6;">
+                Are you sure you want to log out from your admin account?
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button id="cancelBtn" style="
+                    padding: 12px 24px;
+                    background: #f0f0f0;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #333;
+                    transition: all 0.2s;
+                    min-width: 100px;
+                ">Cancel</button>
+                <button id="confirmBtn" style="
+                    padding: 12px 24px;
+                    background: linear-gradient(135deg, #FF6B9D, #e04f7e);
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: white;
+                    transition: all 0.2s;
+                    min-width: 100px;
+                    box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+                ">Logout</button>
+            </div>
+        </div>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.getElementById('cancelBtn').addEventListener('click', function() {
+        modal.remove();
+    });
+    
+    document.getElementById('confirmBtn').addEventListener('click', function() {
+        window.location.href = 'api/logout.php';
+    });
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
 
 </script>
 </body>

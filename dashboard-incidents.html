@@ -111,40 +111,171 @@
             transform: translateY(-1px);
         }
 
-        /* Custom styles for Incidents page */
-        .nav-item.active {
-            background: rgba(255,255,255,0.2);
-            color: white;
-        }
-
-        .maintenance-container {
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            background: white;
+            padding: 14px 18px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            display: flex;
             align-items: center;
-            justify-content: center;
-            min-height: 400px;
-            text-align: center;
-            padding: 40px;
+            gap: 12px;
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            font-weight: 500;
+            border-left: 4px solid;
         }
 
-        .maintenance-icon {
-            font-size: 80px;
-            color: #dc3545;
-            margin-bottom: 24px;
+        .toast.success {
+            border-left-color: #27AE60;
         }
 
-        .maintenance-title {
-            font-size: 32px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 16px;
+        .toast.success .toast-icon {
+            color: #27AE60;
         }
 
-        .maintenance-message {
+        .toast.error {
+            border-left-color: #E74C3C;
+        }
+
+        .toast.error .toast-icon {
+            color: #E74C3C;
+        }
+
+        .toast.warning {
+            border-left-color: #F39C12;
+        }
+
+        .toast.warning .toast-icon {
+            color: #F39C12;
+        }
+
+        .toast.info {
+            border-left-color: #5DADE2;
+        }
+
+        .toast.info .toast-icon {
+            color: #5DADE2;
+        }
+
+        .toast-icon {
             font-size: 18px;
-            color: #666;
-            max-width: 500px;
-            line-height: 1.6;
+            flex-shrink: 0;
+        }
+
+        .toast-message {
+            flex: 1;
+            color: #333;
+        }
+
+        .toast.removing {
+            animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.in_review {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .status-badge.under_action {
+            background: #cff4fc;
+            color: #055160;
+        }
+
+        .status-badge.resolved {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .status-badge.closed {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .urgency-high {
+            color: #E74C3C;
+            font-weight: 700;
+        }
+
+        .urgency-emergency {
+            color: #C0392B;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .user-profile-card {
+                padding: 12px 16px;
+                gap: 12px;
+            }
+
+            .user-avatar-new {
+                width: 44px;
+                height: 44px;
+                font-size: 14px;
+            }
+
+            #userFullName {
+                font-size: 14px;
+            }
+
+            .user-role-badge {
+                font-size: 9px;
+                padding: 3px 9px;
+            }
+
+            #toastContainer {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+
+            .toast {
+                max-width: 100%;
+            }
         }
     </style>
     
@@ -235,6 +366,7 @@
                     </svg>
                     Incidents
                 </a>
+
                 <a href="dashboard-health.html" class="nav-item">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
@@ -283,20 +415,153 @@
         </header>
 
         <div class="dashboard-content">
-            <div class="maintenance-container">
-                <div class="maintenance-icon">
-                    <i class="fas fa-exclamation-triangle"></i>
+            <div class="search-filter-bar">
+                <div class="search-group">
+                    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search by member name, ID, location...">
                 </div>
-                <h1 class="maintenance-title">Under Maintenance</h1>
-                <p class="maintenance-message">
-                    The Incidents page is currently under maintenance. We're working hard to bring you incident reporting and management features. Please check back soon!
-                </p>
+                <select id="filterStatus" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="in_review">In Review</option>
+                    <option value="under_action">Under Action</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="closed">Closed</option>
+                </select>
+                <select id="filterUrgency" class="filter-select">
+                    <option value="">All Urgency</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="emergency">Emergency</option>
+                </select>
             </div>
+
+            <table class="admin-table" id="incidentsTable">
+                <thead>
+                    <tr>
+                        <th>Incident ID</th>
+                        <th>Member Name</th>
+                        <th>Category</th>
+                        <th>Location</th>
+                        <th>Urgency</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="incidentsTableBody"></tbody>
+            </table>
         </div>
 
+</main>
 
+</div>
+
+<!-- Toast Notification Container -->
+<div id="toastContainer"></div>
+
+<!-- Confirmation Modal -->
+<div class="modal" id="confirmationModal">
+    <div class="modal-content" style="max-width: 420px;">
+        <h2 style="margin-bottom: 12px; color: #E74C3C;">
+            <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> Confirm Action
+        </h2>
+        <p id="confirmMessage" style="color: #666; margin: 0 0 28px 0; font-size: 15px; line-height: 1.5;"></p>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button id="confirmCancelBtn" class="action-btn" style="background: #95A5A6; margin: 0; padding: 10px 24px;">Cancel</button>
+            <button id="confirmOkBtn" class="action-btn" style="background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%); margin: 0; padding: 10px 24px; color: white;"><i class="fas fa-trash" style="margin-right: 6px;"></i> Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Incident Details Modal -->
+<div class="modal" id="incidentDetailModal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close-modal" id="closeDetailModal">×</span>
+        <h2>Incident Details</h2>
+        <div id="incidentDetailsContent" style="line-height: 1.8; margin-bottom: 24px;"></div>
+        
+        <div style="margin-bottom: 24px;">
+            <h3>Update Status & Add Notes</h3>
+            <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                <select id="statusSelect" style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                    <option value="pending">Pending</option>
+                    <option value="in_review">In Review</option>
+                    <option value="under_action">Under Action</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="closed">Closed</option>
+                </select>
+            </div>
+            <textarea id="adminNotesInput" placeholder="Add admin notes..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
+            <button id="saveStatusBtn" class="btn-submit" style="margin-top: 12px; width: 100%;">Save Status & Notes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Photo Lightbox Modal -->
+<div class="modal" id="photoLightbox" style="background: rgba(0,0,0,0.95); z-index: 10000;">
+    <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+        <span class="close-modal" id="closeLightbox" style="position: absolute; top: 20px; right: 30px; font-size: 40px; color: white; cursor: pointer;">×</span>
+        <img id="lightboxImage" src="" style="max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 8px;">
+    </div>
+</div>
 
 <script>
+// ────────────────────────────────────────────────
+// Toast Notification
+// ────────────────────────────────────────────────
+function showAlert(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    
+    let icon = '✓';
+    if (type === 'error') {
+        icon = '❌';
+    } else if (type === 'warning') {
+        icon = '⚠️';
+    } else if (type === 'info') {
+        icon = 'ℹ️';
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icon}</span>
+        <span class="toast-message">${message}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 4000);
+}
+
+// ────────────────────────────────────────────────
+// Confirmation Modal
+// ────────────────────────────────────────────────
+function showConfirm(message, onConfirm) {
+    const confirmModal = document.getElementById('confirmationModal');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmOkBtn = document.getElementById('confirmOkBtn');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    
+    confirmMessage.textContent = message;
+    confirmModal.style.display = 'flex';
+    
+    confirmOkBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        if (onConfirm) onConfirm();
+    };
+    
+    confirmCancelBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+    };
+}
+
 // ────────────────────────────────────────────────
 // Load User Profile
 // ────────────────────────────────────────────────
@@ -339,6 +604,275 @@ function updateDashboardDateTime() {
 setInterval(updateDashboardDateTime, 1000);
 updateDashboardDateTime();
 
-</script>
+// ────────────────────────────────────────────────
+// Data Management - Load Incidents from Database
+// ────────────────────────────────────────────────
+let incidentsData = [];
+
+async function loadIncidents() {
+    try {
+        const response = await fetch('api/get_incidents.php');
+        const result = await response.json();
+        
+        if (result.success) {
+            incidentsData = result.data || [];
+            renderIncidentsTable();
+            filterIncidents();
+        } else {
+            showAlert('Error loading incidents: ' + (result.error || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        console.error('Error loading incidents:', error);
+        showAlert('Failed to load incidents', 'error');
+    }
+}
+
+// Render incidents table
+function renderIncidentsTable(filtered = incidentsData) {
+    const tbody = document.getElementById('incidentsTableBody');
+    tbody.innerHTML = '';
+
+    filtered.forEach(incident => {
+        const fullName = `${incident.firstname} ${incident.lastname}`;
+        const submittedDate = new Date(incident.submitted_date).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">#${incident.id}</td>
+            <td style="font-weight: 600;">${fullName}</td>
+            <td><strong style="text-transform: capitalize;">${incident.category.replace('_', ' ')}</strong></td>
+            <td>${incident.location}</td>
+            <td>
+                <strong class="urgency-${incident.urgency === 'emergency' || incident.urgency === 'high' ? incident.urgency : ''}">
+                    ${incident.urgency.charAt(0).toUpperCase() + incident.urgency.slice(1)}
+                </strong>
+            </td>
+            <td><span class="status-badge ${incident.status}">${incident.status.replace('_', ' ')}</span></td>
+            <td>${submittedDate}</td>
+            <td class="action-buttons">
+                <button class="action-btn btn-view" onclick="viewIncidentDetail('${incident.id}')" title="View Details">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="action-btn btn-delete" onclick="deleteIncident('${incident.id}')" title="Delete Incident">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// ────────────────────────────────────────────────
+// Search & Filter
+// ────────────────────────────────────────────────
+function filterIncidents() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const status = document.getElementById('filterStatus').value;
+    const urgency = document.getElementById('filterUrgency').value;
+
+    const filtered = incidentsData.filter(i => {
+        const text = `${i.id} ${i.firstname} ${i.lastname} ${i.member_id} ${i.location} ${i.category}`.toLowerCase();
+        return text.includes(search) && 
+               (!status || i.status === status) &&
+               (!urgency || i.urgency === urgency);
+    });
+
+    renderIncidentsTable(filtered);
+}
+
+document.getElementById('searchInput')?.addEventListener('input', filterIncidents);
+document.getElementById('filterStatus')?.addEventListener('change', filterIncidents);
+document.getElementById('filterUrgency')?.addEventListener('change', filterIncidents);
+
+// ────────────────────────────────────────────────
+// Modal Controls
+// ────────────────────────────────────────────────
+const detailModal = document.getElementById('incidentDetailModal');
+document.getElementById('closeDetailModal').onclick = () => detailModal.style.display = 'none';
+
+window.onclick = e => {
+    if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+};
+
+// ────────────────────────────────────────────────
+// View Incident Details
+// ────────────────────────────────────────────────
+function viewIncidentDetail(incidentId) {
+    const incident = incidentsData.find(i => i.id == incidentId);
+    if (!incident) {
+        showAlert('Incident not found', 'error');
+        return;
+    }
+
+    const submittedDate = new Date(incident.submitted_date).toLocaleString('en-US', {
+        month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+    });
+
+    // Get member name with fallback
+    const memberName = (incident.firstname && incident.firstname !== 'Unknown') 
+        ? `${incident.firstname} ${incident.lastname}` 
+        : `Unknown Member (${incident.member_id})`;
+
+    let html = `
+        <div style="background: #f5f5f5; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #FF6B9D 0%, #5DADE2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; flex-shrink: 0;">
+                    ${incident.firstname ? incident.firstname.charAt(0).toUpperCase() : '?'}
+                </div>
+                <div>
+                    <p style="margin: 0; font-weight: 700; font-size: 15px; color: #222;">${memberName}</p>
+                    <p style="margin: 4px 0 0 0; font-size: 13px; color: #666;">ID: ${incident.member_id}</p>
+                </div>
+            </div>
+        </div>
+
+        <p><strong>Incident ID:</strong> #${incident.id}</p>
+        <p><strong>Contact:</strong> ${incident.phone}</p>
+        <p><strong>Address:</strong> ${incident.address}</p>
+        <p><strong>Category:</strong> <span style="background: #e3f2fd; padding: 2px 8px; border-radius: 4px; font-weight: 600;">${incident.category.toUpperCase()}</span></p>
+        <p><strong>Location:</strong> ${incident.location}</p>
+        <p><strong>Urgency:</strong> <span class="urgency-${incident.urgency === 'emergency' || incident.urgency === 'high' ? incident.urgency : ''}" style="padding: 2px 8px; border-radius: 4px; background: ${incident.urgency === 'emergency' ? '#ffebee' : incident.urgency === 'high' ? '#fff3e0' : '#f1f8e9'}; display: inline-block; font-weight: 600;">${incident.urgency.toUpperCase()}</span></p>
+        <p><strong>Status:</strong> <span class="status-badge ${incident.status}">${incident.status.replace('_', ' ')}</span></p>
+        <p><strong>Submitted:</strong> ${submittedDate}</p>
+        <hr style="margin: 12px 0; border: none; border-top: 1px solid #eee;">
+        <p><strong>Description:</strong></p>
+        <p style="background: #f9f9f9; padding: 12px; border-radius: 6px; white-space: pre-wrap; line-height: 1.6;">${incident.description}</p>
+        ${incident.photo_path ? (() => {
+            let photosHtml = '<p><strong>Photos:</strong><br>';
+            try {
+                // Try to parse as JSON array first
+                const photoPaths = JSON.parse(incident.photo_path);
+                if (Array.isArray(photoPaths)) {
+                    photosHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 10px;">';
+                    photoPaths.forEach(path => {
+                        photosHtml += `<div style="position: relative; cursor: pointer;" onclick="openPhotoLightbox('${path.replace(/'/g, "\\'")}')" title="Click to view full screen"><img src="${path}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 6px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='https://via.placeholder.com/150?text=Photo+Error'"><div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 4px; opacity: 0; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'"><i class="fas fa-search-plus"></i></div></div>`;
+                    });
+                    photosHtml += '</div>';
+                } else {
+                    // Fallback: treat as single path
+                    photosHtml += `<div style="margin-top: 10px;"><img src="${incident.photo_path}" onclick="openPhotoLightbox('${incident.photo_path.replace(/'/g, "\\'")}')" style="max-width: 100%; max-height: 300px; border-radius: 6px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='https://via.placeholder.com/300?text=Photo+Error'"><br><small style="color: #999; font-size: 12px;"><i class="fas fa-search"></i> Click to view full screen</small></div>`;
+                }
+            } catch (e) {
+                // If not JSON, treat as single path string
+                photosHtml += `<div style="margin-top: 10px;"><img src="${incident.photo_path}" onclick="openPhotoLightbox('${incident.photo_path.replace(/'/g, "\\'")}')" style="max-width: 100%; max-height: 300px; border-radius: 6px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='https://via.placeholder.com/300?text=Photo+Error'"><br><small style="color: #999; font-size: 12px;"><i class="fas fa-search"></i> Click to view full screen</small></div>`;
+            }
+            photosHtml += '</p>';
+            return photosHtml;
+        })() : ''}
+        ${incident.admin_notes ? `<p><strong>Admin Notes:</strong><br><div style="background: #f0f4ff; padding: 10px; border-left: 4px solid #5DADE2; border-radius: 4px; margin-top: 8px;">${incident.admin_notes}</div></p>` : ''}
+    `;
+
+    document.getElementById('incidentDetailsContent').innerHTML = html;
+    document.getElementById('statusSelect').value = incident.status;
+    document.getElementById('adminNotesInput').value = incident.admin_notes || '';
+    
+    document.getElementById('saveStatusBtn').onclick = async () => {
+        await updateIncidentStatus(incident.id);
+    };
+
+    detailModal.style.display = 'flex';
+}
+
+// ────────────────────────────────────────────────
+// Photo Lightbox
+// ────────────────────────────────────────────────
+function openPhotoLightbox(photoPath) {
+    const lightbox = document.getElementById('photoLightbox');
+    const lightboxImage = document.getElementById('lightboxImage');
+    lightboxImage.src = photoPath;
+    lightbox.style.display = 'flex';
+}
+
+document.getElementById('closeLightbox')?.addEventListener('click', () => {
+    document.getElementById('photoLightbox').style.display = 'none';
+});
+
+// Close lightbox when clicking outside image
+document.getElementById('photoLightbox')?.addEventListener('click', (e) => {
+    if (e.target.id === 'photoLightbox') {
+        document.getElementById('photoLightbox').style.display = 'none';
+    }
+});
+
+// ────────────────────────────────────────────────
+// Update Incident Status
+// ────────────────────────────────────────────────
+async function updateIncidentStatus(incidentId) {
+    const status = document.getElementById('statusSelect').value;
+    const adminNotes = document.getElementById('adminNotesInput').value.trim();
+
+    try {
+        const response = await fetch('api/update_incident_status.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                incident_id: incidentId,
+                status: status,
+                admin_notes: adminNotes
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showAlert('Incident status updated successfully', 'success');
+            detailModal.style.display = 'none';
+            loadIncidents();
+        } else {
+            showAlert('Error: ' + (result.error || 'Failed to update'), 'error');
+        }
+    } catch (error) {
+        console.error('Update error:', error);
+        showAlert('Error updating incident status', 'error');
+    }
+}
+
+// ────────────────────────────────────────────────
+// Delete Incident
+// ────────────────────────────────────────────────
+function deleteIncident(incidentId) {
+    showConfirm('Delete this incident report?', async () => {
+        try {
+            const response = await fetch('api/delete_incident.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ incident_id: incidentId })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showAlert('Incident deleted successfully', 'success');
+                loadIncidents();
+            } else {
+                showAlert('Error: ' + (result.error || 'Failed to delete'), 'error');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            showAlert('Error deleting incident', 'error');
+        }
+    });
+}
+
+// ────────────────────────────────────────────────
+// Initial Load
+// ────────────────────────────────────────────────
+// Setup incidents table on first load (wait for completion)
+async function initializePage() {
+    try {
+        await fetch('api/setup_incidents_table.php');
+    } catch (e) {
+        console.error('Setup warning (non-critical):', e);
+    }
+    
+    // Load incidents (will return empty array if table doesn't exist yet)
+    await loadIncidents();
+}
+
+initializePage();</script>
 </body>
 </html>

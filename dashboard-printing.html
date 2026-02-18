@@ -227,6 +227,278 @@
         #fileInput {
             display: none;
         }
+
+        /* Action Buttons - Enhanced UX */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .action-btn:active::before {
+            width: 100px;
+            height: 100px;
+        }
+
+        /* View Button */
+        .btn-view {
+            background: linear-gradient(135deg, #5DADE2 0%, #3498DB 100%);
+            color: white;
+        }
+
+        .btn-view:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(93, 173, 226, 0.4);
+            background: linear-gradient(135deg, #3498DB 0%, #2980B9 100%);
+        }
+
+        .btn-view:active {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(93, 173, 226, 0.3);
+        }
+
+        /* Scan Button */
+        .btn-scan {
+            background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%);
+            color: white;
+        }
+
+        .btn-scan:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(155, 89, 182, 0.4);
+            background: linear-gradient(135deg, #8E44AD 0%, #7D3C98 100%);
+        }
+
+        .btn-scan:active {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(155, 89, 182, 0.3);
+        }
+
+        /* Delete Button */
+        .btn-delete {
+            background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%);
+            color: white;
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+            background: linear-gradient(135deg, #C0392B 0%, #A93226 100%);
+        }
+
+        .btn-delete:active {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+        }
+
+        /* Disabled State */
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .action-btn:disabled:hover {
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Tooltip Enhancement */
+        .action-btn[title]::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .action-btn[title]::before-tooltip {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-2px);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid rgba(0, 0, 0, 0.85);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .action-btn:hover[title]::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-16px);
+        }
+
+        .action-btn:hover[title]::before-tooltip {
+            opacity: 1;
+        }
+
+        /* Mobile Responsive - Increase touch target */
+        @media (max-width: 768px) {
+            .action-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
+
+            .action-buttons {
+                gap: 12px;
+            }
+        }
+
+        /* Toast Notification Styles */
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            max-width: 380px;
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+            font-size: 14px;
+            font-weight: 500;
+            border-left: 4px solid;
+        }
+
+        .toast.success {
+            border-left-color: #27AE60;
+        }
+
+        .toast.success .toast-icon {
+            color: #27AE60;
+        }
+
+        .toast.error {
+            border-left-color: #E74C3C;
+        }
+
+        .toast.error .toast-icon {
+            color: #E74C3C;
+        }
+
+        .toast.warning {
+            border-left-color: #F39C12;
+        }
+
+        .toast.warning .toast-icon {
+            color: #F39C12;
+        }
+
+        .toast.info {
+            border-left-color: #5DADE2;
+        }
+
+        .toast.info .toast-icon {
+            color: #5DADE2;
+        }
+
+        .toast-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .toast-message {
+            flex: 1;
+            color: #333;
+        }
+
+        .toast.removing {
+            animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #toastContainer {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+
+            .toast {
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -315,6 +587,7 @@
                     </svg>
                     Incidents
                 </a>
+
                 <a href="dashboard-health.html" class="nav-item">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
@@ -369,18 +642,15 @@
                     <select id="filterStatus" class="filter-select">
                         <option value="">All Status</option>
                         <option value="Pending">Pending</option>
-                        <option value="Finished">Finished</option>
+                        <option value="Completed">Completed</option>
                     </select>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <button class="btn-add-youth" id="scanQrBtn">
-                        <i class="fas fa-qrcode"></i> Scan Youth Digital ID
-                    </button>
-                    <button class="btn-add-youth" id="addRequestBtn">
-                        <i class="fas fa-plus"></i> New Print/Xerox Request
+                    <button class="btn-add-youth" onclick="location.reload()" style="background: #5DADE2;">
+                        <i class="fas fa-sync-alt"></i> Refresh Requests
                     </button>
                 </div>
-            </div>
+            </div>  
 
             <table class="admin-table" id="printingTable">
                 <thead>
@@ -483,26 +753,28 @@
         <h2>Scan Youth Digital ID QR Code</h2>
 
         <div class="scan-container">
-            <p style="color: #666; margin-bottom: 20px;">Scan the youth member's QR code to verify and view their print request details.</p>
+            <p style="color: #666; margin-bottom: 20px;">
+                <i class="fas fa-qrcode" style="font-size: 32px; color: #9B59B6; margin-bottom: 12px; display: block;"></i>
+                Scan or enter the youth member's Digital ID. Auto-lookup & auto-complete after verification.
+            </p>
             
-            <input type="text" id="scanQrInput" class="search-input" placeholder="Enter Member ID (e.g., SK-2024-0789)" style="text-transform: uppercase; width: 100%; max-width: 400px;">
+            <input type="text" id="scanQrInput" class="search-input" placeholder="Scan or Type Member ID (e.g., SK-2024-0789)" style="text-transform: uppercase; width: 100%; max-width: 400px; font-size: 16px;">
             
-            <button id="verifyQrBtn" class="btn-submit">Verify Youth ID</button>
+            <button id="verifyQrBtn" class="btn-submit" style="background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%); margin-top: 16px; display: none;">
+                <i class="fas fa-check-circle"></i> Verify & Complete
+            </button>
 
             <div id="verifiedSection" style="display: none;">
                 <div class="verified-info">
                     <h3>
                         <i class="fas fa-check-circle" style="color: #28a745;"></i>
-                        Youth Verified
+                        ✓ Youth Verified & Processing
                     </h3>
                     <p><strong>Member ID:</strong> <span id="verifiedId"></span></p>
                     <p><strong>Name:</strong> <span id="verifiedName"></span></p>
                     <p><strong>Contact:</strong> <span id="verifiedContact"></span></p>
+                    <p style="margin-top: 12px; font-size: 13px; color: #666;"><i class="fas fa-spinner fa-spin"></i> Marking as completed...</p>
                 </div>
-                
-                <button id="seeDetailsBtn" class="btn-submit" style="background: #5DADE2;">
-                    <i class="fas fa-eye"></i> See Full Request Details
-                </button>
             </div>
         </div>
     </div>
@@ -552,10 +824,25 @@
         <button class="btn-download" id="downloadBtn">
             <i class="fas fa-download"></i> Download Documents
         </button>
+    </div>
+</div>
 
-        <div style="margin-top: 24px; text-align: center;">
-            <button class="btn-submit" id="markDoneBtn" style="background: #28a745;">
-                <i class="fas fa-check-circle"></i> Mark as Finished
+<!-- Toast Notification Container -->
+<div id="toastContainer"></div>
+
+<!-- Confirmation Modal -->
+<div class="modal" id="confirmationModal">
+    <div class="modal-content" style="max-width: 420px;">
+        <h2 style="margin-bottom: 12px; color: #E74C3C;">
+            <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> Confirm Action
+        </h2>
+        <p id="confirmMessage" style="color: #666; margin: 0 0 28px 0; font-size: 15px; line-height: 1.5;"></p>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button id="confirmCancelBtn" class="btn-submit" style="background: #95A5A6; width: auto; margin: 0; padding: 10px 24px;">
+                Cancel
+            </button>
+            <button id="confirmOkBtn" class="btn-submit" style="background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%); width: auto; margin: 0; padding: 10px 24px;">
+                <i class="fas fa-trash" style="margin-right: 6px;"></i> Delete
             </button>
         </div>
     </div>
@@ -587,54 +874,111 @@ setInterval(updateDashboardDateTime, 1000);
 updateDashboardDateTime();
 
 // ────────────────────────────────────────────────
-// Data Management
+// Toast Notification
 // ────────────────────────────────────────────────
-let youthData = JSON.parse(localStorage.getItem('youthData')) || [
-    { id: "SK-2024-0789", first: "Arby", last: "Barnuevo", contact: "09171234567", barangay: "Poblacion" }
-];
-
-let printRequests = JSON.parse(localStorage.getItem('printRequests')) || [
-    { 
-        id: "REQ-001", 
-        memberId: "SK-2024-0789", 
-        name: "Arby Barnuevo", 
-        dateTime: "2026-01-31T21:18:00", 
-        status: "Pending", 
-        documents: "resume.pdf", 
-        purpose: "Personal / Resume", 
-        printType: "Black & White",
-        pages: 5,
-        requestType: "Print"
+function showAlert(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    
+    let icon = '✓';
+    if (type === 'error') {
+        icon = '❌';
+    } else if (type === 'warning') {
+        icon = '⚠️';
+    } else if (type === 'info') {
+        icon = 'ℹ️';
     }
-];
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icon}</span>
+        <span class="toast-message">${message}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 4000);
+}
 
-function saveRequests() {
-    localStorage.setItem('printRequests', JSON.stringify(printRequests));
+// ────────────────────────────────────────────────
+// Confirmation Modal
+// ────────────────────────────────────────────────
+function showConfirm(message, onConfirm) {
+    const confirmModal = document.getElementById('confirmationModal');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmOkBtn = document.getElementById('confirmOkBtn');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    
+    confirmMessage.textContent = message;
+    confirmModal.style.display = 'flex';
+    
+    confirmOkBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        if (onConfirm) onConfirm();
+    };
+    
+    confirmCancelBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+    };
+}
+
+// ────────────────────────────────────────────────
+// Data Management (Database-Driven)
+// ────────────────────────────────────────────────
+let printRequests = [];
+
+async function loadPrintRequests() {
+    try {
+        const response = await fetch('api/get_print_requests.php');
+        const result = await response.json();
+        
+        if (result.success) {
+            printRequests = result.data || [];
+            renderPrintTable(printRequests);
+        } else {
+            console.error('Error loading print requests:', result.error);
+            document.getElementById('printingTableBody').innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No print requests found</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error fetching print requests:', error);
+        document.getElementById('printingTableBody').innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Error loading requests</td></tr>';
+    }
 }
 
 function renderPrintTable(filtered = printRequests) {
     const tbody = document.getElementById('printingTableBody');
     tbody.innerHTML = '';
 
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No print requests found</td></tr>';
+        return;
+    }
+
     filtered.forEach(req => {
-        const dateTime = new Date(req.dateTime).toLocaleString('en-US', {dateStyle: 'short', timeStyle: 'short'});
-        const statusClass = req.status === 'Pending' ? 'status-pending' : 'status-finished';
+        const dateTime = new Date(req.created_at).toLocaleString('en-US', {dateStyle: 'short', timeStyle: 'short'});
+        const statusClass = req.status === 'Pending' ? 'status-pending' : 'status-completed';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${req.memberId}</td>
-            <td style="font-weight: 600;">${req.name}</td>
+            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${req.member_id}</td>
+            <td style="font-weight: 600;">${req.member_name}</td>
             <td>${dateTime}</td>
             <td><span class="status-badge ${statusClass}">${req.status}</span></td>
-            <td>${req.documents}</td>
+            <td><a href="${req.file_path}" target="_blank" download style="color: #5DADE2; text-decoration: none;"><i class="fas fa-download"></i> ${req.file_name}</a></td>
             <td class="action-buttons">
-                <button class="action-btn btn-view" onclick="viewDetails('${req.id}')" title="View Details">
+                <button class="action-btn btn-view" onclick="viewDetails(${req.request_id})" title="View Details">
                     <i class="fas fa-eye"></i>
                 </button>
-                ${req.status === 'Pending' ? `<button class="action-btn btn-done" onclick="markDone('${req.id}')" title="Mark as Finished">
-                    <i class="fas fa-check"></i>
-                </button>` : ''}
-                <button class="action-btn btn-delete" onclick="deleteRequest('${req.id}')" title="Delete">
+                <button class="action-btn btn-scan" onclick="openQrScanForRequest(${req.request_id}, '${req.member_id}')" title="Scan Youth ID & Verify">
+                    <i class="fas fa-qrcode"></i>
+                </button>
+                <button class="action-btn btn-delete" onclick="deleteRequest(${req.request_id})" title="Delete">
                     <i class="fas fa-trash"></i>
                 </button>
             </td>
@@ -643,15 +987,13 @@ function renderPrintTable(filtered = printRequests) {
     });
 }
 
-// ────────────────────────────────────────────────
-// Search & Filter
-// ────────────────────────────────────────────────
+
 function filterTable() {
     const search = document.getElementById('searchInput').value.toLowerCase().trim();
     const status = document.getElementById('filterStatus').value;
 
     const filtered = printRequests.filter(req => {
-        const text = `${req.memberId} ${req.name} ${req.documents}`.toLowerCase();
+        const text = `${req.member_id} ${req.member_name} ${req.file_name} ${req.document_title}`.toLowerCase();
         return text.includes(search) && (!status || req.status === status);
     });
 
@@ -675,275 +1017,206 @@ document.getElementById('fileInput')?.addEventListener('change', function(e) {
 // ────────────────────────────────────────────────
 // Modal Controls
 // ────────────────────────────────────────────────
-const addModal = document.getElementById('addRequestModal');
-const scanModal = document.getElementById('scanQrModal');
 const viewModal = document.getElementById('viewDetailsModal');
-const youthRequestModal = document.getElementById('youthRequestModal');
 
-document.getElementById('addRequestBtn').onclick = () => {
-    document.getElementById('addRequestForm').reset();
-    document.getElementById('editRequestId').value = '';
-    document.getElementById('uploadedFiles').classList.remove('show');
-    addModal.style.display = 'flex';
-};
-
-document.getElementById('scanQrBtn').onclick = () => {
-    document.getElementById('scanQrInput').value = '';
-    document.getElementById('verifiedSection').style.display = 'none';
-    scanModal.style.display = 'flex';
-};
-
-document.getElementById('closeAddRequest').onclick = () => addModal.style.display = 'none';
-document.getElementById('closeScanQr').onclick = () => scanModal.style.display = 'none';
 document.getElementById('closeViewDetails').onclick = () => viewModal.style.display = 'none';
-document.getElementById('closeYouthRequest').onclick = () => youthRequestModal.style.display = 'none';
 
 window.onclick = e => {
     if (e.target.classList.contains('modal')) e.target.style.display = 'none';
 };
 
-// ────────────────────────────────────────────────
-// QR Scan Verification
-// ────────────────────────────────────────────────
-document.getElementById('verifyQrBtn').onclick = () => {
-    const qrData = document.getElementById('scanQrInput').value.trim().toUpperCase();
-    if (!qrData) return alert("Please enter a Member ID");
 
-    const youth = youthData.find(y => y.id.toUpperCase() === qrData);
-    if (!youth) return alert("❌ Invalid Member ID. Youth not found in registry.");
-
-    // Display verified youth info
-    document.getElementById('verifiedId').textContent = youth.id;
-    document.getElementById('verifiedName').textContent = `${youth.first} ${youth.last}`;
-    document.getElementById('verifiedContact').textContent = youth.contact || 'N/A';
-    
-    document.getElementById('verifiedSection').style.display = 'block';
-};
-
-// ────────────────────────────────────────────────
-// See Full Request Details from QR Scan
-// ────────────────────────────────────────────────
-document.getElementById('seeDetailsBtn').addEventListener('click', () => {
-    const youthId = document.getElementById('verifiedId').textContent;
-    const youth = youthData.find(y => y.id === youthId);
-    if (!youth) return alert("Youth not found");
-
-    // Sample print request details (in real app, this would come from youth's submission)
-    const requestDetails = {
-        memberId: youth.id,
-        name: `${youth.first} ${youth.last}`,
-        contact: youth.contact || 'N/A',
-        pages: 5,
-        printType: "Black & White",
-        purpose: "Academics / School Requirements",
-        documentName: "resume.pdf", // Sample document
-        documentType: "PDF Document",
-        documentSize: "2.3 MB"
-    };
-
-    // Show youth request details modal
-    document.getElementById('youthRequestContent').innerHTML = `
-        <p><strong>Member ID:</strong> ${requestDetails.memberId}</p>
-        <p><strong>Name:</strong> ${requestDetails.name}</p>
-        <p><strong>Contact:</strong> ${requestDetails.contact}</p>
-        <p><strong>Number of Pages:</strong> ${requestDetails.pages}</p>
-        <p><strong>Print Type:</strong> ${requestDetails.printType}</p>
-        <p><strong>Purpose:</strong> ${requestDetails.purpose}</p>
-    `;
-
-    // Update document preview
-    const docType = requestDetails.documentName.split('.').pop().toLowerCase();
-    let fileIcon = 'fa-file';
-    let iconColor = '#666';
-    
-    if (docType === 'pdf') {
-        fileIcon = 'fa-file-pdf';
-        iconColor = '#dc3545';
-    } else if (docType === 'doc' || docType === 'docx') {
-        fileIcon = 'fa-file-word';
-        iconColor = '#2b579a';
-    } else if (docType === 'jpg' || docType === 'jpeg' || docType === 'png') {
-        fileIcon = 'fa-file-image';
-        iconColor = '#28a745';
-    } else if (docType === 'txt') {
-        fileIcon = 'fa-file-alt';
-        iconColor = '#6c757d';
-    }
-
-    document.getElementById('youthDocPreview').innerHTML = `
-        <i class="fas ${fileIcon}" style="font-size: 48px; color: ${iconColor}; margin-bottom: 12px;"></i>
-        <p id="docFileName" style="font-weight: 600; margin: 8px 0; font-size: 16px;">${requestDetails.documentName}</p>
-        <small style="color: #666;">${requestDetails.pages} pages • ${requestDetails.documentType} • ${requestDetails.documentSize}</small>
-    `;
-
-    // Setup download button
-    document.getElementById('downloadYouthDoc').onclick = () => {
-        // Simulate document download
-        const content = `Print Request Document\n\nMember: ${requestDetails.name}\nID: ${requestDetails.memberId}\nDocument: ${requestDetails.documentName}\nPages: ${requestDetails.pages}\nType: ${requestDetails.printType}\nPurpose: ${requestDetails.purpose}`;
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = requestDetails.documentName;
-        a.click();
-        URL.revokeObjectURL(url);
-        
-        alert('✅ Document downloaded! You can now print it.');
-    };
-
-    scanModal.style.display = 'none';
-    youthRequestModal.style.display = 'flex';
-});
-
-// ────────────────────────────────────────────────
-// Confirm Print from Youth Request
-// ────────────────────────────────────────────────
-document.getElementById('confirmPrintBtn').addEventListener('click', () => {
-    const youthId = document.getElementById('verifiedId').textContent;
-    const youth = youthData.find(y => y.id === youthId);
-    
-    // Get document name from the preview
-    const docFileName = document.getElementById('docFileName')?.textContent || 'document.pdf';
-    
-    const newRequest = {
-        id: "REQ-" + Math.floor(1000 + Math.random() * 9000),
-        memberId: youth.id,
-        name: `${youth.first} ${youth.last}`,
-        dateTime: new Date().toISOString(),
-        status: 'Finished',
-        documents: docFileName,
-        purpose: 'Academics / School Requirements',
-        printType: 'Black & White',
-        pages: 5,
-        requestType: 'Print'
-    };
-
-    printRequests.unshift(newRequest);
-    saveRequests();
-    renderPrintTable();
-
-    youthRequestModal.style.display = 'none';
-    alert('✅ Print request confirmed and marked as finished!');
-});
-
-// ────────────────────────────────────────────────
-// Add Request (manual)
-// ────────────────────────────────────────────────
-document.getElementById('addRequestForm').addEventListener('submit', e => {
-    e.preventDefault();
-
-    const fileInput = document.getElementById('fileInput');
-    const file = fileInput.files[0];
-    if (!file) {
-        alert('Please select a file to upload');
-        return;
-    }
-
-    const id = document.getElementById('editRequestId').value || "REQ-" + Math.floor(1000 + Math.random() * 9000);
-    const memberId = document.getElementById('memberId').value.trim().toUpperCase();
-    const youth = youthData.find(y => y.id === memberId) || { first: 'Unknown', last: '' };
-    const name = `${youth.first} ${youth.last}`.trim();
-
-    const request = {
-        id,
-        memberId,
-        name,
-        dateTime: new Date().toISOString(),
-        status: 'Pending',
-        documents: file.name,
-        purpose: document.getElementById('purpose').value,
-        printType: document.getElementById('printType').value,
-        pages: document.getElementById('pages').value,
-        requestType: document.getElementById('requestType').value
-    };
-
-    if (document.getElementById('editRequestId').value) {
-        const index = printRequests.findIndex(r => r.id === id);
-        if (index !== -1) printRequests[index] = request;
-    } else {
-        printRequests.unshift(request);
-    }
-
-    saveRequests();
-    renderPrintTable();
-    filterTable();
-
-    addModal.style.display = 'none';
-    alert(`✅ Print request ${document.getElementById('editRequestId').value ? 'updated' : 'added'} successfully!`);
-});
 
 // ────────────────────────────────────────────────
 // View Details
 // ────────────────────────────────────────────────
-function viewDetails(id) {
-    const req = printRequests.find(r => r.id === id);
-    if (!req) return alert("Request not found");
+function viewDetails(requestId) {
+    const req = printRequests.find(r => r.request_id == requestId);
+    if (!req) return showAlert('Request not found', 'error');
 
-    const dateTime = new Date(req.dateTime).toLocaleString('en-US', {dateStyle: 'full', timeStyle: 'short'});
+    const dateTime = new Date(req.created_at).toLocaleString('en-US', {dateStyle: 'full', timeStyle: 'short'});
 
     document.getElementById('detailsContent').innerHTML = `
-        <p><strong>Request Type:</strong> ${req.requestType || 'N/A'}</p>
-        <p><strong>Member ID:</strong> ${req.memberId}</p>
-        <p><strong>Name:</strong> ${req.name}</p>
+        <p><strong>Request ID:</strong> REQ-${req.request_id}</p>
+        <p><strong>Member ID:</strong> ${req.member_id}</p>
+        <p><strong>Name:</strong> ${req.member_name}</p>
+        <p><strong>Document Title:</strong> ${req.document_title}</p>
         <p><strong>Date & Time Sent:</strong> ${dateTime}</p>
-        <p><strong>Purpose:</strong> ${req.purpose}</p>
-        <p><strong>Print Type:</strong> ${req.printType}</p>
-        <p><strong>Pages:</strong> ${req.pages || 'N/A'}</p>
-        <p><strong>Status:</strong> ${req.status}</p>
+        <p><strong>Print Type:</strong> ${req.print_type || 'N/A'}</p>
+        <p><strong>Paper Size:</strong> ${req.paper_size || 'N/A'}</p>
+        <p><strong>Copies:</strong> ${req.copies || '1'}</p>
+        <p><strong>Status:</strong> <span class="status-badge status-${req.status.toLowerCase()}">${req.status}</span></p>
     `;
 
-    document.getElementById('docPreview').textContent = req.documents;
+    document.getElementById('docPreview').innerHTML = `
+        <a href="${req.file_path}" target="_blank" download style="color: #5DADE2; text-decoration: none;">
+            <i class="fas fa-download"></i> ${req.file_name}
+        </a>
+    `;
 
-    document.getElementById('markDoneBtn').style.display = req.status === 'Pending' ? 'block' : 'none';
-    document.getElementById('markDoneBtn').onclick = () => markDone(id);
-
-    document.getElementById('downloadBtn').onclick = () => downloadDocuments(req);
+    document.getElementById('downloadBtn').onclick = () => {
+        const a = document.createElement('a');
+        a.href = req.file_path;
+        a.download = req.file_name;
+        a.click();
+    };
 
     viewModal.style.display = 'flex';
 }
 
 // ────────────────────────────────────────────────
-// Mark as Done
+// Update Status Helper
 // ────────────────────────────────────────────────
-function markDone(id) {
-    const req = printRequests.find(r => r.id === id);
-    if (req) req.status = 'Finished';
+async function updateStatus(requestId, newStatus) {
+    const req = printRequests.find(r => r.request_id == requestId);
+    if (!req) return alert("Request not found");
 
-    saveRequests();
-    viewModal.style.display = 'none';
-    renderPrintTable();
-    filterTable();
+    try {
+        const response = await fetch('api/update_print_status.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ request_id: requestId, status: newStatus })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert(`Status updated to ${newStatus}!`, 'success');
+            viewModal.style.display = 'none';
+            loadPrintRequests();
+        } else {
+            showAlert(`${result.message || 'Failed to update status'}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error updating status:', error);
+        showAlert('Error updating status', 'error');
+    }
+}
 
-    alert("✅ Request marked as finished!");
+// ────────────────────────────────────────────────
+// QR Scan for Request Verification
+// ────────────────────────────────────────────────
+let currentScanRequestId = null;
+let currentScanMemberId = null;
+
+function openQrScanForRequest(requestId, memberId) {
+    currentScanRequestId = requestId;
+    currentScanMemberId = memberId;
+    
+    // Clear previous input
+    document.getElementById('scanQrInput').value = '';
+    document.getElementById('verifiedSection').style.display = 'none';
+    document.getElementById('scanQrInput').focus();
+    
+    // Open modal
+    document.getElementById('scanQrModal').style.display = 'flex';
+}
+
+// Auto-verify on input change (real-time lookup)
+document.getElementById('scanQrInput')?.addEventListener('input', async function(e) {
+    const scannedId = this.value.trim().toUpperCase();
+    
+    // Only proceed if we have a complete ID
+    if (!scannedId || scannedId.length < 5) {
+        document.getElementById('verifiedSection').style.display = 'none';
+        return;
+    }
+    
+    if (scannedId !== currentScanMemberId?.toUpperCase()) {
+        document.getElementById('verifiedSection').style.display = 'none';
+        return;
+    }
+    
+    // Auto-verify with real-time lookup
+    await verifyAndCompleteQrScan(scannedId);
+});
+
+// Verify button as fallback
+document.getElementById('verifyQrBtn')?.addEventListener('click', async function() {
+    const scannedId = document.getElementById('scanQrInput').value.trim().toUpperCase();
+    
+    if (!scannedId) {
+        return showAlert('Please enter or scan the Member ID', 'warning');
+    }
+    
+    if (scannedId !== currentScanMemberId?.toUpperCase()) {
+        return showAlert('Member ID does not match! Expected: ' + currentScanMemberId, 'error');
+    }
+    
+    await verifyAndCompleteQrScan(scannedId);
+});
+
+// Combined verification and auto-complete function
+async function verifyAndCompleteQrScan(scannedId) {
+    try {
+        const response = await fetch('api/get_user.php?member_id=' + encodeURIComponent(scannedId));
+        const result = await response.json();
+        
+        if (result.success && result.user) {
+            const user = result.user;
+            
+            // Display verified info
+            document.getElementById('verifiedId').textContent = user.member_id;
+            document.getElementById('verifiedName').textContent = user.name;
+            document.getElementById('verifiedContact').textContent = user.phone_number || user.email || 'N/A';
+            document.getElementById('verifiedSection').style.display = 'block';
+            
+            // Auto-complete after short delay
+            setTimeout(() => {
+                completeAfterQrScan();
+            }, 1200);
+        } else {
+            showAlert('Youth member not found in system', 'error');
+            document.getElementById('verifiedSection').style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error verifying youth:', error);
+        showAlert('Error verifying youth member', 'error');
+        document.getElementById('verifiedSection').style.display = 'none';
+    }
+}
+
+function completeAfterQrScan() {
+    if (!currentScanRequestId) return;
+    
+    const req = printRequests.find(r => r.request_id == currentScanRequestId);
+    if (!req) return showAlert('Request not found', 'error');
+    
+    // Mark as Completed with single scan
+    updateStatus(currentScanRequestId, 'Completed');
+    
+    // Close modal after successful completion
+    setTimeout(() => {
+        document.getElementById('scanQrModal').style.display = 'none';
+        currentScanRequestId = null;
+        currentScanMemberId = null;
+    }, 500);
 }
 
 // ────────────────────────────────────────────────
 // Delete Request
 // ────────────────────────────────────────────────
-function deleteRequest(id) {
-    if (!confirm("Are you sure you want to delete this request?")) return;
-
-    printRequests = printRequests.filter(r => r.id !== id);
-    saveRequests();
-    renderPrintTable();
-    filterTable();
-
-    alert("✅ Request deleted successfully.");
-}
-
-// ────────────────────────────────────────────────
-// Download Documents
-// ────────────────────────────────────────────────
-function downloadDocuments(req) {
-    const content = `Documents for ${req.name} (${req.memberId}):\n\n${req.documents}\n\nRequest Type: ${req.requestType}\nPurpose: ${req.purpose}\nPrint Type: ${req.printType}\nPages: ${req.pages}`;
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${req.name.replace(/\s+/g, '_')}_${req.documents}`;
-    a.click();
-    URL.revokeObjectURL(url);
+async function deleteRequest(requestId) {
+    showConfirm('Are you sure you want to delete this request? This action cannot be undone.', async () => {
+        try {
+            const response = await fetch('api/delete_print_request.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ request_id: requestId })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('Request deleted successfully.', 'success');
+                loadPrintRequests();
+            } else {
+                showAlert(`${result.message || 'Failed to delete request'}`, 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting request:', error);
+            showAlert('Error deleting request. Please try again.', 'error');
+        }
+    });
 }
 
 // ────────────────────────────────────────────────
@@ -971,8 +1244,19 @@ async function loadUserProfile() {
 
 window.addEventListener('load', () => {
     loadUserProfile();
-    renderPrintTable();
-    filterTable();
+    loadPrintRequests();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('searchInput')?.addEventListener('input', filterTable);
+    document.getElementById('filterStatus')?.addEventListener('change', filterTable);
+    
+    // Close modals on X button
+    document.getElementById('closeScanQr')?.addEventListener('click', () => {
+        document.getElementById('scanQrModal').style.display = 'none';
+        currentScanRequestId = null;
+        currentScanMemberId = null;
+    });
 });
 </script>
 </body>

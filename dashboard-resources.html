@@ -116,6 +116,114 @@
             background: rgba(255,255,255,0.2);
             color: white;
         }
+
+        /* Toast Notification Styles */
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            max-width: 380px;
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+            font-size: 14px;
+            font-weight: 500;
+            border-left: 4px solid;
+        }
+
+        .toast.success {
+            border-left-color: #27AE60;
+        }
+
+        .toast.success .toast-icon {
+            color: #27AE60;
+        }
+
+        .toast.error {
+            border-left-color: #E74C3C;
+        }
+
+        .toast.error .toast-icon {
+            color: #E74C3C;
+        }
+
+        .toast.warning {
+            border-left-color: #F39C12;
+        }
+
+        .toast.warning .toast-icon {
+            color: #F39C12;
+        }
+
+        .toast.info {
+            border-left-color: #5DADE2;
+        }
+
+        .toast.info .toast-icon {
+            color: #5DADE2;
+        }
+
+        .toast-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .toast-message {
+            flex: 1;
+            color: #333;
+        }
+
+        .toast.removing {
+            animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #toastContainer {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+
+            .toast {
+                max-width: 100%;
+            }
+        }
     </style>
     
 </head>
@@ -204,12 +312,13 @@
                         </svg>
                         Incidents
                     </a>
+
                     <a href="dashboard-health.html" class="nav-item">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                        </svg>
-                        Health Services
-                    </a>
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    Health Services
+                </a>
                 </div>
 
                 <div class="nav-group">
@@ -379,7 +488,83 @@
     </div>
 </div>
 
+<!-- Toast Notification Container -->
+<div id="toastContainer"></div>
+
+<!-- Confirmation Modal -->
+<div class="modal" id="confirmationModal">
+    <div class="modal-content" style="max-width: 420px;">
+        <h2 style="margin-bottom: 12px; color: #E74C3C;">
+            <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> Confirm Action
+        </h2>
+        <p id="confirmMessage" style="color: #666; margin: 0 0 28px 0; font-size: 15px; line-height: 1.5;"></p>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button id="confirmCancelBtn" class="btn-add-youth" style="background: #95A5A6; margin: 0; padding: 10px 24px;">
+                Cancel
+            </button>
+            <button id="confirmOkBtn" class="btn-add-youth" style="background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%); margin: 0; padding: 10px 24px;">
+                <i class="fas fa-trash" style="margin-right: 6px;"></i> Delete
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
+// ────────────────────────────────────────────────
+// Toast Notification
+// ────────────────────────────────────────────────
+function showAlert(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    
+    let icon = '✓';
+    if (type === 'error') {
+        icon = '❌';
+    } else if (type === 'warning') {
+        icon = '⚠️';
+    } else if (type === 'info') {
+        icon = 'ℹ️';
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icon}</span>
+        <span class="toast-message">${message}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 4000);
+}
+
+// ────────────────────────────────────────────────
+// Confirmation Modal
+// ────────────────────────────────────────────────
+function showConfirm(message, onConfirm) {
+    const confirmModal = document.getElementById('confirmationModal');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmOkBtn = document.getElementById('confirmOkBtn');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    
+    confirmMessage.textContent = message;
+    confirmModal.style.display = 'flex';
+    
+    confirmOkBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        if (onConfirm) onConfirm();
+    };
+    
+    confirmCancelBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+    };
+}
+
 // ────────────────────────────────────────────────
 // Date & Time
 // ────────────────────────────────────────────────
@@ -581,7 +766,7 @@ document.getElementById('itemForm').addEventListener('submit', async e => {
     const itemQuantity = parseInt(document.getElementById('itemQuantity').value);
 
     if (!itemName || itemQuantity < 1) {
-        alert("Please fill in all required fields with valid values");
+        showAlert("Please fill in all required fields with valid values", 'warning');
         return;
     }
 
@@ -601,7 +786,7 @@ document.getElementById('itemForm').addEventListener('submit', async e => {
         const result = await response.json();
 
         if (result.success) {
-            alert("Item added successfully!");
+            showAlert("Item added successfully!", 'success');
             document.getElementById('itemForm').reset();
             addItemModal.style.display = 'none';
             
@@ -610,11 +795,11 @@ document.getElementById('itemForm').addEventListener('submit', async e => {
             filterLending();
             populateBorrowItemDropdown();
         } else {
-            alert("Error: " + result.error);
+            showAlert("Error: " + result.error, 'error');
         }
     } catch (error) {
         console.error('Error adding item:', error);
-        alert("Failed to add item. Please try again.");
+        showAlert("Failed to add item. Please try again.", 'error');
     }
 });
 
@@ -624,7 +809,7 @@ document.getElementById('itemForm').addEventListener('submit', async e => {
 document.getElementById('lookupYouthBtn').onclick = async () => {
     const inputId = document.getElementById('manualYouthId').value.trim().toUpperCase();
     if (!inputId) {
-        alert("Please enter a Youth ID");
+        showAlert("Please enter a Youth ID", 'warning');
         return;
     }
 
@@ -634,7 +819,7 @@ document.getElementById('lookupYouthBtn').onclick = async () => {
         const result = await response.json();
 
         if (!result.success || !result.user) {
-            alert("Member ID not found in system. Please verify and try again.");
+            showAlert("Member ID not found in system. Please verify and try again.", 'error');
             return;
         }
 
@@ -661,7 +846,7 @@ document.getElementById('lookupYouthBtn').onclick = async () => {
 
     } catch (error) {
         console.error('Error looking up member:', error);
-        alert("Error looking up member ID. Please check your connection and try again.");
+        showAlert("Error looking up member ID. Please check your connection and try again.", 'error');
     }
 };
 
@@ -691,23 +876,23 @@ document.getElementById('borrowFormElement').addEventListener('submit', async e 
     const dueDate = document.getElementById('dueDate').value;
 
     if (!itemId || !memberId || !borrowDate || !dueDate || quantity < 1) {
-        alert("Please fill in all required fields");
+        showAlert("Please fill in all required fields", 'warning');
         return;
     }
 
     if (new Date(dueDate) <= new Date(borrowDate)) {
-        alert("Due date must be after borrow date");
+        showAlert("Due date must be after borrow date", 'warning');
         return;
     }
 
     const item = itemsData.find(i => i.item_id === itemId);
     if (!item) {
-        alert("Item not found");
+        showAlert("Item not found", 'error');
         return;
     }
 
     if (item.available < quantity) {
-        alert(`Only ${item.available} unit(s) available. Please adjust the quantity.`);
+        showAlert('Only ' + item.available + ' unit(s) available. Please adjust the quantity.', 'warning');
         return;
     }
 
@@ -729,7 +914,7 @@ document.getElementById('borrowFormElement').addEventListener('submit', async e 
         const result = await response.json();
 
         if (result.success) {
-            alert("Item borrowed successfully!");
+            showAlert("Item borrowed successfully!", 'success');
             document.getElementById('borrowFormElement').reset();
             document.getElementById('borrowerInfo').style.display = 'none';
             document.getElementById('borrowForm').style.display = 'none';
@@ -741,11 +926,11 @@ document.getElementById('borrowFormElement').addEventListener('submit', async e 
             await loadBorrowRecords();
             filterLending();
         } else {
-            alert("Error: " + result.error);
+            showAlert("Error: " + result.error, 'error');
         }
     } catch (error) {
         console.error('Error borrowing item:', error);
-        alert("Failed to borrow item. Please try again.");
+        showAlert("Failed to borrow item. Please try again.", 'error');
     }
 });
 
@@ -753,7 +938,7 @@ document.getElementById('borrowFormElement').addEventListener('submit', async e 
 // Return Item
 // ────────────────────────────────────────────────
 async function returnItem(borrowId) {
-    if (!confirm("Mark this item as returned?")) return;
+    showConfirm("Mark this item as returned?", async () => {
 
     try {
         const response = await fetch('api/return_resource.php', {
@@ -769,26 +954,27 @@ async function returnItem(borrowId) {
         const result = await response.json();
 
         if (result.success) {
-            alert("Item marked as returned successfully!");
+            showAlert("Item marked as returned successfully!", 'success');
             
             // Reload data and refresh tables
             await loadResources();
             await loadBorrowRecords();
             filterLending();
         } else {
-            alert("Error: " + result.error);
+            showAlert("Error: " + result.error, 'error');
         }
     } catch (error) {
         console.error('Error returning item:', error);
-        alert("Failed to return item. Please try again.");
+        showAlert("Failed to return item. Please try again.", 'error');
     }
+    });
 }
 
 // ────────────────────────────────────────────────
 // Delete Lending Record
 // ────────────────────────────────────────────────
 async function deleteLending(borrowId) {
-    if (!confirm("Delete this lending record?")) return;
+    showConfirm("Delete this lending record?", async () => {
 
     try {
         const response = await fetch('api/delete_borrow_record.php', {
@@ -804,19 +990,20 @@ async function deleteLending(borrowId) {
         const result = await response.json();
 
         if (result.success) {
-            alert("Lending record deleted successfully!");
+            showAlert("Lending record deleted successfully!", 'success');
             
             // Reload data and refresh tables
             await loadResources();
             await loadBorrowRecords();
             filterLending();
         } else {
-            alert("Error: " + result.error);
+            showAlert("Error: " + result.error, 'error');
         }
     } catch (error) {
         console.error('Error deleting record:', error);
-        alert("Failed to delete record. Please try again.");
+        showAlert("Failed to delete record. Please try again.", 'error');
     }
+    });
 }
 
 // ────────────────────────────────────────────────
@@ -825,7 +1012,7 @@ async function deleteLending(borrowId) {
 function viewLending(borrowId) {
     const record = lendingData.find(r => r.borrow_id === borrowId);
     if (!record) {
-        alert("Record not found");
+        showAlert("Record not found", 'error');
         return;
     }
 

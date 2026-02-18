@@ -151,6 +151,109 @@
                 padding: 3px 9px;
             }
         }
+
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            background: white;
+            padding: 14px 18px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            font-weight: 500;
+            border-left: 4px solid;
+        }
+
+        .toast.success {
+            border-left-color: #27AE60;
+        }
+
+        .toast.success .toast-icon {
+            color: #27AE60;
+        }
+
+        .toast.error {
+            border-left-color: #E74C3C;
+        }
+
+        .toast.error .toast-icon {
+            color: #E74C3C;
+        }
+
+        .toast.warning {
+            border-left-color: #F39C12;
+        }
+
+        .toast.warning .toast-icon {
+            color: #F39C12;
+        }
+
+        .toast.info {
+            border-left-color: #5DADE2;
+        }
+
+        .toast.info .toast-icon {
+            color: #5DADE2;
+        }
+
+        .toast-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .toast-message {
+            flex: 1;
+            color: #333;
+        }
+
+        .toast.removing {
+            animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #toastContainer {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+
+            .toast {
+                max-width: 100%;
+            }
+        }
     </style>
     
 </head>
@@ -242,6 +345,7 @@
                     Incidents
                     <span class="nav-badge">7</span>
                 </a>
+                
                 <a href="dashboard-health.html" class="nav-item">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
@@ -454,7 +558,79 @@
     </div>
 </div>
 
+<!-- Toast Notification Container -->
+<div id="toastContainer"></div>
+
+<!-- Confirmation Modal -->
+<div class="modal" id="confirmationModal">
+    <div class="modal-content" style="max-width: 420px;">
+        <h2 style="margin-bottom: 12px; color: #E74C3C;">
+            <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> Confirm Action
+        </h2>
+        <p id="confirmMessage" style="color: #666; margin: 0 0 28px 0; font-size: 15px; line-height: 1.5;"></p>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button id="confirmCancelBtn" class="btn-add-youth" style="background: #95A5A6; margin: 0; padding: 10px 24px;">Cancel</button>
+            <button id="confirmOkBtn" class="btn-add-youth" style="background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%); margin: 0; padding: 10px 24px;"><i class="fas fa-trash" style="margin-right: 6px;"></i> Delete</button>
+        </div>
+    </div>
+</div>
+
 <script>
+// ────────────────────────────────────────────────
+// Toast Notification
+// ────────────────────────────────────────────────
+function showAlert(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    
+    let icon = '✓';
+    if (type === 'error') {
+        icon = '❌';
+    } else if (type === 'warning') {
+        icon = '⚠️';
+    } else if (type === 'info') {
+        icon = 'ℹ️';
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icon}</span>
+        <span class="toast-message">${message}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 4000);
+}
+
+// ────────────────────────────────────────────────
+// Confirmation Modal
+// ────────────────────────────────────────────────
+function showConfirm(message, onConfirm) {
+    const confirmModal = document.getElementById('confirmationModal');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmOkBtn = document.getElementById('confirmOkBtn');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    
+    confirmMessage.textContent = message;
+    confirmModal.style.display = 'flex';
+    
+    confirmOkBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        if (onConfirm) onConfirm();
+    };
+    
+    confirmCancelBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+    };
+}
+
 // ────────────────────────────────────────────────
 // Session Check & Admin Info
 // ────────────────────────────────────────────────
@@ -540,11 +716,11 @@ async function loadYouthData() {
             youthData = data.data;
             renderYouthTable();
         } else {
-            alert('Error loading youth data: ' + (data.message || 'Unknown error'));
+            showAlert('Error loading youth data: ' + (data.message || 'Unknown error'), 'error');
         }
     } catch (error) {
         console.error('Load error:', error);
-        alert('Failed to load youth data');
+        showAlert('Failed to load youth data', 'error');
     }
 }
 
@@ -685,17 +861,17 @@ form.addEventListener('submit', async e => {
             const data = await response.json();
             
             if (data.success) {
-                alert('Youth member updated successfully!');
+                showAlert('Youth member updated successfully!', 'success');
                 addModal.style.display = 'none';
                 form.reset();
                 validateForm();
                 loadYouthData();
             } else {
-                alert('Error: ' + (data.message || 'Unknown error'));
+                showAlert('Error: ' + (data.message || 'Unknown error'), 'error');
             }
         } catch (error) {
             console.error('Update error:', error);
-            alert('Failed to update youth member');
+            showAlert('Failed to update youth member', 'error');
         }
         
     } else {
@@ -727,7 +903,7 @@ form.addEventListener('submit', async e => {
             const data = await response.json();
             
             if (data.success) {
-                alert('Youth member registered successfully!');
+                showAlert('Youth member registered successfully!', 'success');
                 addModal.style.display = 'none';
                 form.reset();
                 validateForm();
@@ -741,11 +917,11 @@ form.addEventListener('submit', async e => {
                 };
                 showIdPreview(youthInfo);
             } else {
-                alert('Error: ' + (data.message || 'Unknown error'));
+                showAlert('Error: ' + (data.message || 'Unknown error'), 'error');
             }
         } catch (error) {
             console.error('Add error:', error);
-            alert('Failed to register youth member');
+            showAlert('Failed to register youth member', 'error');
         }
     }
 });
@@ -755,7 +931,10 @@ form.addEventListener('submit', async e => {
 // ────────────────────────────────────────────────
 function editYouth(member_id) {
     const youth = youthData.find(y => y.member_id === member_id);
-    if (!youth) return alert("Member not found");
+    if (!youth) {
+        showAlert('Member not found', 'error');
+        return;
+    }
 
     document.getElementById('modalTitle').textContent = "Edit Youth Member";
     document.getElementById('submitBtn').textContent = "Save Changes";
@@ -782,29 +961,29 @@ function editYouth(member_id) {
 // Delete Youth
 // ────────────────────────────────────────────────
 async function deleteYouth(member_id) {
-    if (!confirm("Are you sure you want to delete this youth member?")) return;
-
-    const formData = new FormData();
-    formData.append('member_id', member_id);
-    
-    try {
-        const response = await fetch('api/delete_youth.php', {
-            method: 'POST',
-            body: formData
-        });
+    showConfirm('Are you sure you want to delete this youth member?', async () => {
+        const formData = new FormData();
+        formData.append('member_id', member_id);
         
-        const data = await response.json();
-        
-        if (data.success) {
-            alert("Youth member deleted successfully.");
-            loadYouthData();
-        } else {
-            alert('Error: ' + (data.message || 'Unknown error'));
+        try {
+            const response = await fetch('api/delete_youth.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showAlert('Youth member deleted successfully.', 'success');
+                loadYouthData();
+            } else {
+                showAlert('Error: ' + (data.message || 'Unknown error'), 'error');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            showAlert('Failed to delete youth member', 'error');
         }
-    } catch (error) {
-        console.error('Delete error:', error);
-        alert('Failed to delete youth member');
-    }
+    });
 }
 
 // ────────────────────────────────────────────────
@@ -812,7 +991,10 @@ async function deleteYouth(member_id) {
 // ────────────────────────────────────────────────
 function viewYouth(member_id) {
     const youth = youthData.find(y => y.member_id === member_id);
-    if (!youth) return alert("Member not found");
+    if (!youth) {
+        showAlert('Member not found', 'error');
+        return;
+    }
 
     const info = `
         <div style="line-height: 1.8; font-size: 15px; margin-bottom: 24px;">
