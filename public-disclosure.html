@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKalinga - Public Disclosure Board</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="assets/css/portal.css">
+
+    <style>
+        /* Maintenance Container */
+        .maintenance-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(232, 245, 233, 0.5) 0%, rgba(224, 242, 241, 0.5) 100%);
+        }
+
+        .maintenance-card {
+            background: white;
+            border-radius: 24px;
+            padding: 60px 40px;
+            max-width: 540px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(46, 125, 50, 0.08);
+            border: 2px solid rgba(46, 125, 50, 0.1);
+            animation: slideUpFade 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .maintenance-icon-wrapper {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(46, 125, 50, 0.15) 0%, rgba(76, 175, 80, 0.15) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 28px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 0 12px rgba(46, 125, 50, 0);
+            }
+        }
+
+        .maintenance-icon {
+            font-size: 48px;
+            color: #228B57;
+        }
+
+        .maintenance-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0 0 12px 0;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: -0.5px;
+        }
+
+        .maintenance-subtitle {
+            font-size: 16px;
+            font-weight: 600;
+            color: #228B57;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 24px 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .maintenance-message {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #666;
+            margin: 0 0 32px 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .maintenance-note {
+            background: linear-gradient(135deg, rgba(46, 125, 50, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%);
+            border-left: 4px solid #228B57;
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #555;
+            margin: 32px 0;
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.6;
+        }
+
+        .maintenance-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 36px;
+        }
+
+        .btn-return {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #228B57 0%, #1a6b43 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(34, 139, 87, 0.3);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-return:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(34, 139, 87, 0.4);
+            background: linear-gradient(135deg, #2a9f5f 0%, #1f7a4f 100%);
+        }
+
+        .btn-return:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(34, 139, 87, 0.3);
+        }
+
+        .btn-return svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .maintenance-footer {
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(46, 125, 50, 0.1);
+            font-size: 13px;
+            color: #999;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .maintenance-card {
+                padding: 40px 28px;
+                border-radius: 20px;
+            }
+
+            .maintenance-icon-wrapper {
+                width: 80px;
+                height: 80px;
+                margin: 0 auto 24px;
+            }
+
+            .maintenance-icon {
+                font-size: 40px;
+            }
+
+            .maintenance-title {
+                font-size: 26px;
+                margin: 0 0 10px 0;
+            }
+
+            .maintenance-subtitle {
+                font-size: 14px;
+                letter-spacing: 0.8px;
+                margin: 0 0 20px 0;
+            }
+
+            .maintenance-message {
+                font-size: 15px;
+                margin: 0 0 24px 0;
+            }
+
+            .maintenance-note {
+                font-size: 13px;
+                padding: 14px 16px;
+                margin: 24px 0;
+            }
+
+            .maintenance-actions {
+                gap: 10px;
+                margin-top: 28px;
+            }
+
+            .btn-return {
+                padding: 12px 28px;
+                font-size: 14px;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .maintenance-wrapper {
+                padding: 16px;
+                min-height: auto;
+                padding-top: 120px;
+                padding-bottom: 40px;
+            }
+
+            .maintenance-card {
+                padding: 32px 20px;
+                border-radius: 16px;
+            }
+
+            .maintenance-icon-wrapper {
+                width: 72px;
+                height: 72px;
+                margin: 0 auto 20px;
+            }
+
+            .maintenance-icon {
+                font-size: 36px;
+            }
+
+            .maintenance-title {
+                font-size: 22px;
+                margin: 0 0 8px 0;
+            }
+
+            .maintenance-subtitle {
+                font-size: 13px;
+                margin: 0 0 16px 0;
+            }
+
+            .maintenance-message {
+                font-size: 14px;
+                margin: 0 0 20px 0;
+                line-height: 1.6;
+            }
+
+            .maintenance-note {
+                font-size: 12px;
+                padding: 12px 14px;
+                margin: 20px 0;
+            }
+
+            .maintenance-actions {
+                margin-top: 24px;
+            }
+
+            .btn-return {
+                padding: 11px 24px;
+                font-size: 13px;
+            }
+
+            .maintenance-footer {
+                margin-top: 28px;
+                padding-top: 16px;
+                font-size: 12px;
+            }
+        }
+
+        /* Main content wrapper adjustments */
+        main.main-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="logo-area">
+                <div class="logo-icons-group">
+                    <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo">
+                    <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo">
+                </div>
+                <div class="logo-text">
+                    <h1>SKalinga</h1>
+                    <p>Youth Portal</p>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <a href="profile.html" class="user-badge">
+                    <div class="user-avatar">
+                        <img src="assets/images/default-avatar.png" alt="Profile" id="mini-avatar">
+                    </div>
+                    <span class="user-name" id="nav-user-name">User</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="maintenance-wrapper">
+                <div class="maintenance-card">
+                    <div class="maintenance-icon-wrapper">
+                        <i class="fas fa-file-contract maintenance-icon"></i>
+                    </div>
+                    
+                    <div class="maintenance-subtitle">Coming Soon</div>
+                    <h1 class="maintenance-title">Public Disclosure Board</h1>
+                    
+                    <p class="maintenance-message">
+                        Currently Under Maintenance
+                    </p>
+                    
+                    <p class="maintenance-message" style="font-size: 14px; color: #888; margin: 0 0 24px 0;">
+                        We're working hard to bring you new features and improvements. Please check back soon!
+                    </p>
+
+                    <div class="maintenance-note">
+                        <strong style="color: #228B57;">What's Coming:</strong><br>
+                        This module will provide access to budget reports, project updates, and official SK disclosures.
+                    </div>
+
+                    
+
+                    <div class="maintenance-footer">
+                        <p style="margin: 0;">Expected availability: Coming in Spring 2026</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Load user data from session
+        async function loadUserName() {
+            try {
+                const response = await fetch('api/get_user.php', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('nav-user-name').textContent = `${data.firstname} ${data.lastname}`;
+                    
+                    if (data.avatar_path) {
+                        document.getElementById('mini-avatar').src = data.avatar_path;
+                    }
+                } else {
+                    // Redirect to login if not authenticated
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('Error loading user name:', error);
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadUserName);
+    </script>
+</body>
+</html>
