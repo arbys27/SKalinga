@@ -64,21 +64,21 @@ try {
         $initials = substr($initials, 0, 2);
         
         // Fetch member_id and created_at from users table
-        $stmt = $conn->prepare("SELECT member_id, created_at FROM users WHERE id = ?");
-        $stmt->bind_param("i", $userId);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        try {
+            $stmt = $pdo->prepare("SELECT member_id, created_at FROM users WHERE id = ?");
+            $stmt->execute([$userId]);
+            $row = $stmt->fetch();
+        } catch (Exception $e) {
+            $row = null;
+        }
         
         $memberId = 'SK-XXXX-XXXX';
         $issuedDate = date('F Y');
         
-        if ($result && $result->num_rows > 0) {
-            $row = $result->fetch_assoc();
+        if ($row) {
             $memberId = $row['member_id'] ?? $memberId;
             $issuedDate = date('F Y', strtotime($row['created_at']));
         }
-        
-        $stmt->close();
         
         echo json_encode([
             'success' => true,

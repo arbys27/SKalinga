@@ -12,27 +12,29 @@ try {
     $search = isset($_GET['search']) ? $_GET['search'] : '';
     
     $query = "SELECT event_id, title, date, start_time, end_time, location, event_type, description, capacity, registered_count, registration_link, image_path, status FROM events WHERE 1=1";
+    $params = [];
     
     if ($status) {
-        $status = $conn->real_escape_string($status);
-        $query .= " AND status = '$status'";
+        $query .= " AND status = ?";
+        $params[] = $status;
     }
     
     if ($search) {
-        $search = $conn->real_escape_string($search);
-        $query .= " AND (title LIKE '%$search%' OR location LIKE '%$search%' OR description LIKE '%$search%')";
+        $query .= " AND (title LIKE ? OR location LIKE ? OR description LIKE ?)";
+        $search_param = "%$search%";
+        $params[] = $search_param;
+        $params[] = $search_param;
+        $params[] = $search_param;
     }
     
     $query .= " ORDER BY date ASC, start_time ASC";
     
-    $result = $conn->query($query);
-    
-    if (!$result) {
-        throw new Exception("Database query failed: " . $conn->error);
-    }
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
+    $results = $stmt->fetchAll();
     
     $events = [];
-    while ($row = $result->fetch_assoc()) {
+    foreach ($results as $row) {
         // Map database columns to expected format
         $events[] = [
             'id' => $row['event_id'],

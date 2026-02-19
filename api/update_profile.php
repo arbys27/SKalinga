@@ -64,85 +64,65 @@ try {
     }
     
     // Begin transaction
-    $conn->begin_transaction();
+    $pdo->beginTransaction();
     
     // Update profile if any fields provided
     $update_fields = [];
     $params = [];
-    $types = "";
     
     if (!empty($firstname)) {
         $update_fields[] = "firstname = ?";
         $params[] = $firstname;
-        $types .= "s";
     }
     if (!empty($lastname)) {
         $update_fields[] = "lastname = ?";
         $params[] = $lastname;
-        $types .= "s";
     }
     if (!empty($phone)) {
         $update_fields[] = "phone = ?";
         $params[] = $phone;
-        $types .= "s";
     }
     if (!empty($address)) {
         $update_fields[] = "address = ?";
         $params[] = $address;
-        $types .= "s";
     }
     if (!empty($bio)) {
         $update_fields[] = "bio = ?";
         $params[] = $bio;
-        $types .= "s";
     }
     
     if (!empty($update_fields)) {
         $update_fields[] = "updated_at = CURRENT_TIMESTAMP";
         $sql = "UPDATE youth_profiles SET " . implode(", ", $update_fields) . " WHERE user_id = ?";
         $params[] = $user_id;
-        $types .= "i";
         
-        $profile_stmt = $conn->prepare($sql);
-        $profile_stmt->bind_param($types, ...$params);
-        
-        if (!$profile_stmt->execute()) {
-            throw new Exception("Failed to update profile: " . $profile_stmt->error);
-        }
-        $profile_stmt->close();
+        $profile_stmt = $pdo->prepare($sql);
+        $profile_stmt->execute($params);
     }
     
     // Update password if provided
     if (!empty($new_password)) {
         // Verify current password
-        $pass_stmt = $conn->prepare("SELECT password_hash FROM users WHERE id = ?");
-        $pass_stmt->bind_param("i", $user_id);
-        $pass_stmt->execute();
-        $pass_result = $pass_stmt->get_result();
-        $pass_data = $pass_result->fetch_assoc();
-        $pass_stmt->close();
+        $pass_stmt = $pdo->prepare("SELECT password_hash FROM users WHERE id = ?");
+        $pass_stmt->execute([$user_id]);
+        $pass_data = $pass_stmt->fetch(PDO::FETCH_ASSOC);
         
-        if (!password_verify($current_password, $pass_data['password_hash'])) {
+        if (!$pass_data || !password_verify($current_password, $pass_data['password_hash'])) {
             throw new Exception("Current password is incorrect");
         }
         
         // Update password
         $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
-        $update_pass = $conn->prepare("
+        $update_pass = $pdo->prepare("
             UPDATE users 
             SET password_hash = ?, password_updated_at = CURRENT_TIMESTAMP 
             WHERE id = ?
         ");
-        $update_pass->bind_param("si", $new_hash, $user_id);
-        
-        if (!$update_pass->execute()) {
-            throw new Exception("Failed to update password");
-        }
-        $update_pass->close();
+        $update_pass->execute([$new_hash, $user_id]);
     }
     
     // Commit transaction
-    $conn->commit();
+    $pdo->commit();
     
     echo json_encode([
         'success' => true,
@@ -150,10 +130,7 @@ try {
     ]);
     
 } catch (Exception $e) {
-    $conn->rollback();
+    $pdo->rollBack();
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-} finally {
-    $conn->close();
-}
 ?>

@@ -29,20 +29,15 @@ try {
                   WHERE u.member_id = ?
                   LIMIT 1";
         
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $youth_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $stmt = $pdo->prepare($query);
+        $stmt->execute([$youth_id]);
+        $youth = $stmt->fetch();
         
-        if ($result->num_rows === 0) {
+        if (!$youth) {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'Youth member not found']);
-            $stmt->close();
             exit;
         }
-        
-        $youth = $result->fetch_assoc();
-        $stmt->close();
         
         echo json_encode([
             'success' => true,
@@ -58,16 +53,9 @@ try {
                   LEFT JOIN youth_profiles p ON u.id = p.user_id
                   ORDER BY u.created_at DESC";
         
-        $result = $conn->query($query);
-        
-        if (!$result) {
-            throw new Exception("Query failed: " . $conn->error);
-        }
-        
-        $youth = [];
-        while ($row = $result->fetch_assoc()) {
-            $youth[] = $row;
-        }
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        $youth = $stmt->fetchAll();
         
         echo json_encode([
             'success' => true,
@@ -85,5 +73,4 @@ try {
     ]);
 }
 
-$conn->close();
 ?>

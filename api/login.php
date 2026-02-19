@@ -33,70 +33,63 @@ if (empty($password)) {
 }
 
 // Check if user exists and verify password (JOIN with profile data)
-$stmt = $conn->prepare("
-    SELECT 
-        u.id, 
-        u.member_id, 
-        u.password_hash, 
-        u.status,
-        p.firstname, 
-        p.lastname
-    FROM users u
-    LEFT JOIN youth_profiles p ON u.id = p.user_id
-    WHERE u.email = ?
-");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$result = $stmt->get_result();
+try {
+    $stmt = $pdo->prepare("
+        SELECT 
+            u.id, 
+            u.member_id, 
+            u.password_hash, 
+            u.status,
+            p.firstname, 
+            p.lastname
+        FROM users u
+        LEFT JOIN youth_profiles p ON u.id = p.user_id
+        WHERE u.email = ?
+    ");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
 
-if ($result->num_rows === 0) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Invalid email or password']);
-    $stmt->close();
-    $conn->close();
-    exit;
+    if (!$user) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Invalid email or password']);
+        exit;
+    }
+
+    // Check if account is active
+    if ($user['status'] !== 'active') {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Account is inactive. Please contact support.']);
+        exit;
+    }
+
+    // Verify password
+    if (!password_verify($password, $user['password_hash'])) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Invalid email or password']);
+        exit;
+    }
+
+    // Update last login timestamp
+    $update_stmt = $pdo->prepare("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?");
+    $update_stmt->execute([$user['id']]);
+
+    // Login successful - start session
+    session_start();
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['member_id'] = $user['member_id'];
+    $_SESSION['email'] = $email;
+    $_SESSION['firstname'] = $user['firstname'];
+    $_SESSION['lastname'] = $user['lastname'];
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Login successful!',
+        'member_id' => $user['member_id'],
+        'name' => $user['firstname'] . ' ' . $user['lastname'],
+        'redirect' => 'youth-portal.html'
+    ]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Server error: ' . $e->getMessage()]);
 }
-
-$user = $result->fetch_assoc();
-$stmt->close();
-
-// Check if account is active
-if ($user['status'] !== 'active') {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Account is inactive. Please contact support.']);
-    $conn->close();
-    exit;
-}
-
-// Verify password
-if (!password_verify($password, $user['password_hash'])) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Invalid email or password']);
-    $conn->close();
-    exit;
-}
-
-// Update last login timestamp
-$update_stmt = $conn->prepare("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?");
-$update_stmt->bind_param("i", $user['id']);
-$update_stmt->execute();
-$update_stmt->close();
-
-// Login successful - start session
-session_start();
-$_SESSION['user_id'] = $user['id'];
-$_SESSION['member_id'] = $user['member_id'];
-$_SESSION['email'] = $email;
-$_SESSION['firstname'] = $user['firstname'];
-$_SESSION['lastname'] = $user['lastname'];
-
-echo json_encode([
-    'success' => true,
-    'message' => 'Login successful!',
-    'member_id' => $user['member_id'],
-    'name' => $user['firstname'] . ' ' . $user['lastname'],
-    'redirect' => 'youth-portal.html'
-]);
-
-$conn->close();
 ?>

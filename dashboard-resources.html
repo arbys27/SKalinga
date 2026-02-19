@@ -513,7 +513,7 @@
                 Cancel
             </button>
             <button id="confirmOkBtn" class="btn-add-youth" style="background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%); margin: 0; padding: 10px 24px;">
-                <i class="fas fa-trash" style="margin-right: 6px;"></i> Delete
+                <span id="confirmOkBtnText">Confirm</span>
             </button>
         </div>
     </div>
@@ -556,13 +556,15 @@ function showAlert(message, type = 'info') {
 // ────────────────────────────────────────────────
 // Confirmation Modal
 // ────────────────────────────────────────────────
-function showConfirm(message, onConfirm) {
+function showConfirm(message, onConfirm, buttonLabel = 'Confirm') {
     const confirmModal = document.getElementById('confirmationModal');
     const confirmMessage = document.getElementById('confirmMessage');
     const confirmOkBtn = document.getElementById('confirmOkBtn');
+    const confirmOkBtnText = document.getElementById('confirmOkBtnText');
     const confirmCancelBtn = document.getElementById('confirmCancelBtn');
     
     confirmMessage.textContent = message;
+    confirmOkBtnText.textContent = buttonLabel;
     confirmModal.style.display = 'flex';
     
     confirmOkBtn.onclick = () => {
@@ -949,8 +951,7 @@ document.getElementById('borrowFormElement').addEventListener('submit', async e 
 // ────────────────────────────────────────────────
 async function returnItem(borrowId) {
     showConfirm("Mark this item as returned?", async () => {
-
-    try {
+        try {
         const response = await fetch('api/return_resource.php', {
             method: 'POST',
             headers: {
@@ -977,7 +978,7 @@ async function returnItem(borrowId) {
         console.error('Error returning item:', error);
         showAlert("Failed to return item. Please try again.", 'error');
     }
-    });
+    }, 'Mark as Returned');
 }
 
 // ────────────────────────────────────────────────
@@ -985,8 +986,7 @@ async function returnItem(borrowId) {
 // ────────────────────────────────────────────────
 async function deleteLending(borrowId) {
     showConfirm("Delete this lending record?", async () => {
-
-    try {
+        try {
         const response = await fetch('api/delete_borrow_record.php', {
             method: 'POST',
             headers: {
@@ -1013,7 +1013,7 @@ async function deleteLending(borrowId) {
         console.error('Error deleting record:', error);
         showAlert("Failed to delete record. Please try again.", 'error');
     }
-    });
+    }, 'Delete');
 }
 
 // ────────────────────────────────────────────────

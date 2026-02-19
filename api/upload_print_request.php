@@ -94,7 +94,7 @@ try {
     $stmt = $pdo->prepare("
         INSERT INTO printing_requests 
         (member_id, member_name, document_title, file_path, file_name, file_size, print_type, paper_size, copies, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', CURRENT_TIMESTAMP)
     ");
     
     $stmt->execute([

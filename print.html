@@ -12,7 +12,146 @@
   <link rel="stylesheet" href="assets/css/global.css">
   <link rel="stylesheet" href="assets/css/portal.css">
   <link rel="stylesheet" href="assets/css/print.css">
-</head>
+
+  <style>
+    /* Toast Notification Styles */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: white;
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 300px;
+      max-width: 500px;
+      animation: slideInRight 0.3s ease-out;
+      pointer-events: auto;
+      border-left: 4px solid var(--primary-green);
+    }
+
+    .toast.success {
+      border-left-color: #10b981;
+    }
+
+    .toast.error {
+      border-left-color: #ef4444;
+    }
+
+    .toast.info {
+      border-left-color: #3b82f6;
+    }
+
+    .toast-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+
+    .toast.success .toast-icon {
+      color: #10b981;
+    }
+
+    .toast.error .toast-icon {
+      color: #ef4444;
+    }
+
+    .toast.info .toast-icon {
+      color: #3b82f6;
+    }
+
+    .toast-content {
+      flex: 1;
+      font-size: 14px;
+      color: var(--text-gray);
+      font-weight: 500;
+    }
+
+    .toast.success .toast-content {
+      color: #047857;
+    }
+
+    .toast.error .toast-content {
+      color: #7f1d1d;
+    }
+
+    .toast.info .toast-content {
+      color: #1e40af;
+    }
+
+    .toast-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #999;
+      font-size: 18px;
+      padding: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .toast-close:hover {
+      color: #666;
+    }
+
+    .toast.removing {
+      animation: slideOutRight 0.3s ease-in forwards;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOutRight {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .toast-container {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+      }
+
+      .toast {
+        min-width: auto;
+        width: 100%;
+      }
+    }
+  </style>
 <body>
 
 <div class="app-container">
@@ -105,6 +244,9 @@
     </div>
   </section>
 
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
   <!-- Digital Youth ID Modal (for confirmation after submission) -->
   <div class="modal" id="digitalIdModal">
     <div class="modal-content">
@@ -137,6 +279,34 @@
 </div>
 
 <script>
+  // --- Toast Notification System ---
+  function showToast(message, type = 'info', duration = 4000) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    const icons = {
+      success: '✓',
+      error: '✕',
+      info: 'ℹ'
+    };
+
+    toast.innerHTML = `
+      <div class="toast-icon">${icons[type] || icons.info}</div>
+      <div class="toast-content">${message}</div>
+      <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+
+    container.appendChild(toast);
+
+    if (duration > 0) {
+      setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    }
+  }
+
   // Global variables
   let currentUser = {};
 
@@ -185,7 +355,7 @@
     const file = fileInput.files[0];
 
     if (!file) {
-      alert('Please select a file to print.');
+      showToast('Please select a file to print.', 'error');
       return;
     }
 
@@ -196,12 +366,12 @@
     const maxSize = 10 * 1024 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
-      alert('Only PDF, Word, JPG, PNG, TXT files are allowed.');
+      showToast('Only PDF, Word, JPG, PNG, TXT files are allowed.', 'error');
       return;
     }
 
     if (file.size > maxSize) {
-      alert('File size exceeds 10MB limit.');
+      showToast('File size exceeds 10MB limit.', 'error');
       return;
     }
 
@@ -252,15 +422,15 @@
 
         // Show success message
         setTimeout(() => {
-          alert(`✅ Document "${result.data.document_title}" uploaded successfully!\n\nPresent your Digital Youth ID to the SK Office for verification.`);
+          showToast(`✅ Document "${result.data.document_title}" uploaded successfully! Present your Digital Youth ID to the SK Office for verification.`, 'success', 5000);
         }, 500);
 
       } else {
-        alert('❌ Error: ' + (result.error || 'Failed to upload document'));
+        showToast('❌ Error: ' + (result.error || 'Failed to upload document'), 'error');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Error uploading file. Please try again.');
+      showToast('Error uploading file. Please try again.', 'error');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Send Document for Printing';

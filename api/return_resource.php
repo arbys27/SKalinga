@@ -66,7 +66,7 @@ try {
         // Update borrow record status to Returned
         $stmt = $pdo->prepare("
             UPDATE borrow_records
-            SET status = 'Returned', return_date = NOW()
+            SET status = 'Returned', return_date = CURRENT_TIMESTAMP
             WHERE borrow_id = ?
         ");
 

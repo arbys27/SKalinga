@@ -213,14 +213,6 @@
     </div>
   </section>
 
-  <!-- Floating Help -->
-  <button class="floating-help">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-      <circle cx="12" cy="12" r="10"></circle>
-      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-      <line x1="12" y1="17" x2="12.01" y2="17"></line>
-    </svg>
-  </button>
 
   <!-- Toast Notification Container -->
   <div id="toastContainer"></div>
@@ -444,21 +436,46 @@ function renderReports() {
 document.getElementById('reportForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const formData = new FormData(e.target);
+    const formData = new FormData();
+    
+    // Add form fields
+    formData.append('category', document.getElementById('category').value);
+    formData.append('description', document.getElementById('description').value);
+    formData.append('location', document.getElementById('location').value);
+    formData.append('urgency', document.querySelector('input[name="urgency"]:checked').value);
+    
+    // Add ALL photo files (explicit handling for multiple files)
+    const photoInput = document.getElementById('photo');
+    if (photoInput && photoInput.files.length > 0) {
+        console.log('DEBUG: Number of photo files selected:', photoInput.files.length);
+        Array.from(photoInput.files).forEach((file, index) => {
+            console.log('DEBUG: Appending file', index + 1, ':', file.name, file.size, 'bytes');
+            formData.append(`photo`, file); // This will create photo[0], photo[1], etc.
+        });
+    } else {
+        console.log('DEBUG: No photo files to append');
+    }
     
     try {
-        const response = await fetch('api/submit_incident.php', {
+        const response = await fetch('api/debug_upload.php', {  // TESTING: Changed from submit_incident.php
             method: 'POST',
             body: formData
         });
         
         const result = await response.json();
         
+        console.log('DEBUG: Server response:', result);
+        
         if (result.success) {
             showAlert('🎉 Your report has been submitted successfully! SK Office will review it soon. Thank you for helping keep our community safe.', 'success');
             
             // Reset form
             e.target.reset();
+            
+            // Reset photo input and preview
+            photoInput.value = '';
+            updateFileCount();
+            showPhotoPreview();
             
             // Reload incidents
             await loadUserIncidents();
@@ -475,9 +492,23 @@ document.getElementById('reportForm').addEventListener('submit', async (e) => {
 // ────────────────────────────────────────────────
 // Initial Load
 // ────────────────────────────────────────────────
+// Fix database constraint issue (one-time)
+async function fixConstraint() {
+    try {
+        const response = await fetch('api/fix_incidents_constraint.php');
+        const result = await response.json();
+        if (result.success) {
+            console.log('Database constraint fixed');
+        }
+    } catch (e) {
+        console.log('Constraint fix (non-critical):', e);
+    }
+}
+
 // Setup incidents table on first load
 async function initializePage() {
     try {
+        await fixConstraint();
         await fetch('api/setup_incidents_table.php');
     } catch (e) {
         console.error('Setup warning (non-critical):', e);

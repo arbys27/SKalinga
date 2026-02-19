@@ -44,111 +44,27 @@
   </header>
 
   <!-- Main Content -->
-  <section class="health-main">
-
-    <!-- Services Grid -->
-    <div class="services-grid">
-      <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
-            <path d="M12 8v4l3 3"></path>
-          </svg>
-        </div>
-        <h3>Teleconsultation</h3>
-        <p>Virtual doctor consultation via video call. Fast, free for SK members.</p>
-        <button class="btn primary medium">Book Now</button>
+  <section class="health-main" style="display: flex; align-items: center; justify-content: center; min-height: 60vh;">
+    <div style="text-align: center; padding: 40px 20px;">
+      <div style="margin-bottom: 24px;">
+        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="color: var(--primary-green); opacity: 0.3; margin: 0 auto;">
+          <path d="M12 2v20M2 12h20"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+        </svg>
       </div>
-
-      <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2v20M2 12h20"></path>
-          </svg>
-        </div>
-        <h3>Free Health Check-up</h3>
-        <p>Monthly on-site blood pressure, BMI, and basic screening.</p>
-        <button class="btn primary medium">Register Slot</button>
-      </div>
-
-      <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-        </div>
-        <h3>Mental Health Talk</h3>
-        <p>Group sessions and one-on-one counseling with licensed psychologists.</p>
-        <button class="btn primary medium">Join Session</button>
-      </div>
-
-      <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11l2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0-1-1H6"></path>
-          </svg>
-        </div>
-        <h3>Nutrition & Fitness Workshop</h3>
-        <p>Monthly talks on healthy eating, exercise, and wellness tips.</p>
-        <button class="btn primary medium">Enroll</button>
-      </div>
-    </div>
-
-    <!-- Upcoming Schedule -->
-    <div class="schedule-section">
-      <h2>Upcoming Health Events</h2>
-      <div class="schedule-list">
-        <div class="schedule-item">
-          <div class="date">FEB 10</div>
-          <div class="details">
-            <h3>Monthly Free Check-up Day</h3>
-            <p>9:00 AM – 3:00 PM | Barangay Hall | Slots: 100</p>
-            <button class="btn primary medium">Reserve Slot</button>
-          </div>
-        </div>
-
-        <div class="schedule-item">
-          <div class="date">FEB 15</div>
-          <div class="details">
-            <h3>Teen Mental Health Talk</h3>
-            <p>2:00 PM – 4:00 PM | Online via Zoom | Open to all</p>
-            <button class="btn primary medium">Join</button>
-          </div>
-        </div>
-
-        <div class="schedule-item">
-          <div class="date">MAR 05</div>
-          <div class="details">
-            <h3>Nutrition Workshop: Healthy Eating on a Budget</h3>
-            <p>10:00 AM – 12:00 PM | Barangay Covered Court</p>
-            <button class="btn primary medium">Enroll</button>
-          </div>
-        </div>
-      </div>
+      <h2 style="font-size: 32px; font-weight: 700; color: var(--text-dark); margin-bottom: 12px;">Under Development</h2>
+      <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 8px;">Health Services are coming soon</p>
+      <p style="font-size: 14px; color: #999; max-width: 400px;">We're working hard to bring you comprehensive health services. Check back soon for more information about our health programs and services.</p>
+      
     </div>
   </section>
 
-  <!-- Floating Help Button -->
-  <button class="floating-help">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-      <circle cx="12" cy="12" r="10"></circle>
-      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-      <line x1="12" y1="17" x2="12.01" y2="17"></line>
-    </svg>
-  </button>
 
 </div>
 
 <script>
-  // Optional: simple button interactions (demo)
-  document.querySelectorAll('.btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (btn.textContent.includes('Book') || btn.textContent.includes('Reserve') || btn.textContent.includes('Enroll') || btn.textContent.includes('Join')) {
-        alert('Booking feature coming soon! Please coordinate with SK Office.');
-      }
-    });
-  });
+  // Under development message
+  console.log('Health Services page - Coming soon');
 </script>
 </body>
 </html>

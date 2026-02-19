@@ -56,42 +56,38 @@ if ($data['age'] < 13 || $data['age'] > 30) {
     exit;
 }
 
-// Prepare update query
-$stmt = $conn->prepare("UPDATE youth_registrations SET
-    firstname = ?,
-    lastname = ?,
-    birthday = ?,
-    age = ?,
-    gender = ?,
-    contact = ?,
-    email = ?,
-    address = ?
-    WHERE member_id = ?");
+try {
+    // Prepare update query - update youth_profiles table
+    $stmt = $pdo->prepare("UPDATE youth_profiles SET
+        firstname = ?,
+        lastname = ?,
+        birthday = ?,
+        age = ?,
+        gender = ?,
+        phone = ?,
+        address = ?
+        WHERE user_id = (SELECT id FROM users WHERE member_id = ?)");
 
-$stmt->bind_param("sssisssss",
-    $data['firstname'],
-    $data['lastname'],
-    $data['birthday'],
-    $data['age'],
-    $data['gender'],
-    $data['contact'],
-    $data['email'],
-    $data['address'],
-    $_SESSION['member_id']
-);
+    $stmt->execute([
+        $data['firstname'],
+        $data['lastname'],
+        $data['birthday'],
+        $data['age'],
+        $data['gender'],
+        $data['contact'],
+        $data['address'],
+        $_SESSION['member_id']
+    ]);
 
-if ($stmt->execute()) {
     // Update session data
     $_SESSION['firstname'] = $data['firstname'];
     $_SESSION['lastname'] = $data['lastname'];
     $_SESSION['email'] = $data['email'];
 
     echo json_encode(['success' => true, 'message' => 'Profile updated successfully']);
-} else {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Failed to update profile']);
-}
 
-$stmt->close();
-$conn->close();
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Failed to update profile: ' . $e->getMessage()]);
+}
 ?>

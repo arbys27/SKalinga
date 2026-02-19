@@ -26,37 +26,37 @@ try {
         $member_id_param = strtoupper($member_id_param);
         
         // Look up user by member_id (case-insensitive)
-        $stmt = $conn->prepare("
-            SELECT 
-                u.id,
-                u.email,
-                u.member_id,
-                u.status,
-                u.email_verified,
-                u.last_login,
-                u.created_at,
-                p.firstname,
-                p.lastname,
-                p.birthday,
-                p.age,
-                p.gender,
-                p.phone,
-                p.address,
-                p.barangay,
-                p.avatar_path,
-                p.bio
-            FROM users u
-            LEFT JOIN youth_profiles p ON u.id = p.user_id
-            WHERE UPPER(u.member_id) = UPPER(?)
-        ");
-        
-        if (!$stmt) {
+        try {
+            $stmt = $pdo->prepare("
+                SELECT 
+                    u.id,
+                    u.email,
+                    u.member_id,
+                    u.status,
+                    u.email_verified,
+                    u.last_login,
+                    u.created_at,
+                    p.firstname,
+                    p.lastname,
+                    p.birthday,
+                    p.age,
+                    p.gender,
+                    p.phone,
+                    p.address,
+                    p.barangay,
+                    p.avatar_path,
+                    p.bio
+                FROM users u
+                LEFT JOIN youth_profiles p ON u.id = p.user_id
+                WHERE UPPER(u.member_id) = UPPER(?)
+            ");
+            $stmt->execute([$member_id_param]);
+            $user = $stmt->fetch();
+        } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Database query error: ' . $conn->error]);
+            echo json_encode(['success' => false, 'message' => 'Database query error']);
             exit;
         }
-        
-        $stmt->bind_param("s", $member_id_param);
     } else {
         // Return logged-in user's profile
         if (!isset($_SESSION['user_id'])) {
@@ -68,67 +68,62 @@ try {
         $user_id = $_SESSION['user_id'];
         
         // Get complete user profile by joining users and youth_profiles
-        $stmt = $conn->prepare("
-            SELECT 
-                u.id,
-                u.email,
-                u.member_id,
-                u.status,
-                u.email_verified,
-                u.last_login,
-                u.created_at,
-                p.firstname,
-                p.lastname,
-                p.birthday,
-                p.age,
-                p.gender,
-                p.phone,
-                p.address,
-                p.barangay,
-                p.avatar_path,
-                p.bio
-            FROM users u
-            LEFT JOIN youth_profiles p ON u.id = p.user_id
-            WHERE u.id = ?
-        ");
-        
-        if (!$stmt) {
+        try {
+            $stmt = $pdo->prepare("
+                SELECT 
+                    u.id,
+                    u.email,
+                    u.member_id,
+                    u.status,
+                    u.email_verified,
+                    u.last_login,
+                    u.created_at,
+                    p.firstname,
+                    p.lastname,
+                    p.birthday,
+                    p.age,
+                    p.gender,
+                    p.phone,
+                    p.address,
+                    p.barangay,
+                    p.avatar_path,
+                    p.bio
+                FROM users u
+                LEFT JOIN youth_profiles p ON u.id = p.user_id
+                WHERE u.id = ?
+            ");
+            $stmt->execute([$user_id]);
+            $user = $stmt->fetch();
+        } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Database query error: ' . $conn->error]);
+            echo json_encode(['success' => false, 'message' => 'Database query error']);
             exit;
         }
-        
-        $stmt->bind_param("i", $user_id);
     }
     
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows === 0) {
+    if (!$user) {
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => $member_id_param ? 'Member ID not found' : 'User not found']);
-        $stmt->close();
         exit;
     }
     
-    $user = $result->fetch_assoc();
-    $stmt->close();
-    
     // Get event attendance count (if events table exists)
     $events_count = 0;
-    $check_events = $conn->query("SHOW TABLES LIKE 'event_registrations'");
-    if ($check_events->num_rows > 0) {
-        $event_stmt = $conn->prepare("
-            SELECT COUNT(*) as count 
-            FROM event_registrations 
-            WHERE user_id = ? AND status = 'Attended'
-        ");
-        $event_stmt->bind_param("i", $user['id']);
-        $event_stmt->execute();
-        $event_result = $event_stmt->get_result();
-        $event_data = $event_result->fetch_assoc();
-        $events_count = $event_data['count'] ?? 0;
-        $event_stmt->close();
+    try {
+        $check_events = $pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'event_registrations'");
+        if ($check_events->fetchColumn() > 0) {
+            $event_stmt = $pdo->prepare("
+                SELECT COUNT(*) as count 
+                FROM event_registrations 
+                WHERE user_id = ? AND status = 'Attended'
+            ");
+            $event_stmt->execute([$user['id']]);
+            $event_data = $event_stmt->fetch();
+            $events_count = $event_data['count'] ?? 0;
+        }
+    } catch (Exception $e) {
+        // Table doesn't exist or query failed, continue with 0 count
+        $events_count = 0;
     }
     
     // Build user data array
@@ -168,7 +163,5 @@ try {
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Error retrieving user data: ' . $e->getMessage()]);
-} finally {
-    $conn->close();
 }
 ?>

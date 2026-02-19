@@ -24,20 +24,18 @@ try {
     }
     
     // Check if event exists and get image path for cleanup
-    $check = $conn->query("SELECT image_path FROM events WHERE event_id = '$eventId'");
-    if (!$check || $check->num_rows === 0) {
+    $check = $pdo->prepare("SELECT image_path FROM events WHERE event_id = ?");
+    $check->execute([$eventId]);
+    if ($check->rowCount() === 0) {
         throw new Exception("Event not found");
     }
     
-    $row = $check->fetch_assoc();
+    $row = $check->fetch(PDO::FETCH_ASSOC);
     $imagePath = $row['image_path'];
     
     // Delete event from database
-    $query = "DELETE FROM events WHERE event_id = '$eventId'";
-    
-    if (!$conn->query($query)) {
-        throw new Exception("Failed to delete event: " . $conn->error);
-    }
+    $stmt = $pdo->prepare("DELETE FROM events WHERE event_id = ?");
+    $stmt->execute([$eventId]);
     
     // Delete image file if exists
     if ($imagePath) {

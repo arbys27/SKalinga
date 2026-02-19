@@ -290,7 +290,7 @@ select:focus {
 .form-row {
   display: flex;
   gap: 16px;
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .form-group.half {
@@ -304,6 +304,118 @@ select:focus {
 
 .form-group.half input {
   width: 100%;
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+/* Contact and OTP input with verify button */
+.contact-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.contact-input-group input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.btn-verify {
+  width: 100%;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 6px 20px rgba(255,107,157,0.3);
+}
+
+.btn-verify:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(255,107,157,0.45);
+}
+
+.btn-verify:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-verify:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Icon-only verify button */
+.btn-icon-verify {
+  width: auto;
+  padding: 12px 20px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 6px 20px rgba(34,139,87,0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.btn-icon-verify:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(34,139,87,0.45);
+  background: #1a6d47;
+}
+
+.btn-icon-verify:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-icon-verify:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Status Messages for OTP */
+.status-message {
+  display: none;
+  font-size: 13px;
+  margin-top: 6px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.status-message.success {
+  display: block;
+  color: #2e7d32;
+  background: #e8f5e9;
+  border-left: 3px solid #2e7d32;
+}
+
+.status-message.error {
+  display: block;
+  color: #d32f2f;
+  background: #ffebee;
+  border-left: 3px solid #d32f2f;
+}
+
+/* OTP Section */
+#otp-section {
+  margin-bottom: 20px;
 }
 
 /* Password fields spacing */

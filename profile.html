@@ -172,7 +172,6 @@
                     <div class="info-field">
                         <label class="field-label">Contact Number</label>
                         <div class="field-value" id="contact">Loading...</div>
-                        <input type="tel" class="field-input" id="contact-input" pattern="[0-9]{11}">
                     </div>
                     <div class="info-field full-width">
                         <label class="field-label">Email Address</label>
@@ -238,6 +237,16 @@
                         </div>
                         <div class="stat-value" id="reports-submitted">0</div>
                         <div class="stat-label">Reports Submitted</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"></path>
+                                <path d="M3 12a9 9 0 1 1 18 0 9 9 0 0 1-18 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-value" id="print-requests">0</div>
+                        <div class="stat-label">Print Requests</div>
                     </div>
                 </div>
             </div>
@@ -900,8 +909,66 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
             loadUserProfile();
+            loadActivityStats();
             setupEventListeners();
         });
+
+        // Load activity statistics
+        async function loadActivityStats() {
+            try {
+                // Load borrow requests count
+                const borrowResponse = await fetch('api/get_borrow_records.php', {
+                    credentials: 'include'
+                });
+                const borrowData = await borrowResponse.json();
+                if (borrowData.success && borrowData.data) {
+                    document.getElementById('borrow-requests').textContent = borrowData.data.length || 0;
+                } else {
+                    document.getElementById('borrow-requests').textContent = '0';
+                }
+
+                // Load incidents/reports count
+                const incidentsResponse = await fetch('api/get_user_incidents.php', {
+                    credentials: 'include'
+                });
+                const incidentsData = await incidentsResponse.json();
+                if (incidentsData.success && incidentsData.data) {
+                    document.getElementById('reports-submitted').textContent = incidentsData.data.length || 0;
+                } else {
+                    document.getElementById('reports-submitted').textContent = '0';
+                }
+
+                // Load print requests count
+                const printResponse = await fetch('api/get_user_print_requests.php', {
+                    credentials: 'include'
+                });
+                const printData = await printResponse.json();
+                if (printData.success && printData.data) {
+                    document.getElementById('print-requests').textContent = printData.data.length || 0;
+                } else {
+                    document.getElementById('print-requests').textContent = '0';
+                }
+
+                // Load events joined count
+                const eventsResponse = await fetch('api/get_events.php', {
+                    credentials: 'include'
+                });
+                const eventsData = await eventsResponse.json();
+                if (eventsData.success && eventsData.data) {
+                    // Count user events (assuming events returned are user's registered events)
+                    document.getElementById('events-joined').textContent = eventsData.data.length || 0;
+                } else {
+                    document.getElementById('events-joined').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error loading activity stats:', error);
+                // Set defaults to 0 if error
+                document.getElementById('events-joined').textContent = '0';
+                document.getElementById('borrow-requests').textContent = '0';
+                document.getElementById('reports-submitted').textContent = '0';
+                document.getElementById('print-requests').textContent = '0';
+            }
+        }
 
         // Setup event listeners
         function setupEventListeners() {
@@ -1055,7 +1122,6 @@
                 document.getElementById('last-name-input').value = originalData.lastname;
                 document.getElementById('birthday-input').value = originalData.birthday;
                 document.getElementById('gender-input').value = originalData.gender;
-                document.getElementById('contact-input').value = originalData.contact;
                 document.getElementById('email-input').value = originalData.email;
                 document.getElementById('address-input').value = originalData.address;
             } else {
@@ -1078,7 +1144,6 @@
             const formData = new FormData();
             formData.append('firstname', document.getElementById('first-name-input').value.trim());
             formData.append('lastname', document.getElementById('last-name-input').value.trim());
-            formData.append('phone', document.getElementById('contact-input').value.trim());
             formData.append('address', document.getElementById('address-input').value.trim());
             formData.append('bio', ''); // Optional field
 

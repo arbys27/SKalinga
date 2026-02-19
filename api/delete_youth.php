@@ -32,29 +32,21 @@ if (empty($member_id)) {
 
 try {
     // Get user ID from member_id
-    $userQuery = "SELECT id FROM users WHERE member_id = ?";
-    $userStmt = $conn->prepare($userQuery);
-    $userStmt->bind_param("s", $member_id);
-    $userStmt->execute();
-    $userResult = $userStmt->get_result();
+    $userStmt = $pdo->prepare("SELECT id FROM users WHERE member_id = ?");
+    $userStmt->execute([$member_id]);
     
-    if ($userResult->num_rows === 0) {
+    if ($userStmt->rowCount() === 0) {
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => 'Youth member not found']);
-        $userStmt->close();
         exit;
     }
     
-    $user = $userResult->fetch_assoc();
+    $user = $userStmt->fetch(PDO::FETCH_ASSOC);
     $user_id = $user['id'];
-    $userStmt->close();
     
     // Delete user (cascade will delete profile)
-    $deleteQuery = "DELETE FROM users WHERE id = ?";
-    $deleteStmt = $conn->prepare($deleteQuery);
-    $deleteStmt->bind_param("i", $user_id);
-    $deleteStmt->execute();
-    $deleteStmt->close();
+    $deleteStmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+    $deleteStmt->execute([$user_id]);
     
     // Log deletion
     error_log("[Youth Deletion] Admin '$admin_username' deleted youth member: $member_id");
@@ -74,6 +66,4 @@ try {
         'message' => 'An error occurred while deleting youth member'
     ]);
 }
-
-$conn->close();
 ?>

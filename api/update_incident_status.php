@@ -1,9 +1,21 @@
 <?php
 // API: Update Incident Status (Admin)
+
+// Start session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 header('Content-Type: application/json');
 
 require 'db_connect.php';
-require 'check_admin_session.php';
+
+// Check if admin is authenticated
+if (!isset($_SESSION['admin_authenticated']) || $_SESSION['admin_authenticated'] !== true) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+    exit;
+}
 
 $data = json_decode(file_get_contents('php://input'), true);
 

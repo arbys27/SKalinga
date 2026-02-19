@@ -1,12 +1,12 @@
 <?php
-// db.php - PDO Database Connection
+// db.php - PDO Database Connection to Supabase PostgreSQL
 header('Content-Type: application/json');
 
 try {
     $pdo = new PDO(
-        "mysql:host=localhost;dbname=skalinga_youth;charset=utf8mb4",
-        "root",
-        ""
+        "pgsql:host=db.dljukwzdbkxkbngiqzmm.supabase.co;port=5432;dbname=postgres;sslmode=require",
+        "postgres",
+        "yJDLVsK8NucNoOzF"
     );
     
     // Set PDO error mode to exception

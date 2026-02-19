@@ -49,64 +49,49 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 try {
     // Check if email already exists
-    $checkQuery = "SELECT id FROM users WHERE email = ?";
-    $checkStmt = $conn->prepare($checkQuery);
-    $checkStmt->bind_param("s", $email);
-    $checkStmt->execute();
-    $checkResult = $checkStmt->get_result();
+    $checkStmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+    $checkStmt->execute([$email]);
     
-    if ($checkResult->num_rows > 0) {
+    if ($checkStmt->rowCount() > 0) {
         http_response_code(409);
         echo json_encode(['success' => false, 'message' => 'Email already registered']);
-        $checkStmt->close();
         exit;
     }
-    $checkStmt->close();
     
     // Generate unique member ID
     $member_id = 'SK-' . date('Y') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
     
     // Check if member ID is unique
-    $checkMemberQuery = "SELECT id FROM users WHERE member_id = ?";
-    $checkMemberStmt = $conn->prepare($checkMemberQuery);
-    $checkMemberStmt->bind_param("s", $member_id);
-    $checkMemberStmt->execute();
-    $checkMemberResult = $checkMemberStmt->get_result();
+    $checkMemberStmt = $pdo->prepare("SELECT id FROM users WHERE member_id = ?");
     
-    while ($checkMemberResult->num_rows > 0) {
+    while (true) {
+        $checkMemberStmt->execute([$member_id]);
+        if ($checkMemberStmt->rowCount() === 0) {
+            break; // Member ID is unique
+        }
         $member_id = 'SK-' . date('Y') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
-        $checkMemberStmt->bind_param("s", $member_id);
-        $checkMemberStmt->execute();
-        $checkMemberResult = $checkMemberStmt->get_result();
     }
-    $checkMemberStmt->close();
     
     // Hash password
     $password_hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 10]);
     
     // Begin transaction
-    $conn->begin_transaction();
+    $pdo->beginTransaction();
     
     // Insert user
-    $userQuery = "INSERT INTO users (email, password_hash, member_id, status, email_verified) 
-                  VALUES (?, ?, ?, 'active', 1)";
-    $userStmt = $conn->prepare($userQuery);
-    $userStmt->bind_param("sss", $email, $password_hash, $member_id);
-    $userStmt->execute();
-    $user_id = $conn->insert_id;
-    $userStmt->close();
+    $userStmt = $pdo->prepare("INSERT INTO users (email, password_hash, member_id, status, email_verified) 
+                              VALUES (?, ?, ?, 'active', true)");
+    $userStmt->execute([$email, $password_hash, $member_id]);
+    $user_id = $pdo->lastInsertId();
     
     // Insert profile
-    $profileQuery = "INSERT INTO youth_profiles 
-                    (user_id, firstname, lastname, birthday, age, gender, phone, address, barangay) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    $profileStmt = $conn->prepare($profileQuery);
-    $profileStmt->bind_param("isssissss", $user_id, $firstname, $lastname, $birthday, $age, $gender, $phone, $address, $barangay);
-    $profileStmt->execute();
-    $profileStmt->close();
+    $profileStmt = $pdo->prepare("INSERT INTO youth_profiles 
+                                (user_id, firstname, lastname, birthday, age, gender, phone, address, barangay) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $profileStmt->execute([$user_id, $firstname, $lastname, $birthday, $age, $gender, $phone, $address, $barangay]);
     
     // Commit transaction
-    $conn->commit();
+    $pdo->commit();
     
     // Log registration
     error_log("[Youth Registration] Admin '$admin_username' (ID: $admin_id) registered youth member: $firstname $lastname ($member_id)");
@@ -127,7 +112,7 @@ try {
     
 } catch (Exception $e) {
     // Rollback transaction on error
-    $conn->rollback();
+    $pdo->rollBack();
     
     error_log("[Add Youth Error] " . $e->getMessage());
     http_response_code(500);
@@ -136,6 +121,4 @@ try {
         'message' => 'An error occurred while registering youth member: ' . $e->getMessage()
     ]);
 }
-
-$conn->close();
 ?>

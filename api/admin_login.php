@@ -36,28 +36,18 @@ try {
               WHERE username = ? AND status = 'active' 
               LIMIT 1";
     
-    $stmt = $conn->prepare($query);
+    $stmt = $pdo->prepare($query);
+    $stmt->execute([$username]);
+    $admin = $stmt->fetch();
     
-    if (!$stmt) {
-        throw new Exception("Prepare failed: " . $conn->error);
-    }
-    
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows === 0) {
+    if (!$admin) {
         http_response_code(401);
         echo json_encode([
             'success' => false,
             'message' => 'Invalid username or password.'
         ]);
-        $stmt->close();
         exit;
     }
-    
-    $admin = $result->fetch_assoc();
-    $stmt->close();
     
     // Verify password using bcrypt
     if (!password_verify($password, $admin['password_hash'])) {
@@ -70,14 +60,9 @@ try {
     }
     
     // Update last login timestamp
-    $updateQuery = "UPDATE admins SET last_login = NOW() WHERE id = ?";
-    $updateStmt = $conn->prepare($updateQuery);
-    
-    if ($updateStmt) {
-        $updateStmt->bind_param("i", $admin['id']);
-        $updateStmt->execute();
-        $updateStmt->close();
-    }
+    $updateQuery = "UPDATE admins SET last_login = CURRENT_TIMESTAMP WHERE id = ?";
+    $updateStmt = $pdo->prepare($updateQuery);
+    $updateStmt->execute([$admin['id']]);
     
     // Set session variables
     $_SESSION['admin_authenticated'] = true;
@@ -110,6 +95,4 @@ try {
         'message' => 'An error occurred. Please try again later.'
     ]);
 }
-
-$conn->close();
 ?>

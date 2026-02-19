@@ -46,11 +46,11 @@
     <h1>Reset Password</h1>
     <div class="subtitle">We'll help you recover your account</div>
 
-    <!-- Step 1: Enter Email -->
+    <!-- Step 1: Enter Mobile Number -->
     <div id="reset-step-1" class="reset-step">
-      <form id="emailForm">
-        <label for="reset-email">Email Address</label>
-        <input type="email" id="reset-email" name="email" required placeholder="your@email.com">
+      <form id="emailForm" novalidate>
+        <label for="reset-mobile">Mobile Number</label>
+        <input type="text" id="reset-mobile" name="phone" placeholder="09123456789">
         <button type="submit" class="btn">Send Reset Code</button>
       </form>
       <div class="reset-footer">
@@ -61,7 +61,7 @@
     <!-- Step 2: Enter OTP -->
     <div id="reset-step-2" class="reset-step" style="display: none;">
       <div class="step-title">Enter Reset Code</div>
-      <div class="step-description">We've sent a 6-digit code to your email</div>
+      <div class="step-description">We've sent a 6-digit code to your mobile number</div>
       
       <form id="otpForm">
         <div class="otp-input-group">
@@ -81,7 +81,7 @@
       </div>
 
       <div class="reset-footer">
-        <a href="#" id="back-to-email" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Change Email</a>
+        <a href="#" id="back-to-email" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Change Mobile Number</a>
       </div>
     </div>
 
@@ -130,11 +130,15 @@
 <script>
   // Global state for password reset flow
   let resetState = {
-    email: '',
+    phone: '',
     otp: '',
     userId: null,
     resetToken: null
   };
+
+  // OTP Timer
+  let otpTimerInterval = null;
+  let otpCountdown = 0;
 
   // DOM Elements
   const loginForm = document.getElementById('loginForm');
@@ -191,7 +195,7 @@
   function showPasswordReset() {
     formLogin.style.display = 'none';
     formReset.style.display = 'block';
-    resetState = { email: '', otp: '', userId: null, resetToken: null };
+    resetState = { phone: '', otp: '', userId: null, resetToken: null };
     showResetStep(1);
   }
 
@@ -233,8 +237,14 @@
   document.getElementById('emailForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const email = document.getElementById('reset-email').value.trim();
+    const phone = document.getElementById('reset-mobile').value.trim();
     const btn = this.querySelector('button[type="submit"]');
+    
+    // Validate phone number
+    if (!/^[0-9]{11}$/.test(phone)) {
+      alert('Please enter a valid 11-digit phone number');
+      return;
+    }
     
     btn.disabled = true;
     btn.textContent = 'Sending...';
@@ -243,19 +253,19 @@
       const response = await fetch('api/request_password_reset.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email })
+        body: JSON.stringify({ phone: phone })
       });
 
       const data = await response.json();
 
       if (data.success) {
-        resetState.email = email;
+        resetState.phone = phone;
         resetState.userId = data.user_id;
         
         // Show success message
         const successMsg = document.createElement('div');
         successMsg.className = 'success-message show';
-        successMsg.innerHTML = '✅ Reset code sent to your email!';
+        successMsg.innerHTML = '✅ Reset code sent to your mobile number!';
         this.parentElement.insertBefore(successMsg, this);
         
         setTimeout(() => {
@@ -371,7 +381,7 @@
       const response = await fetch('api/request_password_reset.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: resetState.email })
+        body: JSON.stringify({ phone: resetState.phone })
       });
 
       const data = await response.json();
@@ -379,17 +389,18 @@
       if (data.success) {
         const successMsg = document.createElement('div');
         successMsg.className = 'success-message show';
-        successMsg.innerHTML = '✅ New code sent to your email!';
+        successMsg.innerHTML = '✅ New code sent to your mobile number!';
         this.parentElement.insertBefore(successMsg, this);
 
         // Clear OTP inputs
         document.querySelectorAll('.otp-input-field').forEach(input => input.value = '');
         document.getElementById('otp-1').focus();
 
+        // Start 60-second timer
+        startOtpTimer();
+
         setTimeout(() => {
           successMsg.remove();
-          btn.disabled = false;
-          btn.textContent = 'Resend Code';
         }, 3000);
       } else {
         showError(this.parentElement, data.message || 'Failed to resend code');
@@ -433,7 +444,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: resetState.email,
+          phone: resetState.phone,
           otp_code: resetState.otp,
           password: password
         })
@@ -461,14 +472,25 @@
   // ═══════════════════════════════════════════════════════════════════
   document.getElementById('back-to-login').addEventListener('click', function(e) {
     e.preventDefault();
+    // Clear timer
+    if (otpTimerInterval) {
+      clearInterval(otpTimerInterval);
+      otpTimerInterval = null;
+    }
     formReset.style.display = 'none';
     formLogin.style.display = 'block';
     // Clear form
-    document.getElementById('reset-email').value = '';
+    document.getElementById('reset-mobile').value = '';
+    resetState = { phone: '', otp: '', userId: null, resetToken: null };
   });
 
   document.getElementById('back-to-email').addEventListener('click', function(e) {
     e.preventDefault();
+    // Clear timer
+    if (otpTimerInterval) {
+      clearInterval(otpTimerInterval);
+      otpTimerInterval = null;
+    }
     showStep1();
     // Clear OTP inputs
     document.querySelectorAll('.otp-input-field').forEach(input => input.value = '');
@@ -481,12 +503,18 @@
 
   document.getElementById('return-to-login').addEventListener('click', function(e) {
     e.preventDefault();
+    // Clear timer
+    if (otpTimerInterval) {
+      clearInterval(otpTimerInterval);
+      otpTimerInterval = null;
+    }
     formReset.style.display = 'none';
     formLogin.style.display = 'block';
     // Clear forms
-    document.getElementById('reset-email').value = '';
+    document.getElementById('reset-mobile').value = '';
     document.getElementById('new-password').value = '';
     document.getElementById('confirm-password').value = '';
+    resetState = { phone: '', otp: '', userId: null, resetToken: null };
     document.getElementById('login-email').focus();
   });
 
@@ -514,6 +542,32 @@
         errorDiv.remove();
       }
     }, 5000);
+  }
+
+  function startOtpTimer() {
+    const resendBtn = document.getElementById('resend-btn');
+    
+    // Clear any existing timer
+    if (otpTimerInterval) {
+      clearInterval(otpTimerInterval);
+    }
+    
+    otpCountdown = 60;
+    resendBtn.disabled = true;
+    resendBtn.textContent = `Resend Code (${otpCountdown}s)`;
+    
+    otpTimerInterval = setInterval(() => {
+      otpCountdown--;
+      resendBtn.textContent = `Resend Code (${otpCountdown}s)`;
+      
+      if (otpCountdown <= 0) {
+        clearInterval(otpTimerInterval);
+        otpTimerInterval = null;
+        otpCountdown = 0;
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'Resend Code';
+      }
+    }, 1000);
   }
 </script>
 

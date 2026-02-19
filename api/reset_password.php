@@ -10,17 +10,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$email = trim($_POST['email'] ?? '');
-$otp_code = trim($_POST['otp'] ?? '');
-$new_password = $_POST['new_password'] ?? '';
-$confirm_password = $_POST['confirm_password'] ?? '';
+// Get JSON body since frontend sends JSON
+$input = json_decode(file_get_contents('php://input'), true);
+$phone = trim($input['phone'] ?? '');
+$otp_code = trim($input['otp_code'] ?? '');
+$password = $input['password'] ?? '';
 
 // Validation
 $errors = [];
-if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Valid email is required";
+if (empty($phone) || !preg_match('/^[0-9]{11}$/', $phone)) $errors[] = "Valid 11-digit mobile number is required";
 if (empty($otp_code) || strlen($otp_code) !== 6) $errors[] = "Valid 6-digit OTP is required";
-if (strlen($new_password) < 8) $errors[] = "Password must be at least 8 characters";
-if ($new_password !== $confirm_password) $errors[] = "Passwords do not match";
+if (strlen($password) < 8) $errors[] = "Password must be at least 8 characters";
 
 if (!empty($errors)) {
     http_response_code(400);
@@ -29,15 +29,19 @@ if (!empty($errors)) {
 }
 
 try {
-    // Find user by email
-    $user_stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-    $user_stmt->bind_param("s", $email);
+    // Find user by phone - join users and youth_profiles tables
+    $user_stmt = $conn->prepare("
+        SELECT u.id FROM users u 
+        INNER JOIN youth_profiles yp ON u.id = yp.user_id 
+        WHERE yp.phone = ?
+    ");
+    $user_stmt->bind_param("s", $phone);
     $user_stmt->execute();
     $user_result = $user_stmt->get_result();
     
     if ($user_result->num_rows === 0) {
         http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Invalid email or OTP']);
+        echo json_encode(['success' => false, 'message' => 'Invalid mobile number or OTP']);
         $user_stmt->close();
         exit;
     }

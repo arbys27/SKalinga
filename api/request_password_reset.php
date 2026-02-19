@@ -10,27 +10,33 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$email = trim($_POST['email'] ?? '');
+// Get JSON body since frontend sends JSON
+$input = json_decode(file_get_contents('php://input'), true);
+$phone = trim($input['phone'] ?? '');
 
-// Validation
-if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+// Validation - 11-digit Philippine mobile number
+if (empty($phone) || !preg_match('/^[0-9]{11}$/', $phone)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Valid email is required']);
+    echo json_encode(['success' => false, 'message' => 'Valid 11-digit mobile number is required']);
     exit;
 }
 
 try {
-    // Check if user exists
-    $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
+    // Check if user exists by phone - join users and youth_profiles tables
+    $stmt = $conn->prepare("
+        SELECT u.id FROM users u 
+        INNER JOIN youth_profiles yp ON u.id = yp.user_id 
+        WHERE yp.phone = ?
+    ");
+    $stmt->bind_param("s", $phone);
     $stmt->execute();
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
-        // Don't reveal if email exists (security best practice)
+        // Don't reveal if number exists (security best practice)
         echo json_encode([
             'success' => true,
-            'message' => 'If an account exists, you will receive an OTP email'
+            'message' => 'If an account exists, you will receive an OTP via SMS'
         ]);
         $stmt->close();
         exit;
@@ -63,15 +69,16 @@ try {
     }
     $insert_stmt->close();
     
-    // TODO: Send OTP via email
-    // You would implement email sending here
+    // TODO: Send OTP via SMS
+    // You would implement SMS sending here using Nexmo, Twilio, AWS SNS, or local SMS gateway
     // For now, log to file for testing
-    error_log("OTP for $email: $otp_code (expires at $expires_at)");
+    error_log("OTP for $phone: $otp_code (expires at $expires_at)");
     
     echo json_encode([
         'success' => true,
-        'message' => 'OTP has been sent to your email',
-        'otp' => $otp_code // TODO: Remove in production, send via email instead
+        'message' => 'OTP has been sent to your mobile number',
+        'user_id' => $user_id,
+        'otp' => $otp_code // TODO: Remove in production, send via SMS instead
     ]);
     
 } catch (Exception $e) {

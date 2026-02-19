@@ -69,27 +69,21 @@ try {
 
     // Generate Event ID (EVT-YYYY-NNNN)
     $year = date('Y');
-    $countResult = $conn->query("SELECT COUNT(*) as cnt FROM events WHERE YEAR(created_at) = $year");
-    $countRow = $countResult->fetch_assoc();
+    $countStmt = $pdo->query("SELECT COUNT(*) as cnt FROM events WHERE EXTRACT(YEAR FROM created_at) = $year");
+    $countRow = $countStmt->fetch(PDO::FETCH_ASSOC);
     $nextNum = str_pad($countRow['cnt'] + 1, 4, '0', STR_PAD_LEFT);
     $eventId = "EVT-" . $year . "-" . $nextNum;
 
     // Insert into database
     $sql = "INSERT INTO events (event_id, title, description, event_type, date, start_time, end_time, location, capacity, registration_link, image_path, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
 
-    $stmt = $conn->prepare($sql);
+    $stmt = $pdo->prepare($sql);
     if (!$stmt) {
-        throw new Exception("Prepare failed: " . $conn->error);
+        throw new Exception("Prepare failed");
     }
 
-    $stmt->bind_param('sssssssissss', $eventId, $title, $description, $type, $date, $startTime, $endTime, $location, $capacity, $regLink, $imagePath, $status);
-
-    if (!$stmt->execute()) {
-        throw new Exception("Execute failed: " . $stmt->error);
-    }
-
-    $stmt->close();
+    $stmt->execute([$eventId, $title, $description, $type, $date, $startTime, $endTime, $location, $capacity, $regLink, $imagePath, $status]);
 
     echo json_encode([
         'success' => true,

@@ -87,20 +87,47 @@
       </select>
     </div>
     <div class="form-group half">
-      <label for="contact">Contact Number</label>
-      <input type="tel" id="contact" name="contact"
-             placeholder="09123456789"
-             pattern="[0-9]{11}"
-             title="11-digit Philippine mobile number"
-             required>
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" placeholder="juan@example.com" required>
     </div>
   </div>
 
-      <label for="address">Full Address</label>
-      <input type="text" id="address" name="address" placeholder="1111 Avocado St. Garcia Subd. Brgy. San Antonio, Binan, Laguna" required>
+  <!-- Full Address -->
+  <label for="address">Full Address</label>
+  <input type="text" id="address" name="address" placeholder="1111 Avocado St. Garcia Subd. Brgy. San Antonio, Binan, Laguna" required>
 
-      <label for="email">Email Address</label>
-      <input type="email" id="email" name="email" placeholder="juan@example.com" required>
+  <!-- Contact Number with Verify Button -->
+  <div class="form-row">
+    <div class="form-group half">
+      <label for="contact">Contact Number</label>
+      <div class="contact-input-group">
+        <input type="tel" id="contact" name="contact"
+               placeholder="09123456789"
+               pattern="[0-9]{11}"
+               title="11-digit Philippine mobile number"
+               required>
+        <button type="button" id="verifyBtn" class="btn-icon-verify" disabled title="Verify Phone Number" aria-label="Verify phone number">Verify</button>
+      </div>
+      <small id="contact-status" class="status-message"></small>
+    </div>
+  </div>
+
+  <!-- OTP Verification Field (initially hidden) -->
+  <div id="otp-section">
+    <div class="form-row">
+      <div class="form-group half">
+        <label for="otp">Enter OTP</label>
+        <div class="contact-input-group">
+          <input type="text" id="otp" name="otp" placeholder="000000" maxlength="6" pattern="[0-9]{6}">
+          <button type="button" id="verifyOtpBtn" class="btn-icon-verify" title="Verify OTP" aria-label="Verify one-time password">Verify</button>
+        </div>
+        <small id="otp-status" class="status-message"></small>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Hidden field to track verification status -->
+  <input type="hidden" id="phone-verified" name="phone-verified" value="0">
       
       <label for="password">Create Password</label>
       <input type="password" id="password" name="password" placeholder="At least 8 characters" minlength="8" required>
@@ -134,7 +161,186 @@
 </div>
 
 <script>
-  // Enable submit only when privacy is checked AND passwords match
+  // SMS OTP Verification
+  const contact = document.getElementById('contact');
+  const verifyBtn = document.getElementById('verifyBtn');
+  const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+  const otpSection = document.getElementById('otp-section');
+  const otpInput = document.getElementById('otp');
+  const contactStatus = document.getElementById('contact-status');
+  const otpStatus = document.getElementById('otp-status');
+  const phoneVerified = document.getElementById('phone-verified');
+  
+  let otpTimerInterval = null;
+  let otpCountdown = 0;
+
+  // Hide OTP section by default
+  otpSection.style.display = 'none';
+
+  // Enable verify button only when valid phone number is entered
+  contact.addEventListener('input', function() {
+    const isValidPhone = this.value.length === 11 && /^[0-9]{11}$/.test(this.value);
+    verifyBtn.disabled = !isValidPhone || otpCountdown > 0;
+    
+    // Reset OTP section if phone number changes
+    if (phoneVerified.value === '1') {
+      resetOtpVerification();
+    }
+  });
+
+  // Start OTP countdown timer
+  function startOtpTimer() {
+    // Clear any existing timer
+    if (otpTimerInterval) {
+      clearInterval(otpTimerInterval);
+    }
+    
+    otpCountdown = 60;
+    verifyBtn.disabled = true;
+    verifyBtn.textContent = `Resend OTP (${otpCountdown}s)`;
+    
+    otpTimerInterval = setInterval(function() {
+      otpCountdown--;
+      verifyBtn.textContent = `Resend OTP (${otpCountdown}s)`;
+      
+      if (otpCountdown <= 0) {
+        clearInterval(otpTimerInterval);
+        otpTimerInterval = null;
+        otpCountdown = 0;
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = 'Resend OTP';
+      }
+    }, 1000);
+  }
+
+  // Handle Verify button click - send SMS OTP
+  verifyBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    const phoneNumber = contact.value;
+    
+    if (!phoneNumber || phoneNumber.length !== 11) {
+      alert('Please enter a valid 11-digit phone number');
+      return;
+    }
+
+    verifyBtn.disabled = true;
+    verifyBtn.textContent = 'Sending...';
+    contactStatus.textContent = '';
+    contactStatus.className = 'status-message';
+
+    // Send request to backend to send SMS OTP
+    fetch('api/send_sms_otp.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'phone=' + encodeURIComponent(phoneNumber)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        contactStatus.textContent = '✓ OTP sent to your number. Enter it below.';
+        contactStatus.className = 'status-message success';
+        otpSection.style.display = 'block';
+        startOtpTimer();
+        otpInput.focus();
+      } else {
+        contactStatus.textContent = '✗ Failed to send OTP: ' + data.message;
+        contactStatus.className = 'status-message error';
+        verifyBtn.disabled = false;
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      contactStatus.textContent = '✗ Error sending OTP. Please try again.';
+      contactStatus.className = 'status-message error';
+      // Keep button disabled during timer, otherwise enable it
+      if (otpCountdown <= 0) {
+        verifyBtn.disabled = false;
+      }
+    });
+  });
+
+  // Handle Verify OTP button click
+  verifyOtpBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    const otp = otpInput.value.trim();
+    const phoneNumber = contact.value;
+
+    if (!otp || otp.length !== 6 || !/^[0-9]{6}$/.test(otp)) {
+      alert('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    verifyOtpBtn.disabled = true;
+    verifyOtpBtn.textContent = 'Verifying...';
+    otpStatus.textContent = '';
+    otpStatus.className = 'status-message';
+
+    // Verify OTP with backend
+    fetch('api/verify_sms_otp.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'phone=' + encodeURIComponent(phoneNumber) + '&otp=' + encodeURIComponent(otp)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        phoneVerified.value = '1';
+        contactStatus.textContent = '✓ Phone number verified';
+        contactStatus.className = 'status-message success';
+        otpStatus.textContent = '✓ Phone verified successfully';
+        otpStatus.className = 'status-message success';
+        verifyOtpBtn.disabled = true;
+        contact.disabled = true;
+        verifyBtn.disabled = true;
+        // Clear timer when verified
+        if (otpTimerInterval) {
+          clearInterval(otpTimerInterval);
+          otpTimerInterval = null;
+        }
+        otpCountdown = 0;
+        checkFormValidity();
+      } else {
+        otpStatus.textContent = '✗ Invalid OTP. Please try again.';
+        otpStatus.className = 'status-message error';
+        verifyOtpBtn.disabled = false;
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      otpStatus.textContent = '✗ Error verifying OTP. Please try again.';
+      otpStatus.className = 'status-message error';
+      verifyOtpBtn.disabled = false;
+    });
+  });
+
+  // Reset OTP verification
+  function resetOtpVerification() {
+    // Clear timer if running
+    if (otpTimerInterval) {
+      clearInterval(otpTimerInterval);
+      otpTimerInterval = null;
+    }
+    otpCountdown = 0;
+    
+    phoneVerified.value = '0';
+    otpSection.style.display = 'none';
+    otpInput.value = '';
+    otpStatus.textContent = '';
+    otpStatus.className = 'status-message';
+    contactStatus.textContent = '';
+    contactStatus.className = 'status-message';
+    contact.disabled = false;
+    verifyBtn.disabled = false;
+    verifyBtn.textContent = 'Verify';
+  }
+
+  // Enable submit only when privacy is checked AND passwords match AND phone is verified
   const privacy = document.getElementById('privacy-consent');
   const submitBtn = document.getElementById('submitBtn');
   const password = document.getElementById('password');
@@ -143,7 +349,8 @@
 
   function checkFormValidity() {
     const passwordsMatch = password.value === confirmPassword.value && password.value.length >= 8;
-    submitBtn.disabled = !privacy.checked || !passwordsMatch;
+    const phoneIsVerified = phoneVerified.value === '1';
+    submitBtn.disabled = !privacy.checked || !passwordsMatch || !phoneIsVerified;
   }
 
   privacy.addEventListener('change', checkFormValidity);

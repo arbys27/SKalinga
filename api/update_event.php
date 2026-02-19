@@ -29,13 +29,14 @@ try {
     }
 
     // Check if event exists and get current image
-    $result = $conn->query("SELECT image_path FROM events WHERE event_id = '$id'");
-    if (!$result || $result->num_rows === 0) {
+    $result = $pdo->prepare("SELECT image_path FROM events WHERE event_id = ?");
+    $result->execute([$id]);
+    if ($result->rowCount() === 0) {
         echo json_encode(['success' => false, 'error' => 'Event not found']);
         exit;
     }
     
-    $currentEvent = $result->fetch_assoc();
+    $currentEvent = $result->fetch(PDO::FETCH_ASSOC);
     $imagePath = $currentEvent['image_path'];
 
     // Handle image upload
@@ -81,34 +82,69 @@ try {
         }
     }
 
-    // Build update query
-    $updates = [];
+    // Build update with parameters
+    $updateFields = [];
+    $params = [];
     
-    if ($title) $updates[] = "title = '$title'";
-    if ($date) $updates[] = "date = '$date'";
-    if ($startTime) $updates[] = "start_time = '$startTime'";
-    if ($endTime) $updates[] = "end_time = '$endTime'";
-    if ($location) $updates[] = "location = '$location'";
-    if ($type) $updates[] = "event_type = '$type'";
-    if ($capacity) $updates[] = "capacity = $capacity";
-    if (isset($_POST['description'])) $updates[] = "description = '$description'";
-    if (isset($_POST['regLink'])) $updates[] = "registration_link = '$regLink'";
-    if ($status) $updates[] = "status = '$status'";
+    if ($title) {
+        $updateFields[] = "title = ?";
+        $params[] = $title;
+    }
+    if ($date) {
+        $updateFields[] = "date = ?";
+        $params[] = $date;
+    }
+    if ($startTime) {
+        $updateFields[] = "start_time = ?";
+        $params[] = $startTime;
+    }
+    if ($endTime) {
+        $updateFields[] = "end_time = ?";
+        $params[] = $endTime;
+    }
+    if ($location) {
+        $updateFields[] = "location = ?";
+        $params[] = $location;
+    }
+    if ($type) {
+        $updateFields[] = "event_type = ?";
+        $params[] = $type;
+    }
+    if ($capacity) {
+        $updateFields[] = "capacity = ?";
+        $params[] = $capacity;
+    }
+    if (isset($_POST['description'])) {
+        $updateFields[] = "description = ?";
+        $params[] = $description;
+    }
+    if (isset($_POST['regLink'])) {
+        $updateFields[] = "registration_link = ?";
+        $params[] = $regLink;
+    }
+    if ($status) {
+        $updateFields[] = "status = ?";
+        $params[] = $status;
+    }
     
-    $updates[] = "image_path = " . ($imagePath ? "'$imagePath'" : "NULL");
-    $updates[] = "updated_at = NOW()";
+    $updateFields[] = "image_path = ?";
+    $params[] = $imagePath;
+    
+    $updateFields[] = "updated_at = CURRENT_TIMESTAMP";
 
-    if (empty($updates) || count($updates) <= 2) {
+    if (empty($updateFields) || count($updateFields) <= 1) {
         echo json_encode(['success' => false, 'error' => 'No fields to update']);
         exit;
     }
 
+    // Add event ID to params for WHERE clause
+    $params[] = $id;
+
     // Execute update
-    $sql = "UPDATE events SET " . implode(", ", $updates) . " WHERE event_id = '$id'";
+    $sql = "UPDATE events SET " . implode(", ", $updateFields) . " WHERE event_id = ?";
     
-    if (!$conn->query($sql)) {
-        throw new Exception("Update failed: " . $conn->error);
-    }
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
 
     echo json_encode([
         'success' => true,

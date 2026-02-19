@@ -1,31 +1,24 @@
 <?php
-// API: Get All Incidents (Admin)
+// Simulate admin session
+$_SESSION = [];
+$_SESSION['admin_authenticated'] = true;
+$_SESSION['admin_id'] = 1;
+$_SESSION['admin_username'] = 'admin';
 
-// Start session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
 
+// Directly test the get_incidents.php logic
 header('Content-Type: application/json');
 
-require 'db_connect.php';
-
-// Check if admin is authenticated
-if (!isset($_SESSION['admin_authenticated']) || $_SESSION['admin_authenticated'] !== true) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-    exit;
-}
-
-// Check if PDO connection exists
-if (!isset($pdo)) {
-    error_log('PDO connection not available in get_incidents.php');
-    echo json_encode(['success' => false, 'error' => 'Database connection not available']);
-    exit;
-}
+require_once 'api/db_connect.php';
 
 try {
-    // Join through users table (via member_id) to youth_profiles to get incident details with member info
+    echo json_encode([
+        'test' => 'direct_incidents_query',
+        'admin_session' => $_SESSION['admin_authenticated'] ?? false
+    ]) . "\n";
+    
+    // Test the actual query
     $query = "
         SELECT i.id, i.member_id, i.category, i.description, i.location, i.urgency, 
                i.status, i.photo_path, i.submitted_date, i.admin_notes,
@@ -47,12 +40,14 @@ try {
     
     echo json_encode([
         'success' => true,
+        'count' => count($incidents),
         'data' => $incidents
-    ]);
+    ], JSON_PRETTY_PRINT);
     
-} catch (PDOException $e) {
-    error_log('Database error in get_incidents.php: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
-    exit;
+} catch (Exception $e) {
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage()
+    ], JSON_PRETTY_PRINT);
 }
 ?>

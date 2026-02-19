@@ -22,9 +22,9 @@ try {
         throw new Exception('Database connection not available');
     }
     
-    // Create incidents table
+    // Create incidents table (PostgreSQL syntax)
     $sql = "CREATE TABLE IF NOT EXISTS incidents (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         member_id VARCHAR(50) NOT NULL,
         category VARCHAR(50) NOT NULL,
         description TEXT NOT NULL,
@@ -33,16 +33,28 @@ try {
         status VARCHAR(20) NOT NULL DEFAULT 'pending',
         photo_path VARCHAR(255),
         submitted_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        admin_notes TEXT,
-        INDEX idx_member_id (member_id),
-        INDEX idx_status (status),
-        INDEX idx_category (category),
-        INDEX idx_urgency (urgency),
-        INDEX idx_submitted_date (submitted_date)
+        updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        admin_notes TEXT
     )";
     
     $pdo->exec($sql);
+    
+    // Create indexes
+    $indexSql = "
+        CREATE INDEX IF NOT EXISTS idx_incidents_member_id ON incidents(member_id);
+        CREATE INDEX IF NOT EXISTS idx_incidents_status ON incidents(status);
+        CREATE INDEX IF NOT EXISTS idx_incidents_category ON incidents(category);
+        CREATE INDEX IF NOT EXISTS idx_incidents_urgency ON incidents(urgency);
+        CREATE INDEX IF NOT EXISTS idx_incidents_submitted_date ON incidents(submitted_date);
+    ";
+    
+    // Execute each index separately
+    foreach (explode(';', $indexSql) as $indexStatement) {
+        $statement = trim($indexStatement);
+        if (!empty($statement)) {
+            $pdo->exec($statement);
+        }
+    }
     
     // Create uploads directories if they don't exist
     $directories = [

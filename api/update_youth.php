@@ -40,38 +40,30 @@ if (empty($member_id)) {
 
 try {
     // Get user ID from member_id
-    $userQuery = "SELECT u.id, u.email FROM users WHERE member_id = ?";
-    $userStmt = $conn->prepare($userQuery);
-    $userStmt->bind_param("s", $member_id);
-    $userStmt->execute();
-    $userResult = $userStmt->get_result();
+    $userStmt = $pdo->prepare("SELECT u.id, u.email FROM users u WHERE u.member_id = ?");
+    $userStmt->execute([$member_id]);
     
-    if ($userResult->num_rows === 0) {
+    if ($userStmt->rowCount() === 0) {
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => 'Youth member not found']);
-        $userStmt->close();
         exit;
     }
     
-    $user = $userResult->fetch_assoc();
+    $user = $userStmt->fetch(PDO::FETCH_ASSOC);
     $user_id = $user['id'];
-    $userStmt->close();
     
     // Begin transaction
-    $conn->begin_transaction();
+    $pdo->beginTransaction();
     
     // Update profile
-    $profileQuery = "UPDATE youth_profiles 
-                    SET firstname = ?, lastname = ?, birthday = ?, age = ?, gender = ?, 
-                        phone = ?, address = ?, barangay = ?, updated_at = NOW()
-                    WHERE user_id = ?";
-    $profileStmt = $conn->prepare($profileQuery);
-    $profileStmt->bind_param("sssissssi", $firstname, $lastname, $birthday, $age, $gender, $phone, $address, $barangay, $user_id);
-    $profileStmt->execute();
-    $profileStmt->close();
+    $profileStmt = $pdo->prepare("UPDATE youth_profiles 
+                                SET firstname = ?, lastname = ?, birthday = ?, age = ?, gender = ?, 
+                                    phone = ?, address = ?, barangay = ?, updated_at = CURRENT_TIMESTAMP
+                                WHERE user_id = ?");
+    $profileStmt->execute([$firstname, $lastname, $birthday, $age, $gender, $phone, $address, $barangay, $user_id]);
     
     // Commit transaction
-    $conn->commit();
+    $pdo->commit();
     
     // Log update
     error_log("[Youth Update] Admin '$admin_username' updated youth member: $firstname $lastname ($member_id)");
@@ -90,7 +82,7 @@ try {
     
 } catch (Exception $e) {
     // Rollback transaction on error
-    $conn->rollback();
+    $pdo->rollBack();
     
     error_log("[Update Youth Error] " . $e->getMessage());
     http_response_code(500);
@@ -99,6 +91,4 @@ try {
         'message' => 'An error occurred while updating youth member'
     ]);
 }
-
-$conn->close();
 ?>
