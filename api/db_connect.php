@@ -4,7 +4,7 @@
 $servername = getenv('DB_HOST') ?: "db.dljukwzdbkxkbngiqzmm.supabase.co";
 $port = getenv('DB_PORT') ?: "5432";
 $username = getenv('DB_USER') ?: "postgres";
-$password = getenv('DB_PASSWORD') ?: "";
+$password = getenv('DB_PASSWORD') ?: "jeilaclaydizon";
 $dbname = getenv('DB_NAME') ?: "postgres";
 
 // Determine SSL mode - use require for Supabase, allow for local
