@@ -6,7 +6,7 @@ try {
     $pdo = new PDO(
         "pgsql:host=db.dljukwzdbkxkbngiqzmm.supabase.co;port=5432;dbname=postgres;sslmode=require",
         "postgres",
-        "yJDLVsK8NucNoOzF"
+        "jeilaclaydizon"
     );
     
     // Set PDO error mode to exception
