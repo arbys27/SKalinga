@@ -12,6 +12,100 @@
   <!-- Shared + auth-specific styles -->
   <link rel="stylesheet" href="assets/css/global.css">
   <link rel="stylesheet" href="assets/css/auth.css">
+
+  <style>
+    /* Toast Notification Styles */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 9999;
+      animation: slideIn 0.3s ease-out;
+      max-width: 400px;
+    }
+
+    .toast.success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .toast.error {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .toast.info {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .toast-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .toast-content {
+      flex: 1;
+    }
+
+    .toast-close {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0;
+      margin-left: 8px;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    .toast-close:hover {
+      opacity: 1;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(420px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(420px);
+        opacity: 0;
+      }
+    }
+
+    .toast.removing {
+      animation: slideOut 0.3s ease-out forwards;
+    }
+
+    @media (max-width: 640px) {
+      .toast {
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        max-width: none;
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -71,7 +165,7 @@
         </div>
         <div class="form-group half">
           <label for="age">Age</label>
-          <input type="number" id="age" name="age" min="13" max="35" placeholder="Auto-calculated" readonly required>
+          <input type="number" id="age" name="age" placeholder="Auto-calculated" readonly required>
         </div>
       </div>
 
@@ -161,6 +255,53 @@
 </div>
 
 <script>
+  // Toast Notification Function
+  function showToast(message, type = 'success', duration = 3000) {
+    const toastContainer = document.getElementById('toast-container') || createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const icons = {
+      success: '✓',
+      error: '✗',
+      info: 'ℹ'
+    };
+    
+    toast.innerHTML = `
+      <span class="toast-icon">${icons[type]}</span>
+      <span class="toast-content">${message}</span>
+      <button class="toast-close">×</button>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.addEventListener('click', () => removeToast(toast));
+    
+    if (duration > 0) {
+      setTimeout(() => removeToast(toast), duration);
+    }
+    
+    return toast;
+  }
+
+  function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    document.body.appendChild(container);
+    return container;
+  }
+
+  function removeToast(toast) {
+    toast.classList.add('removing');
+    setTimeout(() => {
+      if (toast.parentElement) {
+        toast.remove();
+      }
+    }, 300);
+  }
+
   // SMS OTP Verification
   const contact = document.getElementById('contact');
   const verifyBtn = document.getElementById('verifyBtn');
@@ -230,7 +371,7 @@
     contactStatus.className = 'status-message';
 
     // Send request to backend to send SMS OTP
-    fetch('api/send_sms_otp.php', {
+    fetch('api/send_registration_otp.php', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -242,12 +383,14 @@
       if (data.success) {
         contactStatus.textContent = '✓ OTP sent to your number. Enter it below.';
         contactStatus.className = 'status-message success';
+        showToast('OTP sent successfully to your phone', 'success', 3000);
         otpSection.style.display = 'block';
         startOtpTimer();
         otpInput.focus();
       } else {
         contactStatus.textContent = '✗ Failed to send OTP: ' + data.message;
         contactStatus.className = 'status-message error';
+        showToast('Failed to send OTP: ' + data.message, 'error', 4000);
         verifyBtn.disabled = false;
       }
     })
@@ -255,6 +398,7 @@
       console.error('Error:', error);
       contactStatus.textContent = '✗ Error sending OTP. Please try again.';
       contactStatus.className = 'status-message error';
+      showToast('Error sending OTP. Please try again.', 'error', 4000);
       // Keep button disabled during timer, otherwise enable it
       if (otpCountdown <= 0) {
         verifyBtn.disabled = false;
@@ -280,12 +424,12 @@
     otpStatus.className = 'status-message';
 
     // Verify OTP with backend
-    fetch('api/verify_sms_otp.php', {
+    fetch('api/verify_registration_otp.php', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: 'phone=' + encodeURIComponent(phoneNumber) + '&otp=' + encodeURIComponent(otp)
+      body: 'otp=' + encodeURIComponent(otp)
     })
     .then(response => response.json())
     .then(data => {
@@ -296,8 +440,9 @@
         otpStatus.textContent = '✓ Phone verified successfully';
         otpStatus.className = 'status-message success';
         verifyOtpBtn.disabled = true;
-        contact.disabled = true;
+        contact.readOnly = true;  // ✅ Use readOnly instead of disabled
         verifyBtn.disabled = true;
+        showToast('Phone verified successfully! ✓', 'success', 3000);
         // Clear timer when verified
         if (otpTimerInterval) {
           clearInterval(otpTimerInterval);
@@ -308,6 +453,7 @@
       } else {
         otpStatus.textContent = '✗ Invalid OTP. Please try again.';
         otpStatus.className = 'status-message error';
+        showToast('Invalid OTP. Please try again.', 'error', 3000);
         verifyOtpBtn.disabled = false;
       }
     })
@@ -315,6 +461,7 @@
       console.error('Error:', error);
       otpStatus.textContent = '✗ Error verifying OTP. Please try again.';
       otpStatus.className = 'status-message error';
+      showToast('Error verifying OTP. Please try again.', 'error', 3000);
       verifyOtpBtn.disabled = false;
     });
   });
@@ -335,7 +482,7 @@
     otpStatus.className = 'status-message';
     contactStatus.textContent = '';
     contactStatus.className = 'status-message';
-    contact.disabled = false;
+    contact.readOnly = false;  // ✅ Make it editable again
     verifyBtn.disabled = false;
     verifyBtn.textContent = 'Verify';
   }
@@ -376,12 +523,16 @@
       age--;
     }
 
-    // Only set if age is reasonable (e.g., not negative or unrealistically high)
+    // Allow realistic ages: 0-120 years old (prevents negative ages and impossible ages like 200+)
     if (age >= 0 && age <= 120) {
       document.getElementById('age').value = age;
     } else {
       document.getElementById('age').value = '';
-      alert("Please enter a valid birthday.");
+      if (age < 0) {
+        alert("❌ Birthday cannot be in the future.");
+      } else {
+        alert("❌ Please enter a realistic birthday (max 120 years old).");
+      }
     }
 
     checkFormValidity();
@@ -428,18 +579,20 @@
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        // Registration successful
-        alert('🎉 Registration successful! Your Member ID is: ' + data.member_id + '\n\nPlease login to access your account.');
+        // Registration successful - show toast
+        showToast(`🎉 Registration successful! Your Member ID is: ${data.member_id}`, 'success', 4000);
 
-        // Redirect to login page for user to login manually
-        window.location.href = 'index.html';
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 2000);
       } else {
-        // Registration failed
+        // Registration failed - show error toast
         let errorMessage = data.message;
         if (data.errors && data.errors.length > 0) {
-          errorMessage += '\n\nErrors:\n' + data.errors.join('\n');
+          errorMessage += ' - ' + data.errors.join(', ');
         }
-        alert('❌ ' + errorMessage);
+        showToast(errorMessage, 'error', 5000);
 
         // Re-enable submit button
         submitBtn.disabled = false;
@@ -448,7 +601,7 @@
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('❌ An error occurred. Please try again.');
+      showToast('An error occurred. Please try again.', 'error', 5000);
 
       // Re-enable submit button
       submitBtn.disabled = false;

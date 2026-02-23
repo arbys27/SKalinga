@@ -11,6 +11,113 @@
 
   <link rel="stylesheet" href="assets/css/global.css">
   <link rel="stylesheet" href="assets/css/auth.css">
+
+  <style>
+    /* Toast Notification Styles */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+
+    .toast {
+      background: white;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-top: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 280px;
+      max-width: 400px;
+      animation: slideInRight 0.3s ease-out forwards;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .toast.success {
+      border-left: 4px solid #22c55e;
+      color: #166534;
+    }
+
+    .toast.success .toast-icon {
+      color: #22c55e;
+      font-size: 1.2rem;
+    }
+
+    .toast.error {
+      border-left: 4px solid #ef4444;
+      color: #991b1b;
+    }
+
+    .toast.error .toast-icon {
+      color: #ef4444;
+      font-size: 1.2rem;
+    }
+
+    .toast.info {
+      border-left: 4px solid #3b82f6;
+      color: #1e40af;
+    }
+
+    .toast.info .toast-icon {
+      color: #3b82f6;
+      font-size: 1.2rem;
+    }
+
+    .toast-icon {
+      flex-shrink: 0;
+      font-size: 1.2rem;
+    }
+
+    .toast-message {
+      flex: 1;
+      line-height: 1.4;
+    }
+
+    .toast-close {
+      background: none;
+      border: none;
+      color: inherit;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .toast-close:hover {
+      opacity: 1;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOutRight {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
+    .toast.removing {
+      animation: slideOutRight 0.3s ease-out forwards;
+    }
+  </style>
 </head>
 <body>
 
@@ -23,21 +130,51 @@
     <h1>Welcome Back</h1>
     <div class="subtitle">Sign in to your youth account</div>
 
-    <form action="api/login.php" method="post" id="loginForm">
-      <label for="login-email">Email</label>
-      <input type="email" id="login-email" name="email" placeholder="Enter your email" required>
+    <!-- Step 1: Phone & Password -->
+    <div id="login-step-1">
+      <form id="loginForm">
+        <label for="login-phone">Mobile Number</label>
+        <input type="tel" id="login-phone" name="phone" placeholder="09123456789" pattern="[0-9]{11}" title="11-digit Philippine mobile number" required>
 
-      <label for="login-pass">Password</label>
-      <input type="password" id="login-pass" name="password" placeholder="Enter your password" required>
+        <label for="login-pass">Password</label>
+        <input type="password" id="login-pass" name="password" placeholder="Enter your password" required>
 
-      <button type="submit" class="btn">Sign In</button>
-    </form>
+        <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="trust-device" name="trust-device">
+          <label for="trust-device" style="margin: 0; font-size: 0.9rem; color: var(--text-gray);">Trust this device for 30 days</label>
+        </div>
 
-    <div class="extra" style="margin-top: 28px;">
-      <div>New here? <a href="youth-register.html">Create an account</a></div>
-      <div style="margin-top: 12px; text-align: center;">
-        <a href="#" id="forgot-password-link" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">Forgot your password?</a>
+        <button type="submit" class="btn">Continue</button>
+      </form>
+
+      <div class="extra" style="margin-top: 28px;">
+        <div>New here? <a href="youth-register.html">Create an account</a></div>
+        <div style="margin-top: 12px; text-align: center;">
+          <a href="#" id="forgot-password-link" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">Forgot your password?</a>
+        </div>
       </div>
+    </div>
+
+    <!-- Step 2: Verify with OTP -->
+    <div id="login-step-2" style="display: none;">
+      <form id="loginOtpForm">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h2 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Verify Your Login</h2>
+          <p style="color: var(--text-gray); font-size: 0.9rem;">Enter the 6-digit code sent to your mobile</p>
+        </div>
+
+        <div class="otp-input-group" style="margin-bottom: 24px;">
+          <input type="text" class="otp-input-field" id="login-otp-1" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="login-otp-2" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="login-otp-3" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="login-otp-4" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="login-otp-5" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="login-otp-6" maxlength="1" inputmode="numeric">
+        </div>
+
+        <button type="submit" class="btn" style="width: 100%; margin-bottom: 12px;">Complete Login</button>
+        <button type="button" id="login-back-btn" class="btn" style="width: 100%; background: var(--text-gray); color: white;">← Back</button>
+      </form>
     </div>
   </div>
 
@@ -128,7 +265,58 @@
 </div>
 
 <script>
-  // Global state for password reset flow
+  // ═══════════════════════════════════════════════════════════════════
+  // TOAST NOTIFICATION SYSTEM
+  // ═══════════════════════════════════════════════════════════════════
+  function createToastContainer() {
+    if (!document.querySelector('.toast-container')) {
+      const container = document.createElement('div');
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+  }
+
+  function showToast(message, type = 'info', duration = 3000) {
+    createToastContainer();
+    const container = document.querySelector('.toast-container');
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    let icon = '✓';
+    if (type === 'success') {
+      icon = '✅';
+    } else if (type === 'error') {
+      icon = '❌';
+    } else if (type === 'info') {
+      icon = 'ℹ️';
+    }
+
+    toast.innerHTML = `
+      <span class="toast-icon">${icon}</span>
+      <span class="toast-message">${message}</span>
+      <button class="toast-close" onclick="this.closest('.toast').remove()">✕</button>
+    `;
+
+    container.appendChild(toast);
+
+    if (duration > 0) {
+      setTimeout(() => {
+        if (toast.parentElement) {
+          toast.classList.add('removing');
+          setTimeout(() => {
+            if (toast.parentElement) {
+              toast.remove();
+            }
+          }, 300);
+        }
+      }, duration);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // GLOBAL STATE & DOM ELEMENTS
+  // ═══════════════════════════════════════════════════════════════════
   let resetState = {
     phone: '',
     otp: '',
@@ -142,23 +330,166 @@
 
   // DOM Elements
   const loginForm = document.getElementById('loginForm');
+  const loginOtpForm = document.getElementById('loginOtpForm');
   const loginBtn = loginForm.querySelector('button[type="submit"]');
   const forgotPasswordLink = document.getElementById('forgot-password-link');
   const formLogin = document.getElementById('form-login');
   const formReset = document.getElementById('form-reset');
 
   // ═══════════════════════════════════════════════════════════════════
-  // LOGIN HANDLER
+  // LOGIN STEP 1: PHONE & PASSWORD SUBMISSION
   // ═══════════════════════════════════════════════════════════════════
   loginForm.addEventListener('submit', function(e) {
     e.preventDefault();
 
+    const phone = document.getElementById('login-phone').value.trim();
+    const password = document.getElementById('login-pass').value;
+    const trustDevice = document.getElementById('trust-device').checked;
+    
+    // Validate phone
+    if (!/^[0-9]{11}$/.test(phone)) {
+      showToast('Please enter a valid 11-digit mobile number', 'error');
+      return;
+    }
+
+    if (!password) {
+      showToast('Please enter your password', 'error');
+      return;
+    }
+
     loginBtn.disabled = true;
-    loginBtn.textContent = 'Signing In...';
+    loginBtn.textContent = 'Verifying...';
 
-    const formData = new FormData(this);
+    const formData = new FormData();
+    formData.append('phone', phone);
+    formData.append('password', password);
+    formData.append('trust_device', trustDevice ? '1' : '0');
 
-    fetch('api/login.php', {
+    fetch('api/send_login_otp.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Check if OTP should be skipped (trusted device within 30 days)
+        if (data.skip_otp) {
+          // Device is trusted, skip OTP and login directly
+          showToast(data.message, 'success');
+          setTimeout(() => {
+            window.location.href = data.redirect || 'youth-portal.html';
+          }, 1500);
+        } else {
+          // Show OTP verification step
+          document.getElementById('login-step-1').style.display = 'none';
+          document.getElementById('login-step-2').style.display = 'block';
+          
+          // Setup OTP inputs
+          setupLoginOtpInputs();
+          setTimeout(() => document.getElementById('login-otp-1').focus(), 100);
+          
+          showToast(data.message, 'success');
+        }
+      } else {
+        showToast(data.message, 'error');
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Continue';
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showToast('An error occurred. Please try again.', 'error');
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Continue';
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // LOGIN STEP 2: OTP VERIFICATION
+  // ═══════════════════════════════════════════════════════════════════
+  function setupLoginOtpInputs() {
+    const inputs = document.querySelectorAll('#login-step-2 .otp-input-field');
+    
+    // Check if all OTP fields are filled
+    function checkAndAutoSubmit() {
+      const allFilled = Array.from(inputs).every(inp => inp.value.length === 1);
+      if (allFilled) {
+        // Auto submit the form
+        setTimeout(() => {
+          loginOtpForm.dispatchEvent(new Event('submit'));
+        }, 100);
+      }
+    }
+    
+    inputs.forEach((input, index) => {
+      input.addEventListener('input', function(e) {
+        // Only allow numbers
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        if (this.value && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+        
+        // Check if all 6 digits are filled and auto-submit
+        checkAndAutoSubmit();
+      });
+
+      input.addEventListener('keydown', function(e) {
+        // Backspace to previous field
+        if (e.key === 'Backspace' && !this.value && index > 0) {
+          inputs[index - 1].focus();
+        }
+        // Arrow keys
+        if (e.key === 'ArrowRight' && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+        if (e.key === 'ArrowLeft' && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+
+      // Paste handler
+      input.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const paste = e.clipboardData.getData('text');
+        const digits = paste.replace(/\D/g, '').slice(0, 6);
+        
+        digits.split('').forEach((digit, i) => {
+          if (inputs[i]) {
+            inputs[i].value = digit;
+          }
+        });
+        
+        if (digits.length === 6) {
+          inputs[5].focus();
+          // Auto-submit after paste
+          setTimeout(() => {
+            checkAndAutoSubmit();
+          }, 50);
+        }
+      });
+    });
+  }
+
+  loginOtpForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const inputs = document.querySelectorAll('#login-step-2 .otp-input-field');
+    const otp = Array.from(inputs).map(input => input.value).join('');
+    
+    if (otp.length !== 6) {
+      showToast('Please enter all 6 digits', 'error');
+      return;
+    }
+
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+
+    const formData = new FormData();
+    formData.append('otp', otp);
+
+    fetch('api/verify_login_otp.php', {
       method: 'POST',
       body: formData,
       credentials: 'include'
@@ -166,20 +497,33 @@
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        alert('✅ Welcome back, ' + data.name + '!');
-        window.location.href = data.redirect;
+        showToast(data.message, 'success');
+        setTimeout(() => {
+          window.location.href = data.redirect;
+        }, 1500);
       } else {
-        alert('❌ ' + data.message);
-        loginBtn.disabled = false;
-        loginBtn.textContent = 'Sign In';
+        showToast(data.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Complete Login';
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('❌ An error occurred. Please try again.');
-      loginBtn.disabled = false;
-      loginBtn.textContent = 'Sign In';
+      showToast('An error occurred. Please try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Complete Login';
     });
+  });
+
+  // Back button on OTP step
+  document.getElementById('login-back-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('login-step-1').style.display = 'block';
+    document.getElementById('login-step-2').style.display = 'none';
+    // Clear OTP inputs
+    document.querySelectorAll('#login-step-2 .otp-input-field').forEach(input => input.value = '');
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Continue';
   });
 
   // ═══════════════════════════════════════════════════════════════════
@@ -242,7 +586,7 @@
     
     // Validate phone number
     if (!/^[0-9]{11}$/.test(phone)) {
-      alert('Please enter a valid 11-digit phone number');
+      showToast('Please enter a valid 11-digit phone number', 'error');
       return;
     }
     
@@ -261,24 +605,19 @@
       if (data.success) {
         resetState.phone = phone;
         resetState.userId = data.user_id;
-        
-        // Show success message
-        const successMsg = document.createElement('div');
-        successMsg.className = 'success-message show';
-        successMsg.innerHTML = '✅ Reset code sent to your mobile number!';
-        this.parentElement.insertBefore(successMsg, this);
+        showToast('Reset code sent to your mobile number!', 'success');
         
         setTimeout(() => {
           showStep2();
         }, 1500);
       } else {
-        showError(this.parentElement, data.message || 'Failed to send reset code');
+        showToast(data.message || 'Failed to send reset code', 'error');
         btn.disabled = false;
         btn.textContent = 'Send Reset Code';
       }
     } catch (error) {
       console.error('Error:', error);
-      showError(this.parentElement, 'An error occurred. Please try again.');
+      showToast('An error occurred. Please try again.', 'error');
       btn.disabled = false;
       btn.textContent = 'Send Reset Code';
     }
@@ -340,7 +679,7 @@
     const otp = Array.from(inputs).map(input => input.value).join('');
     
     if (otp.length !== 6) {
-      showError(this.parentElement, 'Please enter all 6 digits');
+      showToast('Please enter all 6 digits', 'error');
       return;
     }
 
@@ -353,10 +692,7 @@
       // In production, you would verify with the backend
       resetState.otp = otp;
       
-      const successMsg = document.createElement('div');
-      successMsg.className = 'success-message show';
-      successMsg.innerHTML = '✅ Code verified successfully!';
-      this.parentElement.insertBefore(successMsg, this);
+      showToast('Code verified successfully!', 'success');
 
       setTimeout(() => {
         showStep3();
@@ -365,7 +701,7 @@
       }, 1500);
     } catch (error) {
       console.error('Error:', error);
-      showError(this.parentElement, 'Failed to verify code. Please try again.');
+      showToast('Failed to verify code. Please try again.', 'error');
       btn.disabled = false;
       btn.textContent = 'Verify Code';
     }
@@ -387,10 +723,7 @@
       const data = await response.json();
 
       if (data.success) {
-        const successMsg = document.createElement('div');
-        successMsg.className = 'success-message show';
-        successMsg.innerHTML = '✅ New code sent to your mobile number!';
-        this.parentElement.insertBefore(successMsg, this);
+        showToast('New code sent to your mobile number!', 'success');
 
         // Clear OTP inputs
         document.querySelectorAll('.otp-input-field').forEach(input => input.value = '');
@@ -398,18 +731,14 @@
 
         // Start 60-second timer
         startOtpTimer();
-
-        setTimeout(() => {
-          successMsg.remove();
-        }, 3000);
       } else {
-        showError(this.parentElement, data.message || 'Failed to resend code');
+        showToast(data.message || 'Failed to resend code', 'error');
         btn.disabled = false;
         btn.textContent = 'Resend Code';
       }
     } catch (error) {
       console.error('Error:', error);
-      showError(this.parentElement, 'An error occurred. Please try again.');
+      showToast('An error occurred. Please try again.', 'error');
       btn.disabled = false;
       btn.textContent = 'Resend Code';
     }
@@ -426,12 +755,12 @@
 
     // Validation
     if (password.length < 8) {
-      showError(this.parentElement, 'Password must be at least 8 characters long');
+      showToast('Password must be at least 8 characters long', 'error');
       return;
     }
 
     if (password !== confirmPassword) {
-      showError(this.parentElement, 'Passwords do not match');
+      showToast('Passwords do not match', 'error');
       return;
     }
 
@@ -455,13 +784,13 @@
       if (data.success) {
         showSuccess();
       } else {
-        showError(this.parentElement, data.message || 'Failed to reset password');
+        showToast(data.message || 'Failed to reset password', 'error');
         btn.disabled = false;
         btn.textContent = 'Reset Password';
       }
     } catch (error) {
       console.error('Error:', error);
-      showError(this.parentElement, 'An error occurred. Please try again.');
+      showToast('An error occurred. Please try again.', 'error');
       btn.disabled = false;
       btn.textContent = 'Reset Password';
     }
@@ -525,23 +854,6 @@
     if (step === 1) showStep1();
     else if (step === 2) showStep2();
     else if (step === 3) showStep3();
-  }
-
-  function showError(container, message) {
-    // Remove existing error messages
-    const existingError = container.querySelector('.error-message');
-    if (existingError) existingError.remove();
-
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-message show';
-    errorDiv.innerHTML = '❌ ' + message;
-    container.insertBefore(errorDiv, container.firstChild);
-
-    setTimeout(() => {
-      if (errorDiv.parentElement) {
-        errorDiv.remove();
-      }
-    }, 5000);
   }
 
   function startOtpTimer() {

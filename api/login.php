@@ -15,14 +15,31 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Get and sanitize form data
+// Get and sanitize form data - support both email and phone/mobile
 $email = trim($_POST['email'] ?? '');
+$phone = trim($_POST['phone'] ?? '');
+$mobile = trim($_POST['mobile'] ?? '');
 $password = $_POST['password'] ?? '';
 
+// Determine which field was provided
+$login_field = '';
+$login_value = '';
+
+if (!empty($email)) {
+    $login_field = 'email';
+    $login_value = $email;
+} elseif (!empty($phone)) {
+    $login_field = 'phone';
+    $login_value = $phone;
+} elseif (!empty($mobile)) {
+    $login_field = 'phone';
+    $login_value = $mobile;
+}
+
 // Validation
-if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+if (empty($login_value)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Valid email is required']);
+    echo json_encode(['success' => false, 'message' => 'Email or phone number is required']);
     exit;
 }
 
@@ -32,26 +49,44 @@ if (empty($password)) {
     exit;
 }
 
-// Check if user exists and verify password (JOIN with profile data)
+// Check if user exists and verify password
 try {
-    $stmt = $pdo->prepare("
-        SELECT 
-            u.id, 
-            u.member_id, 
-            u.password_hash, 
-            u.status,
-            p.firstname, 
-            p.lastname
-        FROM users u
-        LEFT JOIN youth_profiles p ON u.id = p.user_id
-        WHERE u.email = ?
-    ");
-    $stmt->execute([$email]);
+    if ($login_field === 'email') {
+        $stmt = $pdo->prepare("
+            SELECT 
+                u.id, 
+                u.member_id, 
+                u.password_hash, 
+                u.status,
+                p.firstname, 
+                p.lastname
+            FROM users u
+            LEFT JOIN youth_profiles p ON u.id = p.user_id
+            WHERE u.email = ?
+        ");
+    } else {
+        // Login with phone number
+        $stmt = $pdo->prepare("
+            SELECT 
+                u.id, 
+                u.member_id, 
+                u.password_hash, 
+                u.status,
+                u.email,
+                p.firstname, 
+                p.lastname
+            FROM users u
+            LEFT JOIN youth_profiles p ON u.id = p.user_id
+            WHERE p.phone = ?
+        ");
+    }
+    
+    $stmt->execute([$login_value]);
     $user = $stmt->fetch();
 
     if (!$user) {
         http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Invalid email or password']);
+        echo json_encode(['success' => false, 'message' => 'Invalid credentials']);
         exit;
     }
 
@@ -65,7 +100,7 @@ try {
     // Verify password
     if (!password_verify($password, $user['password_hash'])) {
         http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Invalid email or password']);
+        echo json_encode(['success' => false, 'message' => 'Invalid credentials']);
         exit;
     }
 
@@ -77,7 +112,7 @@ try {
     session_start();
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['member_id'] = $user['member_id'];
-    $_SESSION['email'] = $email;
+    $_SESSION['email'] = $user['email'] ?? '';
     $_SESSION['firstname'] = $user['firstname'];
     $_SESSION['lastname'] = $user['lastname'];
 
