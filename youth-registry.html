@@ -14,11 +14,6 @@
     <!-- Your shared dashboard CSS -->
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
-    <!-- Supabase Client Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Session Checker Helper -->
-    <script src="js/session-checker.js"></script>
-
     <style>
         /* User Profile Card - Themed Design */
         .user-profile-card {
@@ -650,24 +645,15 @@ let adminInfo = null;
 
 async function checkAdminSession() {
     try {
-        // First check Supabase auth session
-        const user = await checkAuthSession();
-        if (!user) {
-            // Redirect happens automatically
-            return;
-        }
+        const response = await fetch('api/check_admin_session.php');
+        const data = await response.json();
         
-        // Get user profile from database
-        const profile = await getUserProfile();
-        if (!profile) {
+        if (!data.authenticated) {
             window.location.href = 'login-admin.html';
             return;
         }
         
-        adminInfo = {
-            username: profile.firstname || 'Admin',
-            role: profile.role || 'staff'
-        };
+        adminInfo = data.admin;
         console.log('Authenticated as:', adminInfo.username);
         loadAdminProfile();
         

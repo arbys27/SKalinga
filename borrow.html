@@ -12,11 +12,6 @@
   <link rel="stylesheet" href="assets/css/global.css">
   <link rel="stylesheet" href="assets/css/portal.css">
   <link rel="stylesheet" href="assets/css/borrow.css"> <!-- New CSS file for this page -->
-
-  <!-- Supabase Client Library -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Session Checker Helper -->
-  <script src="js/session-checker.js"></script>
 </head>
 <body>
 
@@ -95,16 +90,6 @@
 </div>
 
 <script>
-  // Check authentication on page load
-  document.addEventListener('DOMContentLoaded', async function() {
-      const user = await checkAuthSession();
-      if (!user) {
-          // User is not logged in, redirected automatically
-          return;
-      }
-      // Page is authenticated, continue loading
-  });
-
   // Global variable to store current user's member ID
   let currentUser = {};
 

@@ -11,11 +11,6 @@
     <link rel="stylesheet" href="assets/css/portal.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <!-- Supabase Client Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Session Checker Helper -->
-    <script src="js/session-checker.js"></script>
-
     <style>
       /* Back Button – Top-Left Corner */
 .back-btn {
@@ -907,16 +902,6 @@
     </style>
 
     <script>
-        // Check authentication on page load
-        document.addEventListener('DOMContentLoaded', async function() {
-            const user = await checkAuthSession();
-            if (!user) {
-                // User is not logged in, redirected automatically
-                return;
-            }
-            // Page is authenticated, continue loading
-        });
-
         // Global variables
         let isEditMode = false;
         let originalData = {};

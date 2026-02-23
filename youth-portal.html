@@ -10,11 +10,6 @@
     
     <link rel="stylesheet" href="assets/css/portal.css">
 
-    <!-- Supabase Client Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Session Checker Helper -->
-    <script src="js/session-checker.js"></script>
-
     <style>
         /* FAB Container */
         .fab-container {
@@ -713,16 +708,6 @@
     </div>
 
     <script>
-        // Check authentication on page load
-        window.addEventListener('load', async function() {
-            const user = await checkAuthSession();
-            if (!user) {
-                // User is not logged in, redirected automatically
-                return;
-            }
-            // Page is authenticated, continue loading
-        });
-
         // Function to convert 24-hour time to 12-hour format with AM/PM
         function formatTime24To12(timeStr) {
             if (!timeStr) return 'Time TBA';

@@ -11,9 +11,6 @@
 
   <link rel="stylesheet" href="assets/css/global.css">
   <link rel="stylesheet" href="assets/css/auth.css">
-
-  <!-- Supabase Client Library -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -49,24 +46,42 @@
     <h1>Reset Password</h1>
     <div class="subtitle">We'll help you recover your account</div>
 
-    <!-- Step 1: Enter Email -->
+    <!-- Step 1: Enter Mobile Number -->
     <div id="reset-step-1" class="reset-step">
       <form id="emailForm" novalidate>
-        <label for="reset-mobile">Email Address</label>
-        <input type="email" id="reset-mobile" name="email" placeholder="Enter your email address">
-        <button type="submit" class="btn">Send Reset Link</button>
+        <label for="reset-mobile">Mobile Number</label>
+        <input type="text" id="reset-mobile" name="phone" placeholder="09123456789">
+        <button type="submit" class="btn">Send Reset Code</button>
       </form>
       <div class="reset-footer">
         <a href="#" id="back-to-login" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Back to Login</a>
       </div>
     </div>
 
-    <!-- Step 2: Check Email -->
+    <!-- Step 2: Enter OTP -->
     <div id="reset-step-2" class="reset-step" style="display: none;">
-      <div class="step-title">Check Your Email</div>
-      <div class="step-description">We've sent a password reset link to your email. Click the link to create a new password.</div>
-      <div class="reset-footer" style="margin-top: 2rem;">
-        <a href="#" id="back-to-email" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Send to Different Email</a>
+      <div class="step-title">Enter Reset Code</div>
+      <div class="step-description">We've sent a 6-digit code to your mobile number</div>
+      
+      <form id="otpForm">
+        <div class="otp-input-group">
+          <input type="text" class="otp-input-field" id="otp-1" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="otp-2" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="otp-3" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="otp-4" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="otp-5" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-input-field" id="otp-6" maxlength="1" inputmode="numeric">
+        </div>
+        <button type="submit" class="btn">Verify Code</button>
+      </form>
+
+      <div class="resend-section">
+        <p style="font-size: 0.85rem; color: var(--text-gray); margin-bottom: 12px;">Didn't receive code?</p>
+        <button type="button" id="resend-btn" class="btn-secondary">Resend Code</button>
+      </div>
+
+      <div class="reset-footer">
+        <a href="#" id="back-to-email" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Change Mobile Number</a>
       </div>
     </div>
 
@@ -85,7 +100,7 @@
       </form>
 
       <div class="reset-footer">
-        <a href="#" id="back-to-login" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Back to Login</a>
+        <a href="#" id="back-to-otp" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Back to Code Verification</a>
       </div>
     </div>
 
@@ -113,18 +128,10 @@
 </div>
 
 <script>
-  // ═══════════════════════════════════════════════════════════════════
-  // SUPABASE CONFIGURATION
-  // ═══════════════════════════════════════════════════════════════════
-  const SUPABASE_URL = 'https://dljukwzdbkxkbngiqzmm.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRsanVrd3pkYmt4a2JuZ2lxem1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1MDIwMDksImV4cCI6MjA4NzA3ODAwOX0.DohlZ6nJYcJdg8BuulJD52OKFQwyP07-c_htkvmsMyA';
-
-  const { createClient } = supabase;
-  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
   // Global state for password reset flow
   let resetState = {
-    email: '',
+    phone: '',
+    otp: '',
     userId: null,
     resetToken: null
   };
@@ -141,69 +148,42 @@
   const formReset = document.getElementById('form-reset');
 
   // ═══════════════════════════════════════════════════════════════════
-  // LOGIN HANDLER - SUPABASE AUTH
+  // LOGIN HANDLER
   // ═══════════════════════════════════════════════════════════════════
-  loginForm.addEventListener('submit', async function(e) {
+  loginForm.addEventListener('submit', function(e) {
     e.preventDefault();
 
     loginBtn.disabled = true;
     loginBtn.textContent = 'Signing In...';
 
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-pass').value;
+    const formData = new FormData(this);
 
-    try {
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
-
-      if (error) {
-        throw new Error(error.message || 'Login failed');
+    fetch('api/login.php', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('✅ Welcome back, ' + data.name + '!');
+        window.location.href = data.redirect;
+      } else {
+        alert('❌ ' + data.message);
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign In';
       }
-
-      if (data.user) {
-        // Get user profile data
-        const { data: profile, error: profileError } = await supabaseClient
-          .from('youth_profiles')
-          .select('firstname, lastname')
-          .eq('user_id', data.user.id)
-          .single();
-
-        const firstName = profile?.firstname || 'User';
-        const lastName = profile?.lastname || '';
-        const fullName = (firstName + ' ' + lastName).trim();
-
-        alert('✅ Welcome back, ' + fullName + '!');
-        
-        // Store session info in localStorage
-        localStorage.setItem('user_id', data.user.id);
-        localStorage.setItem('user_email', data.user.email);
-        localStorage.setItem('user_name', fullName);
-
-        // Redirect to youth portal
-        window.location.href = 'youth-portal.html';
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      let errorMessage = 'Invalid email or password';
-      
-      if (error.message.includes('Invalid login credentials')) {
-        errorMessage = 'Invalid email or password';
-      } else if (error.message.includes('Email not confirmed')) {
-        errorMessage = 'Please verify your email before logging in';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      alert('❌ ' + errorMessage);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('❌ An error occurred. Please try again.');
       loginBtn.disabled = false;
       loginBtn.textContent = 'Sign In';
-    }
+    });
   });
 
   // ═══════════════════════════════════════════════════════════════════
-  // PASSWORD RESET FLOW - SUPABASE EMAIL RECOVERY
+  // PASSWORD RESET FLOW
   // ═══════════════════════════════════════════════════════════════════
 
   // Show password reset form
@@ -215,7 +195,7 @@
   function showPasswordReset() {
     formLogin.style.display = 'none';
     formReset.style.display = 'block';
-    resetState = { email: '', userId: null, resetToken: null };
+    resetState = { phone: '', otp: '', userId: null, resetToken: null };
     showResetStep(1);
   }
 
@@ -224,6 +204,16 @@
     document.getElementById('reset-step-2').style.display = 'none';
     document.getElementById('reset-step-3').style.display = 'none';
     document.getElementById('reset-success').style.display = 'none';
+  }
+
+  function showStep2() {
+    document.getElementById('reset-step-1').style.display = 'none';
+    document.getElementById('reset-step-2').style.display = 'block';
+    document.getElementById('reset-step-3').style.display = 'none';
+    document.getElementById('reset-success').style.display = 'none';
+    // Focus first OTP input
+    setTimeout(() => document.getElementById('otp-1').focus(), 100);
+    setupOtpInputs();
   }
 
   function showStep3() {
@@ -242,17 +232,17 @@
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // STEP 1: EMAIL SUBMISSION - SUPABASE PASSWORD RECOVERY
+  // STEP 1: EMAIL SUBMISSION
   // ═══════════════════════════════════════════════════════════════════
   document.getElementById('emailForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const email = document.getElementById('reset-mobile').value.trim(); // Using same field for email
+    const phone = document.getElementById('reset-mobile').value.trim();
     const btn = this.querySelector('button[type="submit"]');
     
-    // Validate email
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      alert('Please enter a valid email address');
+    // Validate phone number
+    if (!/^[0-9]{11}$/.test(phone)) {
+      alert('Please enter a valid 11-digit phone number');
       return;
     }
     
@@ -260,46 +250,220 @@
     btn.textContent = 'Sending...';
 
     try {
-      const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password.html`
+      const response = await fetch('api/request_password_reset.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone })
       });
 
-      if (error) {
-        throw new Error(error.message || 'Failed to send reset email');
-      }
+      const data = await response.json();
 
-      resetState.email = email;
+      if (data.success) {
+        resetState.phone = phone;
+        resetState.userId = data.user_id;
+        
+        // Show success message
+        const successMsg = document.createElement('div');
+        successMsg.className = 'success-message show';
+        successMsg.innerHTML = '✅ Reset code sent to your mobile number!';
+        this.parentElement.insertBefore(successMsg, this);
+        
+        setTimeout(() => {
+          showStep2();
+        }, 1500);
+      } else {
+        showError(this.parentElement, data.message || 'Failed to send reset code');
+        btn.disabled = false;
+        btn.textContent = 'Send Reset Code';
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showError(this.parentElement, 'An error occurred. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Send Reset Code';
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // STEP 2: OTP VERIFICATION
+  // ═══════════════════════════════════════════════════════════════════
+  function setupOtpInputs() {
+    const inputs = document.querySelectorAll('.otp-input-field');
+    
+    inputs.forEach((input, index) => {
+      input.addEventListener('input', function(e) {
+        // Only allow numbers
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        if (this.value && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', function(e) {
+        // Backspace to previous field
+        if (e.key === 'Backspace' && !this.value && index > 0) {
+          inputs[index - 1].focus();
+        }
+        // Arrow keys
+        if (e.key === 'ArrowRight' && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+        if (e.key === 'ArrowLeft' && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+
+      // Paste handler
+      input.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const paste = e.clipboardData.getData('text');
+        const digits = paste.replace(/\D/g, '').slice(0, 6);
+        
+        digits.split('').forEach((digit, i) => {
+          if (inputs[i]) {
+            inputs[i].value = digit;
+          }
+        });
+        
+        if (digits.length === 6) {
+          inputs[5].focus();
+        }
+      });
+    });
+  }
+
+  document.getElementById('otpForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const inputs = document.querySelectorAll('.otp-input-field');
+    const otp = Array.from(inputs).map(input => input.value).join('');
+    
+    if (otp.length !== 6) {
+      showError(this.parentElement, 'Please enter all 6 digits');
+      return;
+    }
+
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+
+    try {
+      // In development, OTP verification is implicit
+      // In production, you would verify with the backend
+      resetState.otp = otp;
       
-      // Show success message
       const successMsg = document.createElement('div');
       successMsg.className = 'success-message show';
-      successMsg.innerHTML = '✅ Password reset link sent to your email!';
+      successMsg.innerHTML = '✅ Code verified successfully!';
       this.parentElement.insertBefore(successMsg, this);
-      
+
       setTimeout(() => {
-        // Hide form and show message
-        document.getElementById('reset-step-1').style.display = 'none';
-        document.getElementById('reset-step-2').style.display = 'block';
-        document.getElementById('reset-step-2').innerHTML = `
-          <div class="step-title">Check Your Email</div>
-          <div class="step-description">We've sent a password reset link to ${email}. Click the link in the email to create a new password.</div>
-          <div class="reset-footer" style="margin-top: 2rem;">
-            <a href="#" id="back-to-login-2" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Back to Login</a>
-          </div>
-        `;
-        document.getElementById('back-to-login-2').addEventListener('click', function(e) {
-          e.preventDefault();
-          formReset.style.display = 'none';
-          formLogin.style.display = 'block';
-          document.getElementById('reset-mobile').value = '';
-          resetState = { email: '', userId: null, resetToken: null };
-        });
+        showStep3();
+        btn.disabled = false;
+        btn.textContent = 'Verify Code';
       }, 1500);
     } catch (error) {
       console.error('Error:', error);
-      showError(this.parentElement, error.message || 'Failed to send reset email');
+      showError(this.parentElement, 'Failed to verify code. Please try again.');
       btn.disabled = false;
-      btn.textContent = 'Send Reset Link';
+      btn.textContent = 'Verify Code';
+    }
+  });
+
+  // Resend OTP
+  document.getElementById('resend-btn').addEventListener('click', async function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Resending...';
+
+    try {
+      const response = await fetch('api/request_password_reset.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: resetState.phone })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const successMsg = document.createElement('div');
+        successMsg.className = 'success-message show';
+        successMsg.innerHTML = '✅ New code sent to your mobile number!';
+        this.parentElement.insertBefore(successMsg, this);
+
+        // Clear OTP inputs
+        document.querySelectorAll('.otp-input-field').forEach(input => input.value = '');
+        document.getElementById('otp-1').focus();
+
+        // Start 60-second timer
+        startOtpTimer();
+
+        setTimeout(() => {
+          successMsg.remove();
+        }, 3000);
+      } else {
+        showError(this.parentElement, data.message || 'Failed to resend code');
+        btn.disabled = false;
+        btn.textContent = 'Resend Code';
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showError(this.parentElement, 'An error occurred. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Resend Code';
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // STEP 3: NEW PASSWORD
+  // ═══════════════════════════════════════════════════════════════════
+  document.getElementById('passwordForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const password = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+
+    // Validation
+    if (password.length < 8) {
+      showError(this.parentElement, 'Password must be at least 8 characters long');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showError(this.parentElement, 'Passwords do not match');
+      return;
+    }
+
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Resetting Password...';
+
+    try {
+      const response = await fetch('api/reset_password.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: resetState.phone,
+          otp_code: resetState.otp,
+          password: password
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showSuccess();
+      } else {
+        showError(this.parentElement, data.message || 'Failed to reset password');
+        btn.disabled = false;
+        btn.textContent = 'Reset Password';
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showError(this.parentElement, 'An error occurred. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Reset Password';
     }
   });
 
@@ -308,26 +472,49 @@
   // ═══════════════════════════════════════════════════════════════════
   document.getElementById('back-to-login').addEventListener('click', function(e) {
     e.preventDefault();
+    // Clear timer
+    if (otpTimerInterval) {
+      clearInterval(otpTimerInterval);
+      otpTimerInterval = null;
+    }
     formReset.style.display = 'none';
     formLogin.style.display = 'block';
+    // Clear form
     document.getElementById('reset-mobile').value = '';
-    resetState = { email: '', userId: null, resetToken: null };
+    resetState = { phone: '', otp: '', userId: null, resetToken: null };
   });
 
   document.getElementById('back-to-email').addEventListener('click', function(e) {
     e.preventDefault();
+    // Clear timer
+    if (otpTimerInterval) {
+      clearInterval(otpTimerInterval);
+      otpTimerInterval = null;
+    }
     showStep1();
-    document.getElementById('reset-mobile').value = '';
+    // Clear OTP inputs
+    document.querySelectorAll('.otp-input-field').forEach(input => input.value = '');
+  });
+
+  document.getElementById('back-to-otp').addEventListener('click', function(e) {
+    e.preventDefault();
+    showStep2();
   });
 
   document.getElementById('return-to-login').addEventListener('click', function(e) {
     e.preventDefault();
+    // Clear timer
+    if (otpTimerInterval) {
+      clearInterval(otpTimerInterval);
+      otpTimerInterval = null;
+    }
     formReset.style.display = 'none';
     formLogin.style.display = 'block';
+    // Clear forms
     document.getElementById('reset-mobile').value = '';
     document.getElementById('new-password').value = '';
     document.getElementById('confirm-password').value = '';
-    resetState = { email: '', userId: null, resetToken: null };
+    resetState = { phone: '', otp: '', userId: null, resetToken: null };
     document.getElementById('login-email').focus();
   });
 
@@ -336,6 +523,7 @@
   // ═══════════════════════════════════════════════════════════════════
   function showResetStep(step) {
     if (step === 1) showStep1();
+    else if (step === 2) showStep2();
     else if (step === 3) showStep3();
   }
 
@@ -356,21 +544,31 @@
     }, 5000);
   }
 
-  // ═══════════════════════════════════════════════════════════════════
-  // CHECK EXISTING SESSION ON PAGE LOAD
-  // ═══════════════════════════════════════════════════════════════════
-  window.addEventListener('load', async function() {
-    try {
-      const { data, error } = await supabaseClient.auth.getSession();
-      
-      if (data.session) {
-        // User is already logged in, redirect to youth portal
-        window.location.href = 'youth-portal.html';
-      }
-    } catch (error) {
-      console.error('Session check error:', error);
+  function startOtpTimer() {
+    const resendBtn = document.getElementById('resend-btn');
+    
+    // Clear any existing timer
+    if (otpTimerInterval) {
+      clearInterval(otpTimerInterval);
     }
-  });
+    
+    otpCountdown = 60;
+    resendBtn.disabled = true;
+    resendBtn.textContent = `Resend Code (${otpCountdown}s)`;
+    
+    otpTimerInterval = setInterval(() => {
+      otpCountdown--;
+      resendBtn.textContent = `Resend Code (${otpCountdown}s)`;
+      
+      if (otpCountdown <= 0) {
+        clearInterval(otpTimerInterval);
+        otpTimerInterval = null;
+        otpCountdown = 0;
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'Resend Code';
+      }
+    }, 1000);
+  }
 </script>
 
 </body>

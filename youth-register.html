@@ -12,11 +12,6 @@
   <!-- Shared + auth-specific styles -->
   <link rel="stylesheet" href="assets/css/global.css">
   <link rel="stylesheet" href="assets/css/auth.css">
-
-  <!-- Supabase Client Library -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Session Checker Helper -->
-  <script src="js/session-checker.js"></script>
 </head>
 <body>
 
@@ -101,18 +96,38 @@
   <label for="address">Full Address</label>
   <input type="text" id="address" name="address" placeholder="1111 Avocado St. Garcia Subd. Brgy. San Antonio, Binan, Laguna" required>
 
-  <!-- Contact Number (no SMS verification needed) -->
+  <!-- Contact Number with Verify Button -->
   <div class="form-row">
     <div class="form-group half">
       <label for="contact">Contact Number</label>
-      <input type="tel" id="contact" name="contact"
-             placeholder="09123456789"
-             pattern="[0-9]{11}"
-             title="11-digit Philippine mobile number"
-             required>
+      <div class="contact-input-group">
+        <input type="tel" id="contact" name="contact"
+               placeholder="09123456789"
+               pattern="[0-9]{11}"
+               title="11-digit Philippine mobile number"
+               required>
+        <button type="button" id="verifyBtn" class="btn-icon-verify" disabled title="Verify Phone Number" aria-label="Verify phone number">Verify</button>
+      </div>
       <small id="contact-status" class="status-message"></small>
     </div>
   </div>
+
+  <!-- OTP Verification Field (initially hidden) -->
+  <div id="otp-section">
+    <div class="form-row">
+      <div class="form-group half">
+        <label for="otp">Enter OTP</label>
+        <div class="contact-input-group">
+          <input type="text" id="otp" name="otp" placeholder="000000" maxlength="6" pattern="[0-9]{6}">
+          <button type="button" id="verifyOtpBtn" class="btn-icon-verify" title="Verify OTP" aria-label="Verify one-time password">Verify</button>
+        </div>
+        <small id="otp-status" class="status-message"></small>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Hidden field to track verification status -->
+  <input type="hidden" id="phone-verified" name="phone-verified" value="0">
       
       <label for="password">Create Password</label>
       <input type="password" id="password" name="password" placeholder="At least 8 characters" minlength="8" required>
@@ -146,18 +161,203 @@
 </div>
 
 <script>
-  // ════════════════════════════════════════════════
-  // Supabase Registration with Auth Integration
-  // ════════════════════════════════════════════════
+  // SMS OTP Verification
+  const contact = document.getElementById('contact');
+  const verifyBtn = document.getElementById('verifyBtn');
+  const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+  const otpSection = document.getElementById('otp-section');
+  const otpInput = document.getElementById('otp');
+  const contactStatus = document.getElementById('contact-status');
+  const otpStatus = document.getElementById('otp-status');
+  const phoneVerified = document.getElementById('phone-verified');
+  
+  let otpTimerInterval = null;
+  let otpCountdown = 0;
 
-  const registerForm = document.getElementById('registerForm');
+  // Hide OTP section by default
+  otpSection.style.display = 'none';
+
+  // Enable verify button only when valid phone number is entered
+  contact.addEventListener('input', function() {
+    const isValidPhone = this.value.length === 11 && /^[0-9]{11}$/.test(this.value);
+    verifyBtn.disabled = !isValidPhone || otpCountdown > 0;
+    
+    // Reset OTP section if phone number changes
+    if (phoneVerified.value === '1') {
+      resetOtpVerification();
+    }
+  });
+
+  // Start OTP countdown timer
+  function startOtpTimer() {
+    // Clear any existing timer
+    if (otpTimerInterval) {
+      clearInterval(otpTimerInterval);
+    }
+    
+    otpCountdown = 60;
+    verifyBtn.disabled = true;
+    verifyBtn.textContent = `Resend OTP (${otpCountdown}s)`;
+    
+    otpTimerInterval = setInterval(function() {
+      otpCountdown--;
+      verifyBtn.textContent = `Resend OTP (${otpCountdown}s)`;
+      
+      if (otpCountdown <= 0) {
+        clearInterval(otpTimerInterval);
+        otpTimerInterval = null;
+        otpCountdown = 0;
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = 'Resend OTP';
+      }
+    }, 1000);
+  }
+
+  // Handle Verify button click - send SMS OTP
+  verifyBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    const phoneNumber = contact.value;
+    
+    if (!phoneNumber || phoneNumber.length !== 11) {
+      alert('Please enter a valid 11-digit phone number');
+      return;
+    }
+
+    verifyBtn.disabled = true;
+    verifyBtn.textContent = 'Sending...';
+    contactStatus.textContent = '';
+    contactStatus.className = 'status-message';
+
+    // Send request to backend to send SMS OTP
+    fetch('api/send_sms_otp.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'phone=' + encodeURIComponent(phoneNumber)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        contactStatus.textContent = '✓ OTP sent to your number. Enter it below.';
+        contactStatus.className = 'status-message success';
+        otpSection.style.display = 'block';
+        startOtpTimer();
+        otpInput.focus();
+      } else {
+        contactStatus.textContent = '✗ Failed to send OTP: ' + data.message;
+        contactStatus.className = 'status-message error';
+        verifyBtn.disabled = false;
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      contactStatus.textContent = '✗ Error sending OTP. Please try again.';
+      contactStatus.className = 'status-message error';
+      // Keep button disabled during timer, otherwise enable it
+      if (otpCountdown <= 0) {
+        verifyBtn.disabled = false;
+      }
+    });
+  });
+
+  // Handle Verify OTP button click
+  verifyOtpBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    const otp = otpInput.value.trim();
+    const phoneNumber = contact.value;
+
+    if (!otp || otp.length !== 6 || !/^[0-9]{6}$/.test(otp)) {
+      alert('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    verifyOtpBtn.disabled = true;
+    verifyOtpBtn.textContent = 'Verifying...';
+    otpStatus.textContent = '';
+    otpStatus.className = 'status-message';
+
+    // Verify OTP with backend
+    fetch('api/verify_sms_otp.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'phone=' + encodeURIComponent(phoneNumber) + '&otp=' + encodeURIComponent(otp)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        phoneVerified.value = '1';
+        contactStatus.textContent = '✓ Phone number verified';
+        contactStatus.className = 'status-message success';
+        otpStatus.textContent = '✓ Phone verified successfully';
+        otpStatus.className = 'status-message success';
+        verifyOtpBtn.disabled = true;
+        contact.disabled = true;
+        verifyBtn.disabled = true;
+        // Clear timer when verified
+        if (otpTimerInterval) {
+          clearInterval(otpTimerInterval);
+          otpTimerInterval = null;
+        }
+        otpCountdown = 0;
+        checkFormValidity();
+      } else {
+        otpStatus.textContent = '✗ Invalid OTP. Please try again.';
+        otpStatus.className = 'status-message error';
+        verifyOtpBtn.disabled = false;
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      otpStatus.textContent = '✗ Error verifying OTP. Please try again.';
+      otpStatus.className = 'status-message error';
+      verifyOtpBtn.disabled = false;
+    });
+  });
+
+  // Reset OTP verification
+  function resetOtpVerification() {
+    // Clear timer if running
+    if (otpTimerInterval) {
+      clearInterval(otpTimerInterval);
+      otpTimerInterval = null;
+    }
+    otpCountdown = 0;
+    
+    phoneVerified.value = '0';
+    otpSection.style.display = 'none';
+    otpInput.value = '';
+    otpStatus.textContent = '';
+    otpStatus.className = 'status-message';
+    contactStatus.textContent = '';
+    contactStatus.className = 'status-message';
+    contact.disabled = false;
+    verifyBtn.disabled = false;
+    verifyBtn.textContent = 'Verify';
+  }
+
+  // Enable submit only when privacy is checked AND passwords match AND phone is verified
+  const privacy = document.getElementById('privacy-consent');
   const submitBtn = document.getElementById('submitBtn');
   const password = document.getElementById('password');
   const confirmPassword = document.getElementById('confirm-password');
-  const privacy = document.getElementById('privacy-consent');
-  const warning = document.getElementById('password-warning');
+  const registerForm = document.getElementById('registerForm');
 
-  // Auto-calculate age from birthday
+  function checkFormValidity() {
+    const passwordsMatch = password.value === confirmPassword.value && password.value.length >= 8;
+    const phoneIsVerified = phoneVerified.value === '1';
+    submitBtn.disabled = !privacy.checked || !passwordsMatch || !phoneIsVerified;
+  }
+
+  privacy.addEventListener('change', checkFormValidity);
+  password.addEventListener('input', checkFormValidity);
+  confirmPassword.addEventListener('input', checkFormValidity);
+
+  // Auto-calculate age from birthday (improved version)
   document.getElementById('birthday').addEventListener('change', function() {
     if (!this.value) {
       document.getElementById('age').value = '';
@@ -171,10 +371,12 @@
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
 
+    // Adjust age if birthday hasn't occurred this year yet
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
 
+    // Only set if age is reasonable (e.g., not negative or unrealistically high)
     if (age >= 0 && age <= 120) {
       document.getElementById('age').value = age;
     } else {
@@ -186,6 +388,8 @@
   });
 
   // Real-time password match feedback
+  const warning = document.getElementById('password-warning');
+
   function checkFormValidity() {
     const passwordsMatch = password.value === confirmPassword.value;
     const strongEnough = password.value.length >= 8;
@@ -205,101 +409,51 @@
   confirmPassword.addEventListener('input', checkFormValidity);
   privacy.addEventListener('change', checkFormValidity);
 
-  // Form submission - Register with Supabase Auth
-  registerForm.addEventListener('submit', async function(e) {
+  // Handle form submission with AJAX
+  registerForm.addEventListener('submit', function(e) {
     e.preventDefault();
 
-    // Collect form data
-    const firstname = document.getElementById('firstname').value.trim();
-    const lastname = document.getElementById('lastname').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const birthday = document.getElementById('birthday').value;
-    const age = document.getElementById('age').value;
-    const gender = document.getElementById('gender').value;
-    const contact = document.getElementById('contact').value.trim();
-    const address = document.getElementById('address').value.trim();
-    const pwd = password.value;
-
-    // Extract barangay from address
-    const addressMatch = address.match(/Brgy\.?\s*([^,]+)/i) || address.match(/Barangay\s*([^,]+)/i);
-    const barangay = addressMatch ? addressMatch[1].trim() : '';
-
+    // Disable submit button to prevent double submission
     submitBtn.disabled = true;
     submitBtn.textContent = 'Creating Account...';
 
-    try {
-      // 1. Register with Supabase Auth
-      const { data: authData, error: authError } = await supabaseClient.auth.signUp({
-        email: email,
-        password: pwd,
-        options: {
-          data: {
-            firstname: firstname,
-            lastname: lastname
-          }
+    // Create FormData object
+    const formData = new FormData(this);
+
+    // Send AJAX request
+    fetch('api/register.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Registration successful
+        alert('🎉 Registration successful! Your Member ID is: ' + data.member_id + '\n\nPlease login to access your account.');
+
+        // Redirect to login page for user to login manually
+        window.location.href = 'index.html';
+      } else {
+        // Registration failed
+        let errorMessage = data.message;
+        if (data.errors && data.errors.length > 0) {
+          errorMessage += '\n\nErrors:\n' + data.errors.join('\n');
         }
-      });
+        alert('❌ ' + errorMessage);
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Registration failed - no user returned');
-
-      const userId = authData.user.id;
-
-      // 2. Generate Member ID
-      const timestamp = Date.now().toString().slice(-6);
-      const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-      const memberId = `SK-${timestamp}${random}`;
-
-      // 3. Create youth profile in database
-      const { data: profileData, error: profileError } = await supabaseClient
-        .from('youth_profiles')
-        .insert([
-          {
-            user_id: userId,
-            member_id: memberId,
-            firstname: firstname,
-            lastname: lastname,
-            email: email,
-            birthday: birthday,
-            age: parseInt(age),
-            gender: gender,
-            contact: contact,
-            address: address,
-            barangay: barangay,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ]);
-
-      if (profileError) throw profileError;
-
-      // Success!
-      alert(`🎉 Registration successful! Your Member ID is: ${memberId}\n\nPlease check your email to verify your account, then log in.`);
-
-      // Clear form and redirect
-      registerForm.reset();
-      checkFormValidity();
-      
-      // Redirect to login page
-      window.location.href = 'index.html';
-
-    } catch (error) {
-      console.error('Registration error:', error);
-      
-      let errorMessage = error.message || 'An unknown error occurred';
-      
-      // User-friendly error messages
-      if (errorMessage.includes('already registered')) {
-        errorMessage = 'This email is already registered. Please log in or use a different email.';
-      } else if (errorMessage.includes('invalid_grant')) {
-        errorMessage = 'Invalid credentials. Please check your password.';
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Account';
       }
-      
-      alert(`❌ Registration failed:\n\n${errorMessage}`);
-      
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('❌ An error occurred. Please try again.');
+
+      // Re-enable submit button
       submitBtn.disabled = false;
       submitBtn.textContent = 'Create Account';
-    }
+    });
   });
 </script>
 
