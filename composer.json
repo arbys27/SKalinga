@@ -1,0 +1,7 @@
+{
+  "name": "skalinga/youth-portal",
+  "description": "SKalinga Youth Portal - Mobile-based registration and login system",
+  "require": {
+    "php": "^7.4"
+  }
+}
