@@ -1,15 +1,19 @@
 <?php
 // Database configuration for Supabase PostgreSQL
-$servername = "db.dljukwzdbkxkbngiqzmm.supabase.co";
-$port = "5432";
-$username = "postgres";
-$password = "yJDLVsK8NucNoOzF";
-$dbname = "postgres";
+// Reads from environment variables (set in Railway)
+$servername = getenv('DB_HOST') ?: "db.dljukwzdbkxkbngiqzmm.supabase.co";
+$port = getenv('DB_PORT') ?: "5432";
+$username = getenv('DB_USER') ?: "postgres";
+$password = getenv('DB_PASSWORD') ?: "";
+$dbname = getenv('DB_NAME') ?: "postgres";
+
+// Determine SSL mode - use require for Supabase, allow for local
+$ssl_mode = (strpos($servername, 'supabase') !== false) ? 'require' : 'allow';
 
 // Create PDO connection for PostgreSQL
 try {
     $pdo = new PDO(
-        "pgsql:host=$servername;port=$port;dbname=$dbname;sslmode=require",
+        "pgsql:host=$servername;port=$port;dbname=$dbname;sslmode=$ssl_mode",
         $username,
         $password,
         [
