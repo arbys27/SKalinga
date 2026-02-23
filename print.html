@@ -13,6 +13,11 @@
   <link rel="stylesheet" href="assets/css/portal.css">
   <link rel="stylesheet" href="assets/css/print.css">
 
+  <!-- Supabase Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Session Checker Helper -->
+  <script src="js/session-checker.js"></script>
+
   <style>
     /* Toast Notification Styles */
     .toast-container {
@@ -279,6 +284,16 @@
 </div>
 
 <script>
+  // Check authentication on page load
+  document.addEventListener('DOMContentLoaded', async function() {
+      const user = await checkAuthSession();
+      if (!user) {
+          // User is not logged in, redirected automatically
+          return;
+      }
+      // Page is authenticated, continue loading
+  });
+
   // --- Toast Notification System ---
   function showToast(message, type = 'info', duration = 4000) {
     const container = document.getElementById('toastContainer');

@@ -13,6 +13,11 @@
     
     <link rel="stylesheet" href="assets/css/portal.css">
 
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Session Checker Helper -->
+    <script src="js/session-checker.js"></script>
+
     <style>
         /* Maintenance Container */
         .maintenance-wrapper {
@@ -380,25 +385,24 @@
     </div>
 
     <script>
-        // Load user data from session
+        // Load user data from session with Supabase auth check
         async function loadUserName() {
             try {
-                const response = await fetch('api/get_user.php', {
-                    method: 'GET',
-                    credentials: 'include'
-                });
+                // Check Supabase session first
+                const user = await checkAuthSession();
+                if (!user) {
+                    // Redirect happens automatically
+                    return;
+                }
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('nav-user-name').textContent = `${data.firstname} ${data.lastname}`;
+                // Get user profile
+                const profile = await getUserProfile();
+                if (profile) {
+                    document.getElementById('nav-user-name').textContent = `${profile.firstname} ${profile.lastname}`;
                     
-                    if (data.avatar_path) {
-                        document.getElementById('mini-avatar').src = data.avatar_path;
+                    if (profile.avatar_path) {
+                        document.getElementById('mini-avatar').src = profile.avatar_path;
                     }
-                } else {
-                    // Redirect to login if not authenticated
-                    window.location.href = 'index.html';
                 }
             } catch (error) {
                 console.error('Error loading user name:', error);
