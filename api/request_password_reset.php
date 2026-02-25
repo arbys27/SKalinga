@@ -28,32 +28,27 @@ try {
         INNER JOIN youth_profiles yp ON u.id = yp.user_id 
         WHERE yp.phone = ?
     ");
-    $stmt->bind_param("s", $phone);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $stmt->execute([$phone]);
+    $result = $stmt->fetchAll();
     
-    if ($result->num_rows === 0) {
+    if (empty($result)) {
         // Don't reveal if number exists (security best practice)
         echo json_encode([
             'success' => true,
             'message' => 'If an account exists, you will receive an OTP via SMS'
         ]);
-        $stmt->close();
         exit;
     }
     
-    $user = $result->fetch_assoc();
+    $user = $result[0];
     $user_id = $user['id'];
-    $stmt->close();
     
     // Generate 6-digit OTP
     $otp_code = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
     
     // Clear any existing non-used OTP for this user
-    $delete_stmt = $conn->prepare("DELETE FROM password_resets WHERE user_id = ? AND is_used = 0");
-    $delete_stmt->bind_param("i", $user_id);
-    $delete_stmt->execute();
-    $delete_stmt->close();
+    $delete_stmt = $conn->prepare("DELETE FROM password_resets WHERE user_id = ? AND is_used = false");
+    $delete_stmt->execute([$user_id]);
     
     // Insert new OTP record (expires in 15 minutes)
     $expires_at = date('Y-m-d H:i:s', time() + 900); // 900 seconds = 15 minutes
@@ -62,12 +57,10 @@ try {
         INSERT INTO password_resets (user_id, otp_code, expires_at, created_at)
         VALUES (?, ?, ?, CURRENT_TIMESTAMP)
     ");
-    $insert_stmt->bind_param("iss", $user_id, $otp_code, $expires_at);
     
-    if (!$insert_stmt->execute()) {
+    if (!$insert_stmt->execute([$user_id, $otp_code, $expires_at])) {
         throw new Exception("Failed to create password reset request");
     }
-    $insert_stmt->close();
     
     // TODO: Send OTP via SMS
     // You would implement SMS sending here using Nexmo, Twilio, AWS SNS, or local SMS gateway
@@ -83,8 +76,7 @@ try {
     
 } catch (Exception $e) {
     http_response_code(500);
+    error_log('Password reset error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-} finally {
-    $conn->close();
 }
 ?>

@@ -26,12 +26,12 @@ $results['session']['status'] = $_SESSION['test'] === 'working' ? 'working' : 'e
 // Test 3: SMS API Connection
 $results['sms_api'] = [];
 $sms_test = curl_init();
-curl_setopt($sms_test, CURLOPT_URL, 'https://sms-api-ph-gceo.onrender.com/send/sms');
+curl_setopt($sms_test, CURLOPT_URL, 'https://smsapi.ph.onrender.com/api/v1/send/sms');
 curl_setopt($sms_test, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($sms_test, CURLOPT_POST, true);
 curl_setopt($sms_test, CURLOPT_TIMEOUT, 10);
 curl_setopt($sms_test, CURLOPT_HTTPHEADER, [
-    'x-api-key: sk-e481790680e0f0783c3cc8af',
+    'x-api-key: sk-2b10esfbwfbxau5qbrp9j8yb7ws1dg81',
     'Content-Type: application/json'
 ]);
 curl_setopt($sms_test, CURLOPT_POSTFIELDS, json_encode([

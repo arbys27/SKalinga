@@ -116,11 +116,11 @@ try {
     $sms_message = "Your SKalinga login code is: $otp. Valid for 10 minutes.";
     
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, 'https://sms-api-ph-gceo.onrender.com/send/sms');
+    curl_setopt($ch, CURLOPT_URL, 'https://smsapi.ph.onrender.com/api/v1/send/sms');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'x-api-key: sk-e481790680e0f0783c3cc8af',
+        'x-api-key: sk-2b10esfbwfbxau5qbrp9j8yb7ws1dg81',
         'Content-Type: application/json'
     ]);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
