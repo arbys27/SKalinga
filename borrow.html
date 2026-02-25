@@ -55,7 +55,10 @@
 
     <!-- Recent Borrowings List -->
     <div class="borrow-history">
-      <h2>Recent Borrowings</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="margin: 0;">Recent Borrowings</h2>
+        <button onclick="refreshBorrowHistory()" style="padding: 8px 16px; background: #228B57; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">🔄 Refresh</button>
+      </div>
       <div class="borrow-list" id="borrowList">
         <p style="text-align: center; color: var(--text-gray); padding: 20px;">Loading your borrowing history...</p>
       </div>
@@ -136,7 +139,11 @@
   // Load borrow history from API
   async function loadBorrowHistory() {
     try {
-      const response = await fetch('api/get_borrow_records.php');
+      // Add cache-busting parameter to ensure fresh data on mobile
+      const timestamp = new Date().getTime();
+      const response = await fetch(`api/get_borrow_records.php?t=${timestamp}`, {
+        cache: 'no-store'
+      });
       const data = await response.json();
       
       if (data.success && data.data && Array.isArray(data.data)) {
@@ -158,6 +165,13 @@
       console.error('Error loading borrow history:', error);
       showNoBorrowHistory();
     }
+  }
+
+  // Refresh borrow history (manual refresh for mobile)
+  async function refreshBorrowHistory() {
+    const borrowList = document.getElementById('borrowList');
+    borrowList.innerHTML = '<p style="text-align: center; color: var(--text-gray); padding: 20px;">Refreshing...</p>';
+    await loadBorrowHistory();
   }
 
   // Render borrow history cards

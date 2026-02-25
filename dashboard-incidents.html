@@ -624,7 +624,11 @@ let incidentsData = [];
 
 async function loadIncidents() {
     try {
-        const response = await fetch('api/get_incidents.php');
+        // Add cache-busting parameter to ensure fresh data
+        const timestamp = new Date().getTime();
+        const response = await fetch(`api/get_incidents.php?t=${timestamp}`, {
+            cache: 'no-store'
+        });
         const result = await response.json();
         
         if (result.success) {

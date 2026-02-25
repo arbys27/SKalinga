@@ -29,7 +29,7 @@ error_log("Message: $sms_message");
 
 // Send SMS via SMS API Philippines
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, 'https://sms-api-ph-gceo.onrender.com/send/sms');
+curl_setopt($ch, CURLOPT_URL, 'https://smsapiph.onrender.com/api/v1/send/sms');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
@@ -38,7 +38,7 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'x-api-key: sk-e481790680e0f0783c3cc8af',
+    'x-api-key: sk-2b10j0whlzeqvf64h6t2fes2oksm2qzm',
     'Content-Type: application/json'
 ]);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([

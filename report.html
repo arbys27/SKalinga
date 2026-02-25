@@ -367,7 +367,11 @@ let reports = [];
 // Load user's incidents from database
 async function loadUserIncidents() {
     try {
-        const response = await fetch('api/get_user_incidents.php');
+        // Add cache-busting parameter to ensure fresh data
+        const timestamp = new Date().getTime();
+        const response = await fetch(`api/get_user_incidents.php?t=${timestamp}`, {
+            cache: 'no-store'
+        });
         const result = await response.json();
         
         if (result.success) {
@@ -460,10 +464,10 @@ document.getElementById('reportForm').addEventListener('submit', async (e) => {
     }
     
     try {
-        const response = await fetch('api/debug_upload.php', {  // TESTING: Changed from submit_incident.php
+        const response = await fetch('api/submit_incident.php', {
             method: 'POST',
             body: formData
-        });
+        }));
         
         const result = await response.json();
         
