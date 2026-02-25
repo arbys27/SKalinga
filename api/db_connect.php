@@ -1,9 +1,9 @@
 <?php
-// Database configuration for Supabase PostgreSQL
+// Database configuration for Supabase PostgreSQL (Transaction pooler)
 // Reads from environment variables (set in Railway)
-$servername = getenv('DB_HOST') ?: "db.dljukwzdbkxkbngiqzmm.supabase.co";
-$port = getenv('DB_PORT') ?: "5432";
-$username = getenv('DB_USER') ?: "postgres";
+$servername = getenv('DB_HOST') ?: "aws-1-ap-northeast-1.pooler.supabase.com";
+$port = getenv('DB_PORT') ?: "6543";
+$username = getenv('DB_USER') ?: "postgres.dljukwzdbkxkbngiqzmm";
 $password = getenv('DB_PASSWORD') ?: "jeilaclaydizon";
 $dbname = getenv('DB_NAME') ?: "postgres";
 

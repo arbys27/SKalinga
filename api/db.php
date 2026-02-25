@@ -1,15 +1,15 @@
 <?php
 // db.php - PDO Database Connection to Supabase PostgreSQL
 // Reads from environment variables (set in Railway)
-header('Content-Type: application/json');
+// NOTE: This file is deprecated. Use db_connect.php instead.
 
 try {
     // Get database credentials from environment variables or use defaults for local development
-    $db_host = getenv('DB_HOST') ?: 'localhost';
-    $db_port = getenv('DB_PORT') ?: '5432';
-    $db_name = getenv('DB_NAME') ?: 'skalinga_youth';
-    $db_user = getenv('DB_USER') ?: 'postgres';
-    $db_password = getenv('DB_PASSWORD') ?: '';
+    $db_host = getenv('DB_HOST') ?: 'aws-1-ap-northeast-1.pooler.supabase.com';
+    $db_port = getenv('DB_PORT') ?: '6543';
+    $db_name = getenv('DB_NAME') ?: 'postgres';
+    $db_user = getenv('DB_USER') ?: 'postgres.dljukwzdbkxkbngiqzmm';
+    $db_password = getenv('DB_PASSWORD') ?: 'jeilaclaydizon';
     
     // Determine SSL mode - use require for Supabase, allow for local
     $ssl_mode = (strpos($db_host, 'supabase') !== false) ? 'require' : 'allow';

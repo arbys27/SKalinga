@@ -15,7 +15,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 try {
-    require_once 'db.php';
+    require_once 'db_connect.php';
     
     // Validate required fields
     $required_fields = ['document_title', 'print_type', 'paper_size', 'copies'];
