@@ -462,8 +462,8 @@
     try {
       const response = await fetch('api/request_password_reset.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone })
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'phone=' + encodeURIComponent(phone)
       });
 
       // Get response text first to see what we're actually getting
@@ -596,8 +596,8 @@
     try {
       const response = await fetch('api/request_password_reset.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: resetState.phone })
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'phone=' + encodeURIComponent(resetState.phone)
       });
 
       const responseText = await response.text();
