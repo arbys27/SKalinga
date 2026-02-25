@@ -84,7 +84,7 @@ window.Loader = (function() {
         </div>
 
         <!-- Loading Text -->
-        <p class="loader-text typing" id="loader-text">Loading...</p>
+        <p class="loader-text typing" id="loader-text">Please wait…</p>
 
         <!-- Progress Bar (Optional) -->
         <div class="loader-progress-bar" id="loader-progress">

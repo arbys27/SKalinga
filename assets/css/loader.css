@@ -273,7 +273,7 @@
   letter-spacing: 0.5px;
   min-height: 18px;
   text-align: center;
-  display: none;
+  display: block;
   margin-top: 16px;
 }
 
