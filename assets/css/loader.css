@@ -30,13 +30,24 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   Loader Content Wrapper
+   Loader Content Wrapper - Card/Panel Style
    ───────────────────────────────────────────────────────────────── */
 .loader-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 40px 35px;
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(34, 139, 87, 0.15),
+    0 0 1px rgba(34, 139, 87, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(34, 139, 87, 0.1);
+  min-width: 200px;
+  text-align: center;
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -268,13 +279,14 @@
    ───────────────────────────────────────────────────────────────── */
 .loader-text {
   font-size: 16px;
-  color: #000;
+  color: #000 !important;
   font-weight: 500;
   letter-spacing: 0.5px;
   min-height: 18px;
   text-align: center;
   display: block;
   margin-top: 16px;
+  text-shadow: none;
 }
 
 .loader-text.typing {
@@ -382,6 +394,13 @@
     background: transparent;
   }
 
+  .loader-content {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 35px 30px;
+    border-radius: 18px;
+    min-width: 180px;
+  }
+
   .loader-spinner {
     width: 60px;
     height: 60px;
@@ -421,6 +440,7 @@
 
   .loader-text {
     font-size: 13px;
+    color: #000 !important;
   }
 
   .loader-progress-bar {
