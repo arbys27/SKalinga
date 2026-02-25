@@ -1,29 +1,36 @@
 <?php
-// Database configuration for Supabase PostgreSQL (Transaction pooler)
-// Credentials from Supabase project settings
+// Database configuration for Railway PostgreSQL
+// Railway automatically provides DATABASE_URL environment variable
 
-$servername = getenv('DB_HOST') ?: "aws-1-ap-northeast-1.pooler.supabase.com";
-$port = getenv('DB_PORT') ?: "6543";
-$username = getenv('DB_USER') ?: "postgres.dljukwzdbkxkbngiqzmm";
-$password = getenv('DB_PASSWORD') ?: "iRsZUDeb4Gqgrxp2";
-$dbname = getenv('DB_NAME') ?: "postgres";
+// Option 1: Use DATABASE_URL (recommended for Railway)
+$database_url = getenv('DATABASE_URL');
 
-// Check if password is provided (it has a default now, but can be overridden by env var)
-if (empty($password)) {
-    error_log('Missing database password');
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'Database configuration error']);
-    exit;
+if ($database_url) {
+    // Parse the PostgreSQL connection URL
+    $db_config = parse_url($database_url);
+    
+    $servername = $db_config['host'];
+    $port = $db_config['port'] ?? 5432;
+    $username = $db_config['user'];
+    $password = $db_config['pass'];
+    $dbname = ltrim($db_config['path'], '/');
+} else {
+    // Fallback to individual environment variables
+    $servername = getenv('DB_HOST') ?: "localhost";
+    $port = getenv('DB_PORT') ?: "5432";
+    $username = getenv('DB_USER') ?: "postgres";
+    $password = getenv('DB_PASSWORD') ?: "";
+    $dbname = getenv('DB_NAME') ?: "railway";
 }
 
-// SSL mode required for Supabase
-$ssl_mode = 'require';
+error_log("Database connection attempt: {$username}@{$servername}:{$port}/{$dbname}");
+
+// SSL mode - use prefer for Railway (it handles SSL automatically)
+$ssl_mode = 'prefer';
 
 // Create PDO connection for PostgreSQL
 try {
     $dsn = "pgsql:host=$servername;port=$port;dbname=$dbname;sslmode=$ssl_mode;connect_timeout=10";
-    
-    error_log("Attempting connection to: $servername:$port as $username");
     
     $pdo = new PDO(
         $dsn,
@@ -42,7 +49,7 @@ try {
 } catch (PDOException $e) {
     error_log('DATABASE ERROR: ' . $e->getMessage());
     error_log('Host: ' . $servername . ', Port: ' . $port . ', User: ' . $username);
-    error_log('DSN: ' . $dsn);
+    error_log('DSN attempted: pgsql:host=' . $servername . ';port=' . $port . ';dbname=' . $dbname);
     
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Database connection failed']);
