@@ -21,20 +21,29 @@ $ssl_mode = 'require';
 
 // Create PDO connection for PostgreSQL
 try {
+    $dsn = "pgsql:host=$servername;port=$port;dbname=$dbname;sslmode=$ssl_mode;connect_timeout=10";
+    
+    error_log("Attempting connection to: $servername:$port as $username");
+    
     $pdo = new PDO(
-        "pgsql:host=$servername;port=$port;dbname=$dbname;sslmode=$ssl_mode",
+        $dsn,
         $username,
         $password,
         [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
-            PDO::ATTR_TIMEOUT => 5
+            PDO::ATTR_TIMEOUT => 10
         ]
     );
+    
+    error_log("Database connection successful!");
+    
 } catch (PDOException $e) {
-    error_log('Database connection error: ' . $e->getMessage());
-    error_log('Connection attempt: ' . $username . '@' . $servername . ':' . $port);
+    error_log('DATABASE ERROR: ' . $e->getMessage());
+    error_log('Host: ' . $servername . ', Port: ' . $port . ', User: ' . $username);
+    error_log('DSN: ' . $dsn);
+    
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Database connection failed']);
     exit;
