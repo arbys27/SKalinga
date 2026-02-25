@@ -130,7 +130,14 @@ try {
     
     $response = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
     curl_close($ch);
+    
+    error_log("SMS API Response Code: $http_code");
+    error_log("SMS API Response: $response");
+    if ($curl_error) {
+        error_log("cURL Error: $curl_error");
+    }
     
     $sms_response = json_decode($response, true);
     
@@ -148,7 +155,12 @@ try {
             'success' => true,
             'message' => 'Login code has been generated. Check your phone or email.',
             'skip_otp' => false,
-            'phone' => $phone
+            'phone' => $phone,
+            'api_debug' => [
+                'http_code' => $http_code,
+                'response' => $sms_response,
+                'curl_error' => $curl_error
+            ]
         ]);
     }
     

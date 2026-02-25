@@ -105,7 +105,12 @@ try {
             'success' => true,
             'message' => 'OTP has been generated. Check your phone or email.',
             'phone' => $phone,
-            'debug' => 'SMS fallback mode'
+            'debug' => 'SMS fallback mode',
+            'api_response' => [
+                'http_code' => $http_code,
+                'response' => $sms_response,
+                'curl_error' => $curl_error
+            ]
         ]);
     }
     
