@@ -35,20 +35,17 @@ try {
         INNER JOIN youth_profiles yp ON u.id = yp.user_id 
         WHERE yp.phone = ?
     ");
-    $user_stmt->bind_param("s", $phone);
-    $user_stmt->execute();
-    $user_result = $user_stmt->get_result();
+    $user_stmt->execute([$phone]);
+    $user_result = $user_stmt->fetchAll();
     
-    if ($user_result->num_rows === 0) {
+    if (empty($user_result)) {
         http_response_code(401);
         echo json_encode(['success' => false, 'message' => 'Invalid mobile number or OTP']);
-        $user_stmt->close();
         exit;
     }
     
-    $user = $user_result->fetch_assoc();
+    $user = $user_result[0];
     $user_id = $user['id'];
-    $user_stmt->close();
     
     // Verify OTP
     $otp_stmt = $conn->prepare("
@@ -59,23 +56,21 @@ try {
         AND is_used = 0 
         AND expires_at > NOW()
     ");
-    $otp_stmt->bind_param("is", $user_id, $otp_code);
-    $otp_stmt->execute();
-    $otp_result = $otp_stmt->get_result();
+    $otp_stmt->execute([$user_id, $otp_code]);
+    $otp_result = $otp_stmt->fetchAll();
     
-    if ($otp_result->num_rows === 0) {
+    if (empty($otp_result)) {
         // Check if OTP exists but is expired or used
         $check_stmt = $conn->prepare("
             SELECT id, is_used, expires_at 
             FROM password_resets 
             WHERE user_id = ? AND otp_code = ?
         ");
-        $check_stmt->bind_param("is", $user_id, $otp_code);
-        $check_stmt->execute();
-        $check_result = $check_stmt->get_result();
+        $check_stmt->execute([$user_id, $otp_code]);
+        $check_result = $check_stmt->fetchAll();
         
-        if ($check_result->num_rows > 0) {
-            $record = $check_result->fetch_assoc();
+        if (!empty($check_result)) {
+            $record = $check_result[0];
             if ($record['is_used']) {
                 $message = 'OTP has already been used';
             } else {
@@ -84,22 +79,20 @@ try {
         } else {
             $message = 'Invalid OTP';
         }
-        $check_stmt->close();
         
         http_response_code(401);
         echo json_encode(['success' => false, 'message' => $message]);
         exit;
     }
     
-    $otp_record = $otp_result->fetch_assoc();
+    $otp_record = $otp_result[0];
     $otp_id = $otp_record['id'];
-    $otp_stmt->close();
     
     // Begin transaction
-    $conn->begin_transaction();
+    $conn->beginTransaction();
     
     // Hash new password
-    $password_hash = password_hash($new_password, PASSWORD_DEFAULT);
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
     
     // Update user password
     $update_stmt = $conn->prepare("
@@ -107,21 +100,17 @@ try {
         SET password_hash = ?, password_updated_at = CURRENT_TIMESTAMP 
         WHERE id = ?
     ");
-    $update_stmt->bind_param("si", $password_hash, $user_id);
     
-    if (!$update_stmt->execute()) {
+    if (!$update_stmt->execute([$password_hash, $user_id])) {
         throw new Exception("Failed to update password");
     }
-    $update_stmt->close();
     
     // Mark OTP as used
     $mark_used = $conn->prepare("UPDATE password_resets SET is_used = 1 WHERE id = ?");
-    $mark_used->bind_param("i", $otp_id);
     
-    if (!$mark_used->execute()) {
+    if (!$mark_used->execute([$otp_id])) {
         throw new Exception("Failed to mark OTP as used");
     }
-    $mark_used->close();
     
     // Commit transaction
     $conn->commit();
@@ -132,10 +121,9 @@ try {
     ]);
     
 } catch (Exception $e) {
-    $conn->rollback();
+    $conn->rollBack();
     http_response_code(500);
+    error_log('Password reset error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-} finally {
-    $conn->close();
 }
 ?>
