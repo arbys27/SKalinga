@@ -363,22 +363,30 @@
       body: formData,
       credentials: 'include'
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        showToast(data.message || 'Login successful!', 'success');
-        setTimeout(() => {
-          window.location.href = data.redirect || 'youth-portal.html';
-        }, 1500);
-      } else {
-        showToast(data.message || 'Login failed', 'error');
+    .then(response => response.text())
+    .then(responseText => {
+      try {
+        const data = JSON.parse(responseText);
+        if (data.success) {
+          showToast(data.message || 'Login successful!', 'success');
+          setTimeout(() => {
+            window.location.href = data.redirect || 'youth-portal.html';
+          }, 1500);
+        } else {
+          showToast(data.message || 'Login failed', 'error');
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'Continue';
+        }
+      } catch (parseError) {
+        console.error('Failed to parse login response:', responseText);
+        showToast('Server error: Please try again.', 'error');
         loginBtn.disabled = false;
         loginBtn.textContent = 'Continue';
       }
     })
     .catch(error => {
-      console.error('Error:', error);
-      showToast('An error occurred. Please try again.', 'error');
+      console.error('Login fetch error:', error);
+      showToast('Network error: Please check your connection.', 'error');
       loginBtn.disabled = false;
       loginBtn.textContent = 'Continue';
     });
@@ -458,7 +466,20 @@
         body: JSON.stringify({ phone: phone })
       });
 
-      const data = await response.json();
+      // Get response text first to see what we're actually getting
+      const responseText = await response.text();
+      
+      // Try to parse as JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse JSON response. Response text:', responseText);
+        showToast('Server error: Invalid response. Please check your connection.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Send SMS Code';
+        return;
+      }
 
       if (data.success) {
         resetState.phone = phone;
@@ -467,6 +488,7 @@
         
         setTimeout(() => {
           showStep2();
+          startOtpTimer();
         }, 1500);
       } else {
         showToast(data.message || 'Failed to send SMS code', 'error');
@@ -474,8 +496,8 @@
         btn.textContent = 'Send SMS Code';
       }
     } catch (error) {
-      console.error('Error:', error);
-      showToast('An error occurred. Please try again.', 'error');
+      console.error('Fetch error:', error);
+      showToast('Network error: Please check your internet connection.', 'error');
       btn.disabled = false;
       btn.textContent = 'Send SMS Code';
     }
@@ -578,10 +600,21 @@
         body: JSON.stringify({ phone: resetState.phone })
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse JSON response:', responseText);
+        showToast('Server error: Could not resend code.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Resend Code';
+        return;
+      }
 
       if (data.success) {
-        showToast('New code sent to your mobile number!', 'success');
+        showToast('New SMS code sent to your mobile number!', 'success');
 
         // Clear OTP inputs
         document.querySelectorAll('.otp-input-field').forEach(input => input.value = '');
@@ -595,8 +628,8 @@
         btn.textContent = 'Resend Code';
       }
     } catch (error) {
-      console.error('Error:', error);
-      showToast('An error occurred. Please try again.', 'error');
+      console.error('Fetch error:', error);
+      showToast('Network error: Please check your connection.', 'error');
       btn.disabled = false;
       btn.textContent = 'Resend Code';
     }
@@ -637,7 +670,18 @@
         })
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse reset response:', responseText);
+        showToast('Server error: Could not reset password.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Reset Password';
+        return;
+      }
 
       if (data.success) {
         showSuccess();
@@ -647,8 +691,8 @@
         btn.textContent = 'Reset Password';
       }
     } catch (error) {
-      console.error('Error:', error);
-      showToast('An error occurred. Please try again.', 'error');
+      console.error('Reset password fetch error:', error);
+      showToast('Network error: Please check your connection.', 'error');
       btn.disabled = false;
       btn.textContent = 'Reset Password';
     }
