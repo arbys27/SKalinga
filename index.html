@@ -165,10 +165,11 @@
 
     <!-- Step 1: Enter Mobile Number -->
     <div id="reset-step-1" class="reset-step">
-      <form id="emailForm" novalidate>
+      <form id="smsResetForm" novalidate>
         <label for="reset-mobile">Mobile Number</label>
+        <div class="step-description" style="font-size: 0.85rem; color: var(--text-gray); margin-bottom: 12px;">We'll send a 6-digit code to your SMS</div>
         <input type="text" id="reset-mobile" name="phone" placeholder="09123456789">
-        <button type="submit" class="btn">Send Reset Code</button>
+        <button type="submit" class="btn">Send SMS Code</button>
       </form>
       <div class="reset-footer">
         <a href="#" id="back-to-login" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Back to Login</a>
@@ -198,7 +199,7 @@
       </div>
 
       <div class="reset-footer">
-        <a href="#" id="back-to-email" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Change Mobile Number</a>
+        <a href="#" id="back-to-phone" style="font-size: 0.9rem; color: var(--primary-green); text-decoration: none;">← Change Mobile Number</a>
       </div>
     </div>
 
@@ -433,9 +434,9 @@
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // STEP 1: EMAIL SUBMISSION
+  // STEP 1: MOBILE NUMBER SUBMISSION FOR SMS OTP
   // ═══════════════════════════════════════════════════════════════════
-  document.getElementById('emailForm').addEventListener('submit', async function(e) {
+  document.getElementById('smsResetForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const phone = document.getElementById('reset-mobile').value.trim();
@@ -448,7 +449,7 @@
     }
     
     btn.disabled = true;
-    btn.textContent = 'Sending...';
+    btn.textContent = 'Sending SMS Code...';
 
     try {
       const response = await fetch('api/request_password_reset.php', {
@@ -462,21 +463,21 @@
       if (data.success) {
         resetState.phone = phone;
         resetState.userId = data.user_id;
-        showToast('Reset code sent to your mobile number!', 'success');
+        showToast('SMS code sent to your mobile number!', 'success');
         
         setTimeout(() => {
           showStep2();
         }, 1500);
       } else {
-        showToast(data.message || 'Failed to send reset code', 'error');
+        showToast(data.message || 'Failed to send SMS code', 'error');
         btn.disabled = false;
-        btn.textContent = 'Send Reset Code';
+        btn.textContent = 'Send SMS Code';
       }
     } catch (error) {
       console.error('Error:', error);
       showToast('An error occurred. Please try again.', 'error');
       btn.disabled = false;
-      btn.textContent = 'Send Reset Code';
+      btn.textContent = 'Send SMS Code';
     }
   });
 
@@ -670,7 +671,7 @@
     resetState = { phone: '', otp: '', userId: null, resetToken: null };
   });
 
-  document.getElementById('back-to-email').addEventListener('click', function(e) {
+  document.getElementById('back-to-phone').addEventListener('click', function(e) {
     e.preventDefault();
     // Clear timer
     if (otpTimerInterval) {
