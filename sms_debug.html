@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SMS OTP Debug & Test</title>
+    <link rel="icon" type="image/x-icon" href="/SKalinga/assets/icons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/SKalinga/assets/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/SKalinga/assets/icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/SKalinga/assets/icons/apple-touch-icon.png">
+    <link rel="manifest" href="/SKalinga/assets/icons/site.webmanifest">
+    <meta name="msapplication-config" content="/SKalinga/assets/icons/browserconfig.xml">
+    <meta name="theme-color" content="#FF6B9D">
+    <link rel="stylesheet" href="assets/css/loader.css?v=3">
     <style>
         * {
             margin: 0;
@@ -186,22 +194,6 @@
             font-size: 13px;
         }
         
-        .loader {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 2px solid #667eea;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 0.6s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
         .info-box {
             background: #e7f3ff;
             border-left: 4px solid #2196F3;
@@ -214,6 +206,7 @@
     </style>
 </head>
 <body>
+    <script src="assets/js/loader.js?v=3"></script>
     <div class="container">
         <h1>🚀 SMS OTP Debug & Test</h1>
         <p class="subtitle">Test sending OTP to your phone number</p>
@@ -292,7 +285,7 @@
             
             // Start loading
             sendBtn.disabled = true;
-            sendBtn.innerHTML = '<span class="loader"></span>Sending...';
+            sendBtn.textContent = 'Sending...';
             showResponse('pending', 'Attempting to send OTP...');
             
             try {

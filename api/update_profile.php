@@ -1,12 +1,14 @@
 <?php
 // Update user profile
 require_once 'db_connect.php';
+require_once __DIR__ . '/security_helpers.php';
 
 header('Content-Type: application/json');
 
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    require_once __DIR__ . '/../includes/request.php';
+    secureSessionStart();
 }
 
 // Validate session
@@ -23,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
     exit;
 }
+securityRequireCsrf();
 
 try {
     // Get updatable fields
@@ -65,7 +68,7 @@ try {
     
     // Begin transaction
     $pdo->beginTransaction();
-    
+
     // Update profile if any fields provided
     $update_fields = [];
     $params = [];
@@ -130,8 +133,11 @@ try {
     ]);
     
 } catch (Exception $e) {
-    $pdo->rollBack();
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    error_log('[Profile] Update failed: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Unable to update the profile.']);
 }
 ?>

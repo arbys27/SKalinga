@@ -2,9 +2,9 @@
 // get_borrow_records.php - Fetch all borrow records with resource info
 header('Content-Type: application/json');
 
-require_once 'db.php';
-
-session_start();
+require_once 'db_connect.php';
+require_once 'auth.php';
+requireAdminApi();
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin_id'])) {
@@ -28,6 +28,7 @@ try {
             br.borrow_date,
             br.due_date,
             br.return_date,
+            br.return_condition,
             br.status,
             r.name as item_name,
             r.description
@@ -45,16 +46,18 @@ try {
     ]);
 
 } catch (PDOException $e) {
+    error_log('[Borrow] Record list query failed: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'Database error: ' . $e->getMessage()
+        'error' => 'Unable to retrieve borrow records.'
     ]);
 } catch (Exception $e) {
+    error_log('[Borrow] Record list query failed: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'Error: ' . $e->getMessage()
+        'error' => 'Unable to retrieve borrow records.'
     ]);
 }
 ?>

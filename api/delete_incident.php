@@ -3,12 +3,15 @@
 
 // Start session
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    require_once __DIR__ . '/../includes/request.php';
+    secureSessionStart();
 }
 
 header('Content-Type: application/json');
 
 require 'db_connect.php';
+require_once 'auth.php';
+requireAdminApi();
 
 // Check if admin is authenticated
 if (!isset($_SESSION['admin_authenticated']) || $_SESSION['admin_authenticated'] !== true) {

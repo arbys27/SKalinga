@@ -1,14 +1,24 @@
-FROM php:8.2-cli
+FROM php:8.2-apache
 
-# Install PostgreSQL development libraries
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    && docker-php-ext-install pdo_pgsql pgsql \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libcurl4-openssl-dev libpq-dev \
+    && docker-php-ext-install curl fileinfo pdo_pgsql pgsql \
+    && a2enmod headers rewrite \
+    && cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
+    && printf '%s\n' \
+        'display_errors=Off' \
+        'log_errors=On' \
+        'error_log=/proc/self/fd/2' \
+        > "$PHP_INI_DIR/conf.d/zz-railway.ini" \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-
+WORKDIR /var/www/html
 COPY . .
+COPY assets/images/events/ /opt/skalinga-event-seeds/
+COPY docker/000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY scripts/railway-entrypoint.sh /usr/local/bin/railway-entrypoint
+RUN chmod 0755 /usr/local/bin/railway-entrypoint
 
-CMD ["sh", "-c", "php -S 0.0.0.0:$PORT"]
+ENTRYPOINT ["railway-entrypoint"]
+CMD ["apache2-foreground"]

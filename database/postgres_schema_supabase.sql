@@ -81,6 +81,7 @@ CREATE TABLE borrow_records (
     borrow_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     due_date TIMESTAMP WITH TIME ZONE NOT NULL,
     return_date TIMESTAMP WITH TIME ZONE NULL,
+    return_condition VARCHAR(500) NULL,
     status VARCHAR(20) DEFAULT 'Borrowed' CHECK (status IN ('Borrowed', 'Returned', 'Overdue')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -240,25 +241,6 @@ SELECT
     yp.updated_at as profile_updated_at
 FROM users u
 LEFT JOIN youth_profiles yp ON u.id = yp.user_id;
-
--- ============================================================================
--- SAMPLE DATA (Optional - for testing)
--- ============================================================================
-
--- Sample admin account (password: admin123 - CHANGE THIS IN PRODUCTION)
-INSERT INTO admins (username, email, password_hash, role, status, created_at) VALUES
-('admin', 'admin@skalinga.local', '$2y$10$LK9f0DKfW25j2lfWGANRGuyaZkjznOAefR3W1WBYRdLp1z8ixsplm', 'superadmin', 'active', CURRENT_TIMESTAMP)
-ON CONFLICT (username) DO NOTHING;
-
--- Sample user
-INSERT INTO users (email, password_hash, member_id, status, email_verified, created_at) VALUES
-('juan@example.com', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36mB6Nz6', 'SK-2026-0001', 'active', TRUE, CURRENT_TIMESTAMP)
-ON CONFLICT (email) DO NOTHING;
-
--- Sample youth profile (adjust user_id if needed)
-INSERT INTO youth_profiles (user_id, firstname, lastname, gender, phone, address, barangay, created_at) VALUES
-(1, 'Juan', 'Dela Cruz', 'Male', '09123456789', '123 Sample St. Barangay Name', 'San Antonio', CURRENT_TIMESTAMP)
-ON CONFLICT (user_id) DO NOTHING;
 
 -- ============================================================================
 -- NOTE: Row Level Security (RLS) can be enabled after data import

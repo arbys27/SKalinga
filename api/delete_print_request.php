@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
-session_start();
+require_once 'auth.php';
+requireAdminApi();
 
 // Check if user is logged in (admin session required)
 if (!isset($_SESSION['admin_id'])) {
@@ -10,7 +11,7 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 try {
-    require_once 'db.php';
+    require_once 'db_connect.php';
     
     // Get request data
     $data = json_decode(file_get_contents('php://input'), true);
@@ -32,8 +33,8 @@ try {
     }
     
 } catch (Exception $e) {
+    error_log('[Print] Request deletion failed: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Unable to delete the print request.']);
 }
 ?>
-

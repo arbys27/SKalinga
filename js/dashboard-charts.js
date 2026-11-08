@@ -1,97 +1,135 @@
-// Dashboard analytics charts using Chart.js
-// This file assumes Chart.js is loaded via CDN in the HTML
+(() => {
+    const palette = ['#FF6B9D', '#5DADE2', '#228B57', '#A8E6CF'];
+    const charts = new Map();
+    let refreshTimer;
 
-document.addEventListener('DOMContentLoaded', function () {
-    // Youth Registration Trend
-    if (document.getElementById('youthTrendChart')) {
-        new Chart(document.getElementById('youthTrendChart').getContext('2d'), {
-            type: 'line',
+    function setEmptyState(canvas, message) {
+        const cardBody = canvas.parentElement;
+        let empty = cardBody.querySelector('[data-chart-empty]');
+
+        if (!empty) {
+            empty = document.createElement('p');
+            empty.className = 'empty';
+            empty.dataset.chartEmpty = 'true';
+            empty.setAttribute('role', 'status');
+            cardBody.appendChild(empty);
+        }
+
+        empty.textContent = message;
+        canvas.hidden = true;
+    }
+
+    function clearEmptyState(canvas) {
+        const empty = canvas.parentElement.querySelector('[data-chart-empty]');
+        if (empty) empty.remove();
+        canvas.hidden = false;
+    }
+
+    function renderChart(id, type, series, dataset, options = {}) {
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+
+        if (charts.has(id)) {
+            charts.get(id).destroy();
+            charts.delete(id);
+        }
+
+        const labels = Array.isArray(series && series.labels) ? series.labels : [];
+        const values = Array.isArray(series && series.values)
+            ? series.values.map(value => Number(value) || 0)
+            : [];
+
+        if (!labels.length || !values.some(value => value !== 0)) {
+            setEmptyState(canvas, 'No data yet');
+            return;
+        }
+
+        if (typeof window.Chart !== 'function') {
+            setEmptyState(canvas, 'Chart library is unavailable');
+            return;
+        }
+
+        clearEmptyState(canvas);
+        const colors = labels.map((_, index) => palette[index % palette.length]);
+        const config = {
+            type,
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                labels,
                 datasets: [{
-                    label: 'Registrations',
-                    data: [120, 135, 150, 170, 200, 220, 210, 230, 250, 270, 300, 320],
-                    borderColor: '#228B57',
-                    backgroundColor: 'rgba(34,139,87,0.08)',
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#228B57',
+                    ...dataset,
+                    data: values,
+                    backgroundColor: type === 'line'
+                        ? dataset.backgroundColor
+                        : colors
                 }]
             },
             options: {
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true }
-                }
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: type === 'doughnut', position: 'bottom' } },
+                scales: type === 'doughnut' ? undefined : {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                },
+                ...options
             }
-        });
+        };
+
+        charts.set(id, new window.Chart(canvas.getContext('2d'), config));
     }
 
-    // Events Pie Chart
-    if (document.getElementById('eventsPieChart')) {
-        new Chart(document.getElementById('eventsPieChart').getContext('2d'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Sports', 'Seminars', 'Community', 'Health', 'Others'],
-                datasets: [{
-                    data: [8, 6, 5, 4, 5],
-                    backgroundColor: ['#5DADE2', '#FF6B9D', '#228B57', '#A8E6CF', '#F5F7F8'],
-                    borderWidth: 2,
-                }]
-            },
-            options: {
-                plugins: { legend: { position: 'bottom' } },
-                cutout: '70%',
+    async function refreshCharts() {
+        try {
+            const response = await fetch(`api/dashboard/charts.php?t=${Date.now()}`, {
+                cache: 'no-store',
+                headers: { Accept: 'application/json' }
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Unable to load dashboard charts.');
             }
-        });
+
+            renderChart('youthTrendChart', 'line', result.youth_trend, {
+                label: 'Registrations',
+                borderColor: palette[2],
+                backgroundColor: 'rgba(34,139,87,0.12)',
+                pointBackgroundColor: palette[2],
+                tension: 0.35,
+                fill: true
+            });
+            renderChart('eventsPieChart', 'doughnut', result.events_by_category, {
+                borderColor: '#fff',
+                borderWidth: 2
+            }, { cutout: '70%' });
+            renderChart('resourcesBarChart', 'bar', result.resources_top, {
+                label: 'Borrow records',
+                backgroundColor: palette[2],
+                borderRadius: 8
+            });
+            renderChart('healthLineChart', 'line', result.health_by_month, {
+                label: 'Announcements',
+                borderColor: palette[1],
+                backgroundColor: 'rgba(93,173,226,0.12)',
+                pointBackgroundColor: palette[1],
+                tension: 0.35,
+                fill: true
+            });
+        } catch (error) {
+            console.error('Dashboard chart refresh failed:', error);
+            document.querySelectorAll('#youthTrendChart, #eventsPieChart, #resourcesBarChart, #healthLineChart')
+                .forEach(canvas => setEmptyState(canvas, 'Unable to load chart data'));
+        }
     }
 
-    // Resources Bar Chart
-    if (document.getElementById('resourcesBarChart')) {
-        new Chart(document.getElementById('resourcesBarChart').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: ['Chairs', 'Tents', 'Sound', 'Lights', 'Sports'],
-                datasets: [{
-                    label: 'Borrowed',
-                    data: [40, 30, 25, 20, 41],
-                    backgroundColor: '#228B57',
-                    borderRadius: 8,
-                }]
-            },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
+    function scheduleRefresh() {
+        clearInterval(refreshTimer);
+        refreshTimer = setInterval(refreshCharts, 60000);
     }
 
-    // Health Consults
-    if (document.getElementById('healthLineChart')) {
-        new Chart(document.getElementById('healthLineChart').getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                datasets: [{
-                    label: 'Consults',
-                    data: [2, 3, 4, 5, 6, 7, 8, 7, 6, 8, 10, 13],
-                    borderColor: '#5DADE2',
-                    backgroundColor: 'rgba(93,173,226,0.08)',
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#5DADE2',
-                }]
-            },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-    }
-});
+    document.addEventListener('DOMContentLoaded', () => {
+        refreshCharts();
+        scheduleRefresh();
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') refreshCharts();
+    });
+})();

@@ -3,7 +3,8 @@
 require_once 'db_connect.php';
 
 // Start session
-session_start();
+require_once __DIR__ . '/../includes/request.php';
+secureSessionStart();
 
 // Check if user is logged in
 if (!isset($_SESSION['member_id'])) {
@@ -87,7 +88,8 @@ try {
     echo json_encode(['success' => true, 'message' => 'Profile updated successfully']);
 
 } catch (PDOException $e) {
+    error_log('[User] Profile update failed: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Failed to update profile: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Unable to update the profile.']);
 }
 ?>

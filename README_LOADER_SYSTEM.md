@@ -181,7 +181,7 @@ window.Loader.setAnimation('shield');  // or 'dots', 'svg', 'spinner'
 
 ```
 Core Pages:
-□ login-admin.html
+□ login.html
 □ admin-dashboard.html (Optional: use 'spinner' animation)
 □ youth-portal.html
 
@@ -192,7 +192,7 @@ Management Pages:
 
 User Pages:
 □ login.html
-□ register.html
+□ youth-register.html
 □ profile.html
 □ borrow.html
 □ print.html
@@ -248,7 +248,7 @@ setTimeout(() => {
 
 ### Example 3: Change Animation Per Page
 ```javascript
-// In login-admin.html
+// In login.html
 <script>window.Loader.setAnimation('shield');</script>
 
 // In dashboard.html
@@ -498,7 +498,7 @@ window.Loader.setAnimation('shield');
 
 1. **Use Shield Animation for Auth Pages**
    ```javascript
-   // login-admin.html, login.html
+   // login.html
    window.Loader.setAnimation('shield');
    ```
 

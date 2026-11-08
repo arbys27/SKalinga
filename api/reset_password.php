@@ -1,8 +1,8 @@
 <?php
-// Reset password using OTP
-require_once 'db_connect.php';
+require_once __DIR__ . '/security_helpers.php';
+require_once __DIR__ . '/../includes/turnstile.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -10,120 +10,109 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Get JSON body since frontend sends JSON
 $input = json_decode(file_get_contents('php://input'), true);
-$phone = trim($input['phone'] ?? '');
-$otp_code = trim($input['otp_code'] ?? '');
-$password = $input['password'] ?? '';
-
-// Validation
-$errors = [];
-if (empty($phone) || !preg_match('/^[0-9]{11}$/', $phone)) $errors[] = "Valid 11-digit mobile number is required";
-if (empty($otp_code) || strlen($otp_code) !== 6) $errors[] = "Valid 6-digit OTP is required";
-if (strlen($password) < 8) $errors[] = "Password must be at least 8 characters";
-
-if (!empty($errors)) {
+$verification = verifyTurnstile(
+    is_array($input) && is_string($input['cf-turnstile-response'] ?? null) ? $input['cf-turnstile-response'] : '',
+    'reset_password'
+);
+if (!$verification['success']) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Validation failed', 'errors' => $errors]);
+    echo json_encode(['success' => false, 'message' => $verification['message']]);
+    exit;
+}
+
+require_once 'db_connect.php';
+
+$emailValue = is_array($input) ? ($input['email'] ?? null) : null;
+$otpValue = is_array($input) ? ($input['otp_code'] ?? null) : null;
+$email = is_string($emailValue) ? trim($emailValue) : '';
+$otpCode = is_string($otpValue) ? trim($otpValue) : '';
+$password = is_array($input) ? ($input['password'] ?? '') : '';
+
+$errors = [];
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errors[] = 'Enter a valid email address.';
+}
+if (!preg_match('/^\d{6}$/', $otpCode)) {
+    $errors[] = 'Enter the 6-digit OTP.';
+}
+if (!is_string($password) || strlen($password) < 8) {
+    $errors[] = 'Password must be at least 8 characters.';
+}
+
+if ($errors) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Validation failed.', 'errors' => $errors]);
     exit;
 }
 
 try {
-    // Find user by phone - join users and youth_profiles tables
-    $user_stmt = $conn->prepare("
-        SELECT u.id FROM users u 
-        INNER JOIN youth_profiles yp ON u.id = yp.user_id 
-        WHERE yp.phone = ?
-    ");
-    $user_stmt->execute([$phone]);
-    $user_result = $user_stmt->fetchAll();
-    
-    if (empty($user_result)) {
-        http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Invalid mobile number or OTP']);
+    $userStmt = $pdo->prepare(
+        'SELECT id FROM users WHERE LOWER(email) = LOWER(?) AND status = ? LIMIT 1'
+    );
+    $userStmt->execute([$email, 'active']);
+    $user = $userStmt->fetch();
+
+    if (!$user) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid or expired OTP. Request a new code and try again.']);
         exit;
     }
-    
-    $user = $user_result[0];
-    $user_id = $user['id'];
-    
-    // Verify OTP
-    $otp_stmt = $conn->prepare("
-        SELECT id 
-        FROM password_resets 
-        WHERE user_id = ? 
-        AND otp_code = ? 
-        AND is_used = 0 
-        AND expires_at > NOW()
-    ");
-    $otp_stmt->execute([$user_id, $otp_code]);
-    $otp_result = $otp_stmt->fetchAll();
-    
-    if (empty($otp_result)) {
-        // Check if OTP exists but is expired or used
-        $check_stmt = $conn->prepare("
-            SELECT id, is_used, expires_at 
-            FROM password_resets 
-            WHERE user_id = ? AND otp_code = ?
-        ");
-        $check_stmt->execute([$user_id, $otp_code]);
-        $check_result = $check_stmt->fetchAll();
-        
-        if (!empty($check_result)) {
-            $record = $check_result[0];
-            if ($record['is_used']) {
-                $message = 'OTP has already been used';
-            } else {
-                $message = 'OTP has expired. Please request a new one';
-            }
-        } else {
-            $message = 'Invalid OTP';
+
+    $pdo->beginTransaction();
+    $resetStmt = $pdo->prepare(
+        'SELECT id, otp_code, otp_attempts
+         FROM password_resets
+        WHERE user_id = ? AND is_used = FALSE AND expires_at > CURRENT_TIMESTAMP
+         ORDER BY created_at DESC, id DESC
+         LIMIT 1
+         FOR UPDATE'
+    );
+    $resetStmt->execute([$user['id']]);
+    $reset = $resetStmt->fetch();
+
+    if (!$reset || (int)$reset['otp_attempts'] >= 5) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
         }
-        
-        http_response_code(401);
-        echo json_encode(['success' => false, 'message' => $message]);
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid or expired OTP. Request a new code and try again.']);
         exit;
     }
-    
-    $otp_record = $otp_result[0];
-    $otp_id = $otp_record['id'];
-    
-    // Begin transaction
-    $conn->beginTransaction();
-    
-    // Hash new password
-    $password_hash = password_hash($password, PASSWORD_DEFAULT);
-    
-    // Update user password
-    $update_stmt = $conn->prepare("
-        UPDATE users 
-        SET password_hash = ?, password_updated_at = CURRENT_TIMESTAMP 
-        WHERE id = ?
-    ");
-    
-    if (!$update_stmt->execute([$password_hash, $user_id])) {
-        throw new Exception("Failed to update password");
+
+    if (!hash_equals((string)$reset['otp_code'], otpCodeHash($otpCode))) {
+        $attempts = (int)$reset['otp_attempts'] + 1;
+        $attemptStmt = $pdo->prepare(
+            'UPDATE password_resets SET otp_attempts = ?, is_used = ? WHERE id = ?'
+        );
+        $attemptStmt->bindValue(1, $attempts, PDO::PARAM_INT);
+        $attemptStmt->bindValue(2, $attempts >= 5, PDO::PARAM_BOOL);
+        $attemptStmt->bindValue(3, (int)$reset['id'], PDO::PARAM_INT);
+        $attemptStmt->execute();
+        $pdo->commit();
+
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid or expired OTP. Request a new code and try again.']);
+        exit;
     }
-    
-    // Mark OTP as used
-    $mark_used = $conn->prepare("UPDATE password_resets SET is_used = 1 WHERE id = ?");
-    
-    if (!$mark_used->execute([$otp_id])) {
-        throw new Exception("Failed to mark OTP as used");
-    }
-    
-    // Commit transaction
-    $conn->commit();
-    
+
+    $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+    $updateStmt = $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
+    $updateStmt->execute([$passwordHash, $user['id']]);
+
+    $usedStmt = $pdo->prepare('UPDATE password_resets SET is_used = TRUE WHERE id = ?');
+    $usedStmt->execute([$reset['id']]);
+    $pdo->commit();
+
     echo json_encode([
         'success' => true,
-        'message' => 'Password has been reset successfully. Please login with your new password.'
+        'message' => 'Password reset successfully. Sign in with your new password.'
     ]);
-    
-} catch (Exception $e) {
-    $conn->rollBack();
+} catch (Throwable $exception) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    error_log('[Password Reset Error] ' . $exception->getMessage());
     http_response_code(500);
-    error_log('Password reset error: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Unable to reset the password right now.']);
 }
-?>

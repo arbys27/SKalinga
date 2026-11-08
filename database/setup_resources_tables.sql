@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS `borrow_records` (
     `borrow_date` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Date and time item was borrowed',
     `due_date` DATETIME NOT NULL COMMENT 'Expected return date',
     `return_date` DATETIME NULL COMMENT 'Actual return date (NULL if still borrowed)',
+    `return_condition` VARCHAR(500) NULL COMMENT 'Condition recorded when the item was returned',
     `status` ENUM('Borrowed', 'Returned', 'Overdue') DEFAULT 'Borrowed' COMMENT 'Current borrowing status',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Record creation timestamp',
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update timestamp',

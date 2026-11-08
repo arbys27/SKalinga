@@ -275,30 +275,6 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   Loading Text
-   ───────────────────────────────────────────────────────────────── */
-.loader-text {
-  font-size: 16px;
-  color: #000 !important;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  min-height: 18px;
-  text-align: center;
-  display: block;
-  margin-top: 16px;
-  text-shadow: none;
-}
-
-.loader-text.typing {
-  animation: textTyping 1.5s ease-in-out infinite;
-}
-
-@keyframes textTyping {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-/* ─────────────────────────────────────────────────────────────────
    Fade Animations
    ───────────────────────────────────────────────────────────────── */
 @keyframes fadeInLoader {
@@ -369,7 +345,6 @@
   .shield-icon::before,
   .loader-svg svg,
   .dot,
-  .loader-text.typing,
   .progress-fill {
     animation: none !important;
     opacity: 1 !important;
@@ -438,11 +413,6 @@
     height: 60px;
   }
 
-  .loader-text {
-    font-size: 13px;
-    color: #000 !important;
-  }
-
   .loader-progress-bar {
     max-width: 200px;
     height: 3px;
@@ -480,10 +450,6 @@
    Dark Mode Support
    ──────────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  .loader-text {
-    color: #e0e0e0;
-  }
-
   .loader-overlay {
     background: transparent;
   }

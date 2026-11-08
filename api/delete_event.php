@@ -3,6 +3,8 @@
 header('Content-Type: application/json');
 
 require 'db_connect.php';
+require_once 'auth.php';
+requireAdminApi();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'error' => 'Invalid request method']);
@@ -52,10 +54,11 @@ try {
     ]);
     
 } catch (Exception $e) {
-    http_response_code(400);
+    error_log('[Events] Deletion failed: ' . $e->getMessage());
+    http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => $e->getMessage()
+        'error' => 'Unable to delete the event.'
     ]);
 }
 

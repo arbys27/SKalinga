@@ -3,12 +3,15 @@
 
 // Start session
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    require_once __DIR__ . '/../includes/request.php';
+    secureSessionStart();
 }
 
 header('Content-Type: application/json');
 
 require 'db_connect.php';
+require_once 'auth.php';
+requireAdminApi();
 
 // Check if admin is authenticated
 if (!isset($_SESSION['admin_authenticated']) || $_SESSION['admin_authenticated'] !== true) {
@@ -27,8 +30,9 @@ if (!isset($pdo)) {
 try {
     // Join through users table (via member_id) to youth_profiles to get incident details with member info
     $query = "
-        SELECT i.id, i.member_id, i.category, i.description, i.location, i.urgency, 
+        SELECT i.id, i.member_id, i.category, i.description, i.location, i.urgency,
                i.status, i.photo_path, i.submitted_date, i.admin_notes,
+               i.assigned_to, i.handler_name, i.resolution_notes, i.resolved_at, i.closed_at,
                COALESCE(p.firstname, 'Unknown') as firstname,
                COALESCE(p.lastname, 'User') as lastname,
                COALESCE(p.phone, 'N/A') as phone,
@@ -44,6 +48,18 @@ try {
     $stmt = $pdo->prepare($query);
     $stmt->execute();
     $incidents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($incidents as &$incident) {
+        $photos = json_decode((string)($incident['photo_path'] ?? ''), true);
+        if (!is_array($photos)) {
+            $photos = !empty($incident['photo_path']) ? [$incident['photo_path']] : [];
+        }
+        $photos = array_values($photos);
+        $incident['photo_path'] = json_encode(array_values(array_map(
+            static fn(int $index): string => 'api/get_upload.php?type=incident&id=' . (int)$incident['id'] . '&file=' . $index,
+            array_keys($photos)
+        )), JSON_UNESCAPED_SLASHES);
+    }
+    unset($incident);
     
     echo json_encode([
         'success' => true,
@@ -52,7 +68,8 @@ try {
     
 } catch (PDOException $e) {
     error_log('Database error in get_incidents.php: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Unable to retrieve incidents.']);
     exit;
 }
 ?>

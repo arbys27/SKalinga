@@ -3,450 +3,505 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SKalinga - Admin Dashboard</title>
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script defer src="js/dashboard-charts.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <title>SKalinga - Admin Home</title>
+    <link rel="icon" type="image/x-icon" href="/SKalinga/assets/icons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/SKalinga/assets/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/SKalinga/assets/icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/SKalinga/assets/icons/apple-touch-icon.png">
+    <link rel="manifest" href="/SKalinga/assets/icons/site.webmanifest">
+    <meta name="msapplication-config" content="/SKalinga/assets/icons/browserconfig.xml">
+    <meta name="theme-color" content="#FF6B9D">
+    <link rel="preload" as="image" href="assets/images/sk-home-bg.webp" type="image/webp" media="(min-width: 901px)">
+    <!-- Chart.js and dashboard-charts.js removed: this page is now a homescreen, not analytics -->
+    <script defer src="js/dashboard-data.js"></script>
 
-    <!-- Professional Loader System -->
-    <link rel="stylesheet" href="assets/css/loader.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+    <link rel="stylesheet" href="assets/css/loader.css?v=3">
 
     <style>
-        /* User Profile Card - Themed Design */
-        .user-profile-card {
+        :root {
+            --glass: rgba(90, 8, 48, 0.68);
+            --glass-border: rgba(255, 255, 255, 0.28);
+            --text: #fff;
+            --muted: #b8c3d6;
+            --sidebar-w: 280px;
+        }
+
+        html, body { height: 100%; margin: 0; }
+        body {
             position: relative;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 14px 18px;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.88) 100%);
-            border-radius: 14px;
-            border: 2px solid rgba(93, 173, 226, 0.3);
+            isolation: isolate;
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: #c42660 !important;
             overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 24px rgba(93, 173, 226, 0.15);
-            backdrop-filter: blur(10px);
         }
 
-        /* Animated gradient border on hover */
-        .user-profile-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255, 107, 157, 0.1), rgba(93, 173, 226, 0.1));
-            border-radius: 14px;
+        /* Keep the dashboard full-width and make the sidebar an off-canvas drawer. */
+        .app-container { display: block !important; height: 100vh; height: 100dvh; position: relative; z-index: 1; }
+        .wallpaper {
+            position: fixed;
+            inset: 0;
             z-index: -1;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            pointer-events: none;
+            background-color: #c42660;
+            background-image: url('assets/images/sk-home-bg.jpg');
+            background-image: image-set(url('assets/images/sk-home-bg.webp') type('image/webp'), url('assets/images/sk-home-bg.jpg') type('image/jpeg'));
+            background-size: cover;
+            background-position: center;
         }
 
-        .user-profile-card:hover::before {
+        .sidebar {
+            position: fixed !important;
+            top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-w);
+            border-right: 1px solid rgba(255,255,255,.25);
+            z-index: 1200;
+            box-sizing: border-box;
+            transform: translateX(-104%);
+            visibility: hidden;
+            transition: transform .38s cubic-bezier(.32,.72,0,1), visibility 0s linear .38s;
+            overflow-y: auto;
+            box-shadow: none;
+            animation: none;
+        }
+        body.sidebar-open .sidebar {
+            transform: none;
+            visibility: visible;
+            transition: transform .38s cubic-bezier(.32,.72,0,1), visibility 0s;
+            box-shadow: 0 0 60px rgba(40,0,20,.5);
+        }
+        .sidebar-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(40, 0, 20, 0.42);
+            backdrop-filter: blur(4px);
+            opacity: 0; pointer-events: none;
+            visibility: hidden;
+            transition: opacity .3s ease, visibility 0s linear .3s;
+            z-index: 1100;
+            display: block;
+        }
+        body.sidebar-open .sidebar-backdrop {
             opacity: 1;
+            pointer-events: auto;
+            visibility: visible;
+            transition-delay: 0s;
         }
 
-        .user-profile-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 32px rgba(93, 173, 226, 0.25);
-            border-color: rgba(93, 173, 226, 0.6);
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 100%);
-        }
+        .main-content { margin: 0 !important; width: 100% !important; height: 100vh; height: 100dvh; padding: 0 !important; }
 
-        /* Avatar */
-        .user-avatar-new {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #FF6B9D 0%, #5DADE2 100%);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 16px;
-            flex-shrink: 0;
+        /* ───────── Home screen ───────── */
+        .home {
             position: relative;
-            box-shadow: 0 4px 16px rgba(93, 173, 226, 0.3);
-            transition: all 0.3s ease;
+            height: 100vh;
+            height: 100dvh;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            grid-template-areas:
+                "pills clock"
+                "hero quick"
+                "user quick";
+            align-items: center;
+            gap: 20px clamp(24px, 4vw, 64px);
+            padding: 24px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            color: var(--text);
+            background:
+                radial-gradient(ellipse at 18% 12%, rgba(55, 83, 127, 0.4), transparent 42%),
+                radial-gradient(ellipse at 86% 88%, rgba(69, 45, 86, 0.22), transparent 36%),
+                linear-gradient(135deg, #17243a 0%, #101827 56%, #0c1320 100%);
         }
 
-        .user-profile-card:hover .user-avatar-new {
-            transform: scale(1.08);
-            box-shadow: 0 6px 20px rgba(93, 173, 226, 0.4);
+        /* Burger */
+        .burger {
+            position: fixed; top: 20px; left: 20px; z-index: 1300;
+            width: 46px; height: 46px;
+            display: grid; place-items: center;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            color: #fff; cursor: pointer;
+            backdrop-filter: blur(12px);
+            transform: none;
+            transition: background .2s, transform .38s cubic-bezier(.32,.72,0,1);
         }
+        .burger:hover { background: rgba(40, 46, 64, 0.85); }
+        .burger:focus-visible { outline: 2px solid #FF6B9D; outline-offset: 2px; }
+        .burger svg { width: 22px; height: 22px; }
+        .burger .icon-open { overflow: visible; }
+        .burger .icon-open line { transform-box: fill-box; transform-origin: center; transition: transform .25s ease, opacity .25s ease; }
+        .burger .icon-open line:nth-child(2) { transform-origin: center; }
+        body.sidebar-open .burger { transform: translateX(min(calc(var(--sidebar-w) + 16px), calc(100vw - 66px))); }
+        body.sidebar-open .burger .icon-open line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+        body.sidebar-open .burger .icon-open line:nth-child(2) { opacity: 0; }
+        body.sidebar-open .burger .icon-open line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-        .user-details {
+        .brand-lockup {
+            position: absolute;
+            top: 22px;
+            left: 82px;
+            z-index: 5;
+            color: #fff;
+            text-shadow: 0 1px 5px rgba(40, 0, 20, .75);
+        }
+        .brand-lockup h1 { margin: 0; font-size: 18px; line-height: 1.2; font-weight: 700; }
+        .brand-lockup p { margin: 3px 0 0; font-size: 12px; font-weight: 500; }
+
+        .home-stack {
+            position: absolute;
+            top: 18%;
+            right: 2vw;
+            width: clamp(340px, 30vw, 440px);
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 14px;
+            transition: transform .3s ease, opacity .3s ease;
         }
+        body.sidebar-open .home-stack { transform: translateX(8px); opacity: .92; }
 
-        .user-greeting {
-            font-size: 11px;
-            color: #5DADE2;
-            font-weight: 600;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            opacity: 0.85;
+        /* Summary pills */
+        .pills {
+            position: absolute;
+            top: 3%;
+            left: 50%;
+            display: flex; gap: 10px; z-index: 5;
+            flex-wrap: wrap;
+            justify-content: center;
+            transform: translateX(-50%);
         }
-
-        #userFullName {
-            font-size: 15px;
-            font-weight: 700;
-            color: #222;
-            margin: 0;
-            font-family: 'IBM Plex Sans', sans-serif;
+        .pill {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 14px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            backdrop-filter: blur(16px) saturate(140%);
+            font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+            color: #fff; white-space: nowrap;
         }
+        .pill b { font-size: 17px; color: #fff; font-weight: 700; }
 
-        .user-role-badge {
-            display: inline-flex;
-            align-items: center;
-            background: linear-gradient(135deg, #228B57 0%, #1a6b43 100%);
-            color: #A8E6CF;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            width: fit-content;
-            box-shadow: 0 2px 8px rgba(34, 139, 87, 0.2);
-            transition: all 0.3s ease;
+        /* Clock card */
+        .clock-card {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 18px 22px 16px;
+            text-align: left;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            backdrop-filter: blur(16px) saturate(140%);
         }
-
-        .user-profile-card:hover .user-role-badge {
-            box-shadow: 0 4px 12px rgba(34, 139, 87, 0.3);
-            transform: translateY(-1px);
+        .clock-time { font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: clamp(34px, 4.2vw, 52px); line-height: 1; letter-spacing: 0.01em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .clock-date { margin-top: 10px; font-size: 15px; font-weight: 500; }
+        .clock-zone {
+            display: inline-flex; align-items: center; gap: 8px;
+            margin-top: 12px; padding: 6px 14px;
+            background: rgba(40,0,20,.35);
+            border: 1px solid rgba(255,255,255,.28);
+            border-radius: 16px;
+            color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
         }
+        .clock-zone::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #A8E6CF; }
 
-        @media (max-width: 768px) {
-            .user-profile-card {
-                padding: 12px 16px;
-                gap: 12px;
-            }
+        /* Quick access */
+        .quick {
+            align-self: center;
+            width: 100%;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .quick-title {
+            text-align: left; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; color: #fff;
+            margin-bottom: 2px; padding: 9px 14px; background: var(--glass);
+            border: 1px solid var(--glass-border); border-radius: 16px;
+            backdrop-filter: blur(16px) saturate(140%);
+        }
+        .quick--grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .quick--grid .quick-title { grid-column: 1 / -1; }
+        .quick--grid .quick-link { min-height: 48px; gap: 9px; font-size: 13px; }
+        .quick-link {
+            position: relative;
+            display: flex; align-items: center; gap: 14px;
+            min-width: 0;
+            padding: 8px 10px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            color: #fff; text-decoration: none; font-weight: 600; font-size: 15px;
+            backdrop-filter: blur(16px) saturate(140%);
+            transition: transform 0.2s, border-color 0.2s, background 0.2s;
+        }
+        .quick-link:hover { transform: translateX(3px); border-color: rgba(255,255,255,.6); background: rgba(90,8,48,.8); }
+        body .home .quick-link:hover { border-color: rgba(255,255,255,.6) !important; background: rgba(90,8,48,.8) !important; }
+        .quick-link:focus-visible { outline: 2px solid #FF6B9D; outline-offset: 2px; }
+        .quick-icon {
+            width: 34px; height: 34px; border-radius: 12px; flex-shrink: 0;
+            display: grid; place-items: center;
+            background: rgba(255,255,255,0.1);
+        }
+        .quick-icon svg { width: 18px; height: 18px; }
+        .quick--grid .quick-icon { width: 30px; height: 30px; }
+        .quick-link .nav-badge, .quick-link .count {
+            margin-left: auto;
+            min-width: 22px; padding: 2px 7px; border-radius: 999px;
+            background: #FF6B9D; color: #3d0922; font-size: 12px; font-weight: 700; text-align: center;
+        }
+        .quick-link .nav-badge[hidden] { display: none; }
 
-            .user-avatar-new {
-                width: 44px;
-                height: 44px;
-                font-size: 14px;
-            }
+        body::before { display: none; }
+        body .main-content { background: transparent !important; }
+        body .home {
+            display: block;
+            height: 100vh;
+            height: 100dvh;
+            padding: 0;
+            overflow: hidden;
+            color: #fff !important;
+            background: transparent !important;
+        }
+        body .home .pill,
+        body .home .clock-card,
+        body .home .quick-link {
+            background: rgba(90, 8, 48, .68) !important;
+            border: 1px solid rgba(255,255,255,.28) !important;
+            color: #fff !important;
+            box-shadow: none !important;
+        }
+        body .home .pill,
+        body .home .pill b,
+        body .home .clock-time,
+        body .home .clock-date,
+        body .home .clock-zone,
+        body .home .quick-title,
+        body .home .quick-link {
+            color: #fff !important;
+        }
+        body .home #userFullName { font-family: 'IBM Plex Sans', sans-serif !important; }
+        body .home .clock-card .clock-zone {
+            background: rgba(40,0,20,.72) !important;
+            border-color: rgba(255,255,255,.35) !important;
+            color: #fff !important;
+            white-space: nowrap;
+        }
+        body .home .quick-icon { background: rgba(255,255,255,.12) !important; color: #fff !important; }
 
-            #userFullName {
-                font-size: 14px;
-            }
+        /* Hidden data hooks (keeps dashboard-data.js bindings working) */
+        .data-hooks { display: none; }
 
-            .user-greeting {
-                font-size: 10px;
-            }
+        /* Hide the old floating action button on this screen */
+        .fab { display: none !important; }
 
-            .user-role-badge {
-                font-size: 9px;
-                padding: 3px 9px;
+        /* ───────── Responsive ───────── */
+        @media (max-width: 900px) {
+            body { min-height: 100%; height: auto; overflow-x: hidden; overflow-y: auto; background: #ba2356 !important; }
+            .app-container, .main-content { height: auto; min-height: 100vh; min-height: 100dvh; }
+            .wallpaper {
+                background-color: transparent;
+                background-image: url('assets/images/sk-home-bg.jpg');
+                background-image: url('assets/images/sk-home-bg-mobile.webp');
+                background-size: 100% auto;
+                background-position: top center;
+                background-repeat: no-repeat;
             }
+            .wallpaper::after {
+                content: '';
+                position: absolute;
+                inset: 0 0 auto;
+                height: 56vw;
+                background: linear-gradient(to bottom, transparent 72%, #ba2356 100%);
+            }
+            .home {
+                height: auto; min-height: 100vh; min-height: 100dvh;
+                overflow: visible;
+                padding: calc(56vw + 56px) 16px 24px;
+            }
+            body .home {
+                height: auto; min-height: 100vh; min-height: 100dvh;
+                overflow: visible;
+                padding: calc(56vw + 56px) 16px 24px;
+            }
+            .pills {
+                position: relative;
+                top: auto; left: auto;
+                transform: none;
+                margin: 0 auto 18px;
+            }
+            .home-stack {
+                position: relative; top: auto; right: auto; width: 100%;
+                transform: none; margin: 0; gap: 14px;
+            }
+            body.sidebar-open .home-stack { transform: none; }
+            .clock-card { padding: 18px; }
+            .clock-time { font-size: clamp(34px, 8.8vw, 52px); }
+            .clock-zone { font-size: 10px; }
+            .pills { gap: 8px; }
+            .pill { flex: 1 1 150px; }
+            .brand-lockup { top: 22px; left: 78px; }
+            .burger { top: 16px; left: 16px; }
+            body.sidebar-open .burger { transform: translateX(min(calc(var(--sidebar-w) + 12px), calc(100vw - 62px))); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .sidebar { opacity: 0; transition: opacity .12s ease, visibility 0s linear .12s; }
+            body.sidebar-open .sidebar { opacity: 1; transition: opacity .12s ease, visibility 0s; }
+            .sidebar-backdrop { transition: opacity .12s ease, visibility 0s linear .12s; }
+            .burger, .burger .icon-open line, .home-stack, .quick-link { transition: opacity .12s ease, background-color .12s ease; }
+            body.sidebar-open .burger, body.sidebar-open .home-stack { transform: none; }
         }
     </style>
 </head>
-<body>
+<body class="is-loading">
     <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo-section">
-                <div class="logo-content">
-                    <div class="logo-icons-group">
-                        <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" class="official-logo">
-                        <img src="assets/images/sklogo.jpg" alt="SK Logo" class="official-logo">
-                    </div>
-                    <div class="logo-text">
-                        <h1>SKalinga Admin</h1>
-                        <p>San Antonio</p>
-                    </div>
-                </div>
-            </div>
+        <div class="wallpaper" aria-hidden="true"></div>
 
-            <nav class="nav-section">
-                <div class="nav-group">
-                    <div class="nav-group-title">Overview</div>
-                    <a href="admin-dashboard.html" class="nav-item active">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                        Dashboard
-                    </a>
-                    <a href="#content-grid" class="nav-item">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="1" x2="12" y2="23"></line>
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                        </svg>
-                        Analytics
-                    </a>
+        <!-- Sidebar (hidden by default, opens with the burger button) -->
+        <aside class="sidebar" id="adminSidebar" inert></aside>
+
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- Main: homescreen -->
+        <main class="main-content">
+            <section class="home">
+
+                <button class="burger" id="burgerBtn" aria-label="Open navigation" aria-controls="adminSidebar" aria-expanded="false">
+                    <svg class="icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+
+                <div class="brand-lockup">
+                    <h1>SKalinga Admin</h1>
+                    <p>Sangguniang Kabataan, Barangay San Antonio</p>
                 </div>
 
-                <div class="nav-group">
-                    <div class="nav-group-title">Management</div>
-                    <a href="youth-registry.html" class="nav-item">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
+                <!-- Summary pills (live numbers from dashboard-data.js) -->
+                <div class="pills">
+                    <div class="pill"><b data-bind="youth_pending">0</b> Pending registrations</div>
+                    <div class="pill"><b data-bind="incidents_open">0</b> Open incidents</div>
+                </div>
+
+                <div class="home-stack">
+                    <!-- Live clock -->
+                    <div class="clock-card" role="timer" aria-live="off">
+                        <div class="clock-time" id="clockTime">--:--:--</div>
+                        <div class="clock-date" id="clockDate">Loading date...</div>
+                        <div class="clock-zone">PHILIPPINE STANDARD TIME</div>
+                    </div>
+
+                    <!-- Quick access -->
+                    <nav class="quick" aria-label="Quick access">
+                        <div class="quick-title">Quick access</div>
+
+                    <a class="quick-link" href="youth-registry.html">
+                        <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
                         Youth Registry
                     </a>
-                    <a href="dashboard-events.html" class="nav-item">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                            <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg>
+                    <a class="quick-link" href="dashboard-events.html">
+                        <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
                         Events
-                        <span class="nav-badge">3</span>
+                        <span class="nav-badge" data-bind="nav_events" hidden></span>
                     </a>
-                    <a href="dashboard-resources.html" class="nav-item">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                        </svg>
+                    <a class="quick-link" href="dashboard-resources.html">
+                        <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg></span>
                         Resources
                     </a>
-                    <a href="dashboard-printing.html" class="nav-item">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                            <rect x="6" y="14" width="12" height="8"></rect>
-                        </svg>
+                    <a class="quick-link" href="dashboard-printing.html">
+                        <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg></span>
                         Printing
+                        <span class="nav-badge" data-bind="nav_printing" hidden></span>
                     </a>
-                </div>
-
-                <div class="nav-group">
-                    <div class="nav-group-title">Emergency</div>
-                    <a href="dashboard-incidents.html" class="nav-item">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="12"></line>
-                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                        </svg>
+                    <a class="quick-link" href="dashboard-incidents.html">
+                        <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></span>
                         Incidents
-                        <span class="nav-badge">7</span>
+                        <span class="nav-badge" data-bind="nav_incidents" hidden></span>
                     </a>
-                    <a href="dashboard-health.html" class="nav-item">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                        </svg>
-                        Health Services
-                </a>
-
-                </div>
-
-                <div class="nav-group">
-                    <div class="nav-group-title">Public</div>
-                    <a href="dashboard-public_disclosure.html" class="nav-item">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Public Disclosure
+                    <a class="quick-link" href="dashboard-freedom-wall.html">
+                        <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 10h10M4 15h16M4 20h10"></path></svg></span>
+                        Freedom Wall Moderation
                     </a>
+                    </nav>
                 </div>
 
-                <div class="nav-group">
-                    <div class="nav-group-title">System</div>
-                    <a href="dashboard-settings.html" class="nav-item">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                        </svg>
-                        Settings
-                    </a>
-                    <a href="#" class="nav-item" onclick="confirmLogout(event)">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                            <polyline points="16 17 21 12 16 7"></polyline>
-                            <line x1="21" y1="12" x2="9" y2="12"></line>
-                        </svg>
-                        Logout
-                    </a>
+                <!-- Optional: keeps any other data-bind targets from erroring in dashboard-data.js -->
+                <div class="data-hooks" aria-hidden="true">
+                    <span id="userAvatar">AD</span><span id="userFullName">Admin</span><span id="userRole">Staff</span>
+                    <span data-bind="youth_active"></span><span data-bind="masterlist_total"></span><span data-bind="masterlist_claimed"></span>
+                    <span data-bind="events_ongoing"></span><span data-bind="events_upcoming"></span><span data-bind="health_upcoming"></span>
+                    <span data-bind="loans_overdue"></span><span data-bind="loans_active"></span><span data-bind="print_pending"></span><span data-bind="print_finished_today"></span>
+                    <span data-bind="incidents_week"></span><span data-bind="disclosure_drafts"></span><span data-bind="health_published"></span><span data-bind="disclosure_published"></span>
+                    <div data-list="attention"></div><div data-list="activity"></div><table><tbody data-list="registrations"></tbody></table>
                 </div>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="top-header">
-                <div class="header-left">
-                    <h2>Dashboard Overview</h2>
-                    <p id="dashboard-datetime">Loading date and time...</p>
-                </div>
-                <div class="header-right">
-                    <div class="user-profile-card">
-                        <div class="user-avatar-new" id="userAvatar">AD</div>
-                        <div class="user-details">
-                            
-                            <h4 id="userFullName">Admin</h4>
-                            <span class="user-role-badge" id="userRole">Staff</span>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div class="dashboard-content">
-                                <!-- Stats Grid -->
-                                <div class="stats-grid">
-                                    <div class="stat-card">
-                                        <div class="stat-header">
-                                            <div class="stat-icon">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                                    <circle cx="9" cy="7" r="4"></circle>
-                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                                </svg>
-                                            </div>
-                                            <div class="stat-change">+12%</div>
-                                        </div>
-                                        <div class="stat-label">Total Youth</div>
-                                        <div class="stat-value">1,247</div>
-                                        <div class="stat-description">Active registered members</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-header">
-                                            <div class="stat-icon">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                                </svg>
-                                            </div>
-                                            <div class="stat-change">3 Active</div>
-                                        </div>
-                                        <div class="stat-label">Events</div>
-                                        <div class="stat-value">28</div>
-                                        <div class="stat-description">This quarter</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-header">
-                                            <div class="stat-icon">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                                                </svg>
-                                            </div>
-                                            <div class="stat-change">24 Pending</div>
-                                        </div>
-                                        <div class="stat-label">Resources</div>
-                                        <div class="stat-value">156</div>
-                                        <div class="stat-description">Items borrowed</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-header">
-                                            <div class="stat-icon">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <circle cx="12" cy="12" r="10"></circle>
-                                                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                                                </svg>
-                                            </div>
-                                            <div class="stat-change negative">2 New</div>
-                                        </div>
-                                        <div class="stat-label">Incidents</div>
-                                        <div class="stat-value">7</div>
-                                        <div class="stat-description">Requiring review</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-header">
-                                            <div class="stat-icon">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                                                </svg>
-                                            </div>
-                                            <div class="stat-change">Today</div>
-                                        </div>
-                                        <div class="stat-label">Health</div>
-                                        <div class="stat-value">13</div>
-                                        <div class="stat-description">Scheduled consults</div>
-                                    </div>
-                                    
-                                </div>
-
-                                <!-- Analytics & Reports Section -->
-                                <div id="content-grid" class="content-grid" style="margin-bottom: 0;">
-                                    <div class="content-card">
-                                        <div class="card-header">
-                                            <h3>Youth Registration Trend</h3>
-                                        </div>
-                                        <div class="card-body">
-                                            <canvas id="youthTrendChart" height="120"></canvas>
-                                        </div>
-                                    </div>
-                                    <div class="content-card">
-                                        <div class="card-header">
-                                            <h3>Events Breakdown</h3>
-                                        </div>
-                                        <div class="card-body">
-                                            <canvas id="eventsPieChart" height="120"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="content-grid">
-                                    <div class="content-card">
-                                        <div class="card-header">
-                                            <h3>Resources Borrowed</h3>
-                                        </div>
-                                        <div class="card-body">
-                                            <canvas id="resourcesBarChart" height="120"></canvas>
-                                        </div>
-                                    </div>
-                                    
-                                     <div class="content-card">
-                                        <div class="card-header">
-                                            <h3>Health Service Usage</h3>
-                                        </div>
-                                        <div class="card-body">
-                                            <canvas id="healthLineChart" height="120"></canvas>
-                                        </div>
-                                    </div>
-                                    
-                                </div>
-
-                                <!-- Print Report Button -->
-                                <div style="display: flex; justify-content: flex-end; margin-top: 32px;">
-                                    <button class="action-btn primary" onclick="window.print()" style="min-width:220px; font-size:17px;">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;">
-                                            <path d="M6 9V2h12v7"></path>
-                                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                                            <rect x="6" y="14" width="12" height="8"></rect>
-                                        </svg>
-                                        Generate Overall Report
-                                    </button>
-                                </div>
-                <!-- Stats Grid -->
-                
-                    
-
-                
-            </div>
+            </section>
         </main>
-
-        <!-- FAB -->
-        <button class="fab">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-        </button>
     </div>
-</body>
 <script>
+// ────────────────────────────────────────────────
+// Sidebar toggle (hidden by default on the dashboard)
+// ────────────────────────────────────────────────
+(function () {
+    const body = document.body;
+    const burger = document.getElementById('burgerBtn');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    const sidebar = document.getElementById('adminSidebar');
+    const quick = document.querySelector('.quick');
+
+    if (quick) {
+        quick.classList.toggle('quick--grid', quick.querySelectorAll('.quick-link').length > 4);
+    }
+
+    function setSidebar(open) {
+        const wasOpen = body.classList.contains('sidebar-open');
+        body.classList.toggle('sidebar-open', open);
+        sidebar.toggleAttribute('inert', !open);
+        burger.setAttribute('aria-expanded', String(open));
+        burger.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+        if (open) {
+            window.requestAnimationFrame(() => sidebar.querySelector('.nav-item')?.focus());
+        } else if (wasOpen) {
+            burger.focus();
+        }
+    }
+
+    burger.addEventListener('click', () => setSidebar(!body.classList.contains('sidebar-open')));
+    backdrop.addEventListener('click', () => setSidebar(false));
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && body.classList.contains('sidebar-open')) setSidebar(false);
+    });
+    sidebar.addEventListener('click', event => {
+        const link = event.target.closest('a.nav-item');
+        if (!link || link.getAttribute('href') === '#' || event.defaultPrevented ||
+            event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ||
+            (link.target && link.target !== '_self') || link.hasAttribute('download')) return;
+
+        event.preventDefault();
+        const destination = link.href;
+        setSidebar(false);
+        window.setTimeout(() => window.location.assign(destination), 380);
+    });
+})();
+
+// ────────────────────────────────────────────────
+// Live clock (Philippine Standard Time)
+// ────────────────────────────────────────────────
+function updateClock() {
+    const now = new Date();
+    document.getElementById('clockTime').textContent = now.toLocaleTimeString('en-US', {
+        timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true
+    });
+    document.getElementById('clockDate').textContent = now.toLocaleDateString('en-US', {
+        timeZone: 'Asia/Manila', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
 // ────────────────────────────────────────────────
 // Admin Session & Profile
 // ────────────────────────────────────────────────
@@ -456,17 +511,13 @@ async function loadAdminProfile() {
     try {
         const response = await fetch('api/check_admin_session.php');
         const data = await response.json();
-        
+
         if (!data.authenticated) {
-            window.location.href = 'login-admin.html';
+            window.location.href = 'login.html';
             return;
         }
-        
         adminInfo = data.admin;
-        
-        // Update user profile display
         updateUserProfile();
-        
     } catch (error) {
         console.error('Profile load error:', error);
     }
@@ -474,186 +525,22 @@ async function loadAdminProfile() {
 
 function updateUserProfile() {
     if (!adminInfo) return;
-    
-    // Get initials from username
     const initials = adminInfo.username.substring(0, 2).toUpperCase();
-    
-    // Determine role display text
     const roleDisplay = adminInfo.role === 'superadmin' ? 'Super Admin' : 'Staff Admin';
-    
-    // Update avatar
     document.getElementById('userAvatar').textContent = initials;
-    
-    // Update user name
     document.getElementById('userFullName').textContent = adminInfo.username.charAt(0).toUpperCase() + adminInfo.username.slice(1);
-    
-    // Update role
     document.getElementById('userRole').textContent = roleDisplay;
 }
-
-// Load admin profile on page load
 loadAdminProfile();
 
 // ────────────────────────────────────────────────
-// Live date and time for dashboard
+// Logout confirmation
 // ────────────────────────────────────────────────
-function updateDashboardDateTime() {
-    const el = document.getElementById('dashboard-datetime');
-    if (!el) return;
-    const now = new Date();
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const day = days[now.getDay()];
-    const month = months[now.getMonth()];
-    const date = now.getDate();
-    const year = now.getFullYear();
-    let hour = now.getHours();
-    let min = now.getMinutes();
-    let ampm = 'AM';
-    if (hour >= 12) { ampm = 'PM'; if (hour > 12) hour -= 12; }
-    if (hour === 0) hour = 12;
-    min = min < 10 ? '0' + min : min;
-    el.textContent = `${day}, ${month} ${date}, ${year} • ${hour}:${min} ${ampm}`;
-}
-setInterval(updateDashboardDateTime, 1000);
-updateDashboardDateTime();
-
-// ────────────────────────────────────────────────
-// Logout confirmation function
-// ────────────────────────────────────────────────
-function confirmLogout(event) {
-    event.preventDefault();
-    
-    // Create modal overlay
-    const modal = document.createElement('div');
-    modal.id = 'logoutModal';
-    modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        backdrop-filter: blur(2px);
-    `;
-    
-    // Create modal content
-    const modalContent = document.createElement('div');
-    modalContent.style.cssText = `
-        background: white;
-        border-radius: 16px;
-        padding: 32px;
-        max-width: 400px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        animation: slideUp 0.3s ease-out;
-    `;
-    
-    modalContent.innerHTML = `
-        <div style="text-align: center;">
-            <div style="width: 64px; height: 64px; background: #fff3cd; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#ff9800" stroke-width="2" style="width: 36px; height: 36px;">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-            </div>
-            <h2 style="margin: 0 0 8px 0; color: #333; font-size: 20px; font-weight: 600;">Confirm Logout?</h2>
-            <p style="margin: 0 0 24px 0; color: #666; font-size: 14px; line-height: 1.6;">
-                Are you sure you want to log out from your admin account? You will need to log in again to access the dashboard.
-            </p>
-            <div style="display: flex; gap: 12px; justify-content: center;">
-                <button id="cancelBtn" style="
-                    padding: 12px 24px;
-                    background: #f0f0f0;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: #333;
-                    transition: all 0.2s;
-                    min-width: 100px;
-                ">Cancel</button>
-                <button id="confirmBtn" style="
-                    padding: 12px 24px;
-                    background: linear-gradient(135deg, #FF6B9D, #e04f7e);
-                    border: none;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: white;
-                    transition: all 0.2s;
-                    min-width: 100px;
-                    box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
-                ">Logout</button>
-            </div>
-        </div>
-    `;
-    
-    modal.appendChild(modalContent);
-    document.body.appendChild(modal);
-    
-    // Add animation keyframes
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    // Cancel button handler
-    document.getElementById('cancelBtn').addEventListener('click', function() {
-        modal.remove();
-    });
-    
-    // Confirm button handler
-    document.getElementById('confirmBtn').addEventListener('click', function() {
-        // Redirect to logout
-        window.location.href = 'api/logout.php';
-    });
-    
-    // Close modal when clicking outside
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
-    
-    // Add hover effects
-    const cancelBtn = document.getElementById('cancelBtn');
-    const confirmBtn = document.getElementById('confirmBtn');
-    
-    cancelBtn.addEventListener('mouseover', function() {
-        this.style.background = '#e8e8e8';
-    });
-    cancelBtn.addEventListener('mouseout', function() {
-        this.style.background = '#f0f0f0';
-    });
-    
-    confirmBtn.addEventListener('mouseover', function() {
-        this.style.boxShadow = '0 6px 16px rgba(255, 107, 157, 0.4)';
-        this.style.transform = 'translateY(-2px)';
-    });
-    confirmBtn.addEventListener('mouseout', function() {
-        this.style.boxShadow = '0 4px 12px rgba(255, 107, 157, 0.3)';
-        this.style.transform = 'translateY(0)';
-    });
-}
 </script>
 
-<!-- Professional Loader System -->
-<script src="assets/js/loader.js"></script>
+<script src="js/auth-guard.js" data-roles="admin,sk_official"></script>
+<script src="assets/js/loader.js?v=3"></script>
+<script src="js/admin-common.js"></script>
+<script src="js/admin-sidebar.js"></script>
+</body>
 </html>

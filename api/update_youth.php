@@ -5,10 +5,14 @@
  * Tracks which admin last updated the member
  */
 
-session_start();
+require_once __DIR__ . '/../includes/request.php';
+secureSessionStart();
 header('Content-Type: application/json');
 
 require_once 'db_connect.php';
+require_once 'auth.php';
+require_once __DIR__ . '/security_helpers.php';
+requireAdminApi();
 
 // Check if admin is authenticated
 if (!isset($_SESSION['admin_authenticated']) || $_SESSION['admin_authenticated'] !== true) {
@@ -16,6 +20,7 @@ if (!isset($_SESSION['admin_authenticated']) || $_SESSION['admin_authenticated']
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
 }
+securityRequireCsrf();
 
 // Get POST data
 $member_id = isset($_POST['member_id']) ? trim($_POST['member_id']) : '';
@@ -56,9 +61,10 @@ try {
     $pdo->beginTransaction();
     
     // Update profile
-    $profileStmt = $pdo->prepare("UPDATE youth_profiles 
-                                SET firstname = ?, lastname = ?, birthday = ?, age = ?, gender = ?, 
-                                    phone = ?, address = ?, barangay = ?, updated_at = CURRENT_TIMESTAMP
+    $profileStmt = $pdo->prepare("UPDATE youth_profiles
+                                SET firstname = ?, lastname = ?, birthday = ?, age = ?, gender = ?,
+                                    phone = ?,
+                                    address = ?, barangay = ?, updated_at = CURRENT_TIMESTAMP
                                 WHERE user_id = ?");
     $profileStmt->execute([$firstname, $lastname, $birthday, $age, $gender, $phone, $address, $barangay, $user_id]);
     

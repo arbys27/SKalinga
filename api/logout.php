@@ -1,18 +1,15 @@
 <?php
-/**
- * Admin Logout Function
- * Destroys the session and redirects to login page
- */
 
-session_start();
+require_once 'auth.php';
 
-// Unset all session variables
+authStartSession();
 $_SESSION = [];
 
-// Destroy the session
-session_destroy();
+if (ini_get('session.use_cookies')) {
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+}
 
-// Redirect to login page with logout parameter
-header('Location: ../login-admin.html?logout=1');
+session_destroy();
+header('Location: ../login.html?logout=1');
 exit;
-?>

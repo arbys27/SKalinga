@@ -1,115 +1,149 @@
-# SKalinga Youth Registration System - Database Setup
+# SKalinga San Antonio
 
-## Prerequisites
-- XAMPP installed and running
-- Apache and MySQL services started in XAMPP Control Panel
+SKalinga is a youth e-governance platform for Barangay San Antonio, Binan, Laguna. It provides youth services, events, resource borrowing, incident reporting, printing requests, health services, and an admin workspace.
 
-## Database Setup Instructions
+## Stack
 
-### Step 1: Start XAMPP
-1. Open XAMPP Control Panel
-2. Start Apache and MySQL services
+- Frontend: plain HTML, CSS, and vanilla JavaScript
+- Backend: PHP 8 with PDO prepared statements
+- Database: Supabase PostgreSQL through the Session Pooler
+- Database connection: PHP PDO PostgreSQL on port `5432`
+- Theme: green `#228B57`, coral pink `#FF6B9D`, and sky blue `#5DADE2`
 
-### Step 2: Create Database
-1. Open your browser and go to: `http://localhost/phpmyadmin`
-2. Click on "New" in the left sidebar
-3. Database name: `skalinga_youth`
-4. Collation: `utf8_general_ci`
-5. Click "Create"
+## Local Setup
 
-### Step 3: Create Tables
-Alternatively, you can run the setup script:
-1. Open your browser and go to: `http://localhost/SKalinga/api/setup_database.php`
-2. This will automatically create the database and tables
+1. Start Apache in XAMPP. MySQL is not used by the PHP application.
+2. Enable `pdo_pgsql` and `pgsql` in XAMPP's PHP configuration, then restart Apache.
+3. Apply [database/postgres/schema.sql](database/postgres/schema.sql) and its migrations in order to the Supabase project.
+4. Copy `.env.example` to `.env` and enter the Session Pooler credentials, a private 64-character `SITE_KEY`, and optional provider settings. `.env` is ignored by Git; never commit it. The ignored `includes/config.local.php` remains supported for local setup.
+5. Open `http://localhost/SKalinga/`. Create the first admin with `php scripts/create_admin.php`.
 
-### Manual Table Creation (if needed)
+Database setup and migration details are in [database/postgres/README.md](database/postgres/README.md).
 
-#### youth_registrations table:
-```sql
-CREATE TABLE youth_registrations (
-    id INT(11) AUTO_INCREMENT PRIMARY KEY,
-    member_id VARCHAR(20) UNIQUE NOT NULL,
-    firstname VARCHAR(50) NOT NULL,
-    lastname VARCHAR(50) NOT NULL,
-    birthday DATE NOT NULL,
-    age INT(3) NOT NULL,
-    gender ENUM('Male', 'Female', 'Other', 'Prefer not to say') NOT NULL,
-    contact VARCHAR(15) NOT NULL,
-    address TEXT NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('active', 'inactive') DEFAULT 'active',
-    barangay VARCHAR(100) DEFAULT 'San Antonio'
-);
+For a Render demo deployment with Supabase, follow [DEPLOY.md](DEPLOY.md). It covers the Supabase Session Pooler, Render environment variables, free-service limitations, the environment check, and admin creation.
+
+## Authentication
+
+All users use [login.html](login.html). The identifier accepts:
+
+- Youth Voter ID
+- Email address, when provided
+- Philippine mobile number
+- Admin username or email
+
+The server determines the role from the database. The browser never submits or selects a role.
+
+| Database account | Application role | Redirect |
+| --- | --- | --- |
+| `users` | `youth` | `youth-portal.html` |
+| `admins` with role `staff` | `sk_official` | `admin-dashboard.html` |
+| `admins` with role `superadmin` | `admin` | `admin-dashboard.html` |
+
+Legacy `index.html`, `login-youth.html`, and `login-admin.html` redirect to `login.html`.
+
+### Youth activation
+
+Public self-registration is disabled. A youth must first appear in the official KK Masterlist:
+
+1. An authorized official opens [admin-masterlist.html](admin-masterlist.html).
+2. The official imports a CSV and previews validation errors and duplicate Voter IDs.
+3. The youth opens [youth-register.html](youth-register.html).
+4. Step 1 verifies Voter ID, full name, and birthday.
+5. Step 2 displays the masterlist profile and collects the required mobile number, optional email, and password.
+6. The account and masterlist claim are created in one database transaction.
+
+One masterlist row can only activate one account. The exact no-match response is:
+
+```text
+No matching youth record was found. Please contact the Sangguniang Kabataan Office.
 ```
 
-#### print_requests table:
-```sql
-CREATE TABLE print_requests (
-    id INT(11) AUTO_INCREMENT PRIMARY KEY,
-    member_id VARCHAR(20) NOT NULL,
-    request_type ENUM('Print', 'Xerox') NOT NULL,
-    pages INT(11) NOT NULL,
-    print_type ENUM('Black & White', 'Colored') NOT NULL,
-    purpose VARCHAR(100) NOT NULL,
-    documents TEXT,
-    status ENUM('Pending', 'Finished') DEFAULT 'Pending',
-    request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (member_id) REFERENCES youth_registrations(member_id) ON DELETE CASCADE
-);
+The masterlist schema uses the active repository table names `users` and `youth_profiles`; the task-level names `youth_users` and `admin_users` are not present in this codebase.
+
+## Important API Routes
+
+### Public disclosure board
+
+- `GET api/public_disclosures/list.php` - published documents for authenticated youth users
+- `GET api/public_disclosures/list_admin.php` - all documents for authenticated administrators
+- `POST api/public_disclosures/create.php` - upload and publish a PDF, Word, Excel, JPG, or PNG document (10 MB maximum)
+- `POST api/public_disclosures/delete.php` - remove a document and its stored file
+
+The youth-facing page is read-only at `public-disclosure.html`. Administrators manage the board at `dashboard-public_disclosure.html`.
+
+### Freedom Wall
+
+Authenticated youth can submit feedback, suggestions, concerns, or other posts at `freedom-wall.html`. Submissions are private and remain pending until an administrator or SK official reviews them. Only approved, non-hidden posts appear on the public-facing board; youth can view their own post status and rejection reasons. Moderators manage submissions at `dashboard-freedom-wall.html`. The server enforces youth and moderator roles, validates input, rate-limits submissions, and logs moderation actions. Apply `database/postgres/migrations/007_freedom_wall.sql` after the existing migrations.
+
+### Authentication
+
+- `POST api/login.php` - unified role-based login
+- `GET api/me.php` - current session user and role, or `401`
+- `GET api/logout.php` - clears the session and redirects to `login.html`
+- `POST api/masterlist_verify.php` - verifies a KK Masterlist record
+- `POST api/masterlist_activate.php` - activates a verified youth account
+- `POST api/request_password_reset.php` - sends a youth account password-reset OTP by email
+- `POST api/reset_password.php` - verifies the OTP and updates the youth account password
+- `GET api/get_user_borrow_records.php` - returns borrowing history for the authenticated youth account
+
+Forgot-password OTP email settings (`EMAILJS_SERVICE_ID`, `EMAILJS_TEMPLATE_ID`, and `EMAILJS_PUBLIC_KEY`) are loaded from `.env` locally or deployment environment variables. In the EmailJS template, set **To Email** to `{{to_email}}` and include `{{otp}}` in the email body. The API also supplies `email`, `user_email`, and `recipient_email` as recipient aliases for templates using those variable names. Add `localhost` to the allowed domains in the EmailJS account security settings for local testing; set `EMAILJS_ORIGIN` to the deployed origin outside local development. OTPs expire after 15 minutes and are limited to five verification attempts. Admin and SK official accounts are not included in this youth-account recovery flow.
+
+### Admin masterlist
+
+- `POST api/masterlist_import.php` - authenticated CSV preview/import
+- `GET api/masterlist_list.php` - authenticated search and claimed-status listing
+
+Admin and SK official APIs enforce the session role on the server through `api/auth.php`. The shared [js/auth-guard.js](js/auth-guard.js) provides the matching client-side redirect for page navigation; it is not the security boundary.
+
+### Secure service verification
+
+Service claims use a short-lived, single-use QR token bound to an authenticated youth and a real service request. The QR contains only a cryptographically random token; permanent member ID QR codes are not accepted as proof of identity for services. Staff scan or enter the token on the service verification page, then confirm or reject the linked request. Tokens expire after three minutes, can be cancelled by the youth, and are limited to five generations per user per hour. Optional SMS OTP is configurable per service in `service_verification_settings`.
+
+The current service adapter supports claiming a completed, unclaimed print request. Borrow, event, and health requests do not yet have individual pending-request records in this database and therefore cannot be issued verification tokens. Apply [database/postgres/migrations/008_service_verification.sql](database/postgres/migrations/008_service_verification.sql) after migration `007_freedom_wall.sql`.
+
+### Incident accountability
+
+Incident management records handler assignments and an append-only status/action history. Admins and SK officials can assign or reassign an active handler, add internal notes, and review each status change with its timestamp and acting account. Handler display names are snapshotted for historical accuracy. Youth can see only their own report status and submitted report details; internal notes, handler identities, and the audit history are restricted to admin and SK official APIs. Apply [database/postgres/migrations/009_incident_accountability.sql](database/postgres/migrations/009_incident_accountability.sql) after migration `008_service_verification.sql`.
+
+The admin APIs are `GET api/get_incidents.php`, `GET api/get_incident_handlers.php`, `GET api/get_incident_history.php?incident_id=<id>`, and CSRF-protected `POST api/update_incident_status.php`. Youth incident listings use `GET api/get_user_incidents.php` and do not return internal notes or handler/history data.
+
+## CSV Format
+
+Use the **CSV Template** button on the admin masterlist page. Required columns:
+
+```text
+voter_id,first_name,last_name,middle_name,birthday,age,sex,address,purok_or_barangay
 ```
 
-## File Structure
-```
-SKalinga/
-├── api/
-│   ├── db_connect.php          # Database connection
-│   ├── register.php            # Registration handler
-│   ├── login.php               # Login handler
-│   └── setup_database.php      # Database setup script
-├── assets/
-│   ├── css/
-│   └── images/
-├── youth-register.html         # Registration form
-├── index.html                  # Login page
-├── youth-portal.html           # Youth dashboard
-└── README.md                   # This file
-```
+Birthday values must use `YYYY-MM-DD`. The importer reports missing fields, invalid dates/ages, duplicate Voter IDs in the file, and Voter IDs already in the database.
 
-## Testing the System
-1. Place the entire `SKalinga` folder in your XAMPP `htdocs` directory
-2. Open browser and go to: `http://localhost/SKalinga/youth-register.html`
-3. Fill out the registration form and submit
-4. Check phpMyAdmin to verify data was saved
-5. Go to: `http://localhost/SKalinga/index.html`
-6. Login with the registered email and password
-7. Verify successful login redirects to youth portal
-
-## Features Implemented
-- ✅ User registration with validation
-- ✅ Password hashing and security
-- ✅ Unique member ID generation
-- ✅ Email uniqueness validation
-- ✅ User login system
-- ✅ Session management
-- ✅ AJAX form submissions
-- ✅ Database relationships for future features
-
-## Database Configuration
-- **Host**: localhost
-- **Username**: root
-- **Password**: (empty)
-- **Database**: skalinga_youth
+## Admin Setup
+Create the first administrator from the command line with `php scripts/create_admin.php`. No sample accounts or passwords are seeded.
 
 ## Security Notes
-- Passwords are hashed using PHP's `password_hash()` function
-- Member IDs are auto-generated and unique
-- Email addresses must be unique
-- All inputs are validated server-side
+
+- Passwords use `password_hash()` and are verified with `password_verify()`.
+- Login attempts are rate-limited by IP using `login_attempts`.
+- Successful authentication is recorded in `activity_logs`.
+- Sessions regenerate on successful login.
+- `api/me.php` is the source of truth for the current role.
+- Admin and SK official APIs reject youth sessions with `403 Forbidden`.
+- SQL uses PDO prepared statements.
+- User-generated values are rendered with DOM text APIs in the new auth/masterlist UI.
+
+## Testing Checklist
+
+1. Apply the PostgreSQL schema and migrations, configure `includes/config.local.php`, and create an admin with the CLI tool.
+2. Sign in with that admin and verify the admin dashboard redirect.
+3. Import a valid KK Masterlist CSV and confirm it appears as available.
+4. Activate a listed record and confirm the youth account reaches the youth portal.
+5. Confirm the same masterlist row cannot be activated twice.
+6. With a youth session, request an admin API and confirm `403 Forbidden`.
+7. Verify `api/me.php` returns `authenticated: true` and the expected role.
 
 ## Troubleshooting
-- Make sure XAMPP is running
-- Check that the `api` folder has proper permissions
-- Verify database credentials in `db_connect.php`
-- Check PHP error logs if registration fails
+
+- Database errors: verify `includes/config.local.php`, the PostgreSQL PHP extensions, and the Session Pooler connection.
+- Missing tables: apply [database/postgres/schema.sql](database/postgres/schema.sql) and all PostgreSQL migrations in order.
+- Admin page redirects: confirm the account role is `staff` or `superadmin` and that the browser session is current.
+- PHP errors: check the Render service logs for deployed errors, or the XAMPP PHP/Apache error logs for local errors.

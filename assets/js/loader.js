@@ -83,9 +83,6 @@ window.Loader = (function() {
           </svg>
         </div>
 
-        <!-- Loading Text -->
-        <p class="loader-text typing" id="loader-text">Please wait…</p>
-
         <!-- Progress Bar (Optional) -->
         <div class="loader-progress-bar" id="loader-progress">
           <div class="progress-fill"></div>
@@ -101,7 +98,7 @@ window.Loader = (function() {
       const link = document.createElement('link');
       link.id = 'loader-css-link';
       link.rel = 'stylesheet';
-      link.href = 'assets/css/loader.css';
+      link.href = 'assets/css/loader.css?v=3';
       document.head.appendChild(link);
     }
   }
@@ -109,18 +106,10 @@ window.Loader = (function() {
   // ─────────────────────────────────────────────────────────────
   // Show Loader
   // ─────────────────────────────────────────────────────────────
-  function show(message = 'Loading...', options = {}) {
+  function show(_message, options = {}) {
     initLoader();
 
     const mergedOptions = { ...config, ...options };
-
-    // Set message
-    if (message) {
-      const textElement = document.getElementById('loader-text');
-      if (textElement) {
-        textElement.textContent = message;
-      }
-    }
 
     // Switch animation type
     setAnimation(mergedOptions.animation);
@@ -138,7 +127,7 @@ window.Loader = (function() {
     showStartTime = Date.now();
 
     // Log for debugging
-    console.log('[Loader] Shown with message:', message);
+    console.log('[Loader] Shown');
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -221,7 +210,7 @@ window.Loader = (function() {
       // Auto-show loader if request takes too long
       const autoShowTimer = setTimeout(() => {
         if (requestCount > 0 && !isVisible) {
-          show('Processing your request...');
+          show();
         }
       }, config.autoShowDelay);
 
@@ -294,9 +283,8 @@ window.Loader = (function() {
         return;
       }
 
-      const formName = form.name || form.id || 'Form';
-      show(`Submitting ${formName}...`);
-      console.log('[Loader] Form submitted:', formName);
+      show();
+      console.log('[Loader] Form submitted');
     }, true);
   }
 

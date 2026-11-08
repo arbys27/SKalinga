@@ -1,80 +1,77 @@
 <?php
-// Verify OTP for registration
-error_log("=== verify_registration_otp.php START ===");
-error_log("POST data: " . print_r($_POST, true));
+require_once __DIR__ . '/security_helpers.php';
+require_once __DIR__ . '/../includes/turnstile.php';
 
-require_once 'db_connect.php';
-
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+header('Content-Type: application/json; charset=utf-8');
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+    echo json_encode(['success' => false, 'message' => 'Method not allowed.']);
     exit;
 }
 
-session_start();
-error_log("Session started. Session data: " . print_r($_SESSION, true));
-
-$otp_input = trim($_POST['otp'] ?? '');
-error_log("OTP input received: '$otp_input'");
-
-// Validate OTP input
-if (empty($otp_input) || !preg_match('/^[0-9]{6}$/', $otp_input)) {
-    error_log("OTP validation failed: '$otp_input'");
+securityStartSession();
+securityRequireCsrf();
+$verification = verifyTurnstile(
+    is_string($_POST['cf-turnstile-response'] ?? null) ? $_POST['cf-turnstile-response'] : '',
+    'verify_registration_otp'
+);
+if (!$verification['success']) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Valid 6-digit OTP is required']);
+    echo json_encode(['success' => false, 'message' => $verification['message']]);
     exit;
 }
 
-// Check if OTP session exists
-if (!isset($_SESSION['registration_otp']) || !isset($_SESSION['registration_phone'])) {
-    error_log("No pending OTP in session");
+$code = isset($_POST['otp']) && is_string($_POST['otp']) ? trim($_POST['otp']) : '';
+if (!preg_match('/^\d{6}$/', $code)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'No pending verification. Please request a new OTP.']);
+    echo json_encode(['success' => false, 'message' => 'Enter the six-digit verification code.']);
     exit;
 }
 
-error_log("Session OTP: " . $_SESSION['registration_otp']);
-error_log("Session Phone: " . $_SESSION['registration_phone']);
-
-// Check if OTP has expired
-if (time() > ($_SESSION['otp_expires_at'] ?? 0)) {
-    error_log("OTP expired. Time now: " . time() . ", Expiry: " . ($_SESSION['otp_expires_at'] ?? 'not set'));
-    unset($_SESSION['registration_otp']);
-    unset($_SESSION['registration_phone']);
-    unset($_SESSION['otp_expires_at']);
+$storedHash = $_SESSION['registration_otp_hash'] ?? null;
+$phone = $_SESSION['registration_phone'] ?? null;
+$expiresAt = (int)($_SESSION['registration_otp_expires_at'] ?? 0);
+$attempts = (int)($_SESSION['registration_otp_attempts'] ?? 0);
+if (!is_string($storedHash) || !is_string($phone) || time() >= $expiresAt || $attempts >= 5) {
+    unset(
+        $_SESSION['registration_otp_hash'],
+        $_SESSION['registration_phone'],
+        $_SESSION['registration_otp_expires_at'],
+        $_SESSION['registration_otp_attempts']
+    );
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'OTP has expired. Please request a new one.']);
+    echo json_encode(['success' => false, 'message' => 'Code is invalid or expired. Request a new one.']);
     exit;
 }
 
-// Verify OTP
-if ($otp_input !== $_SESSION['registration_otp']) {
-    error_log("OTP mismatch. Input: '$otp_input', Session: '" . $_SESSION['registration_otp'] . "'");
+$candidateHash = otpCodeHash($code);
+if (!hash_equals($storedHash, $candidateHash)) {
+    $_SESSION['registration_otp_attempts'] = $attempts + 1;
+    if ($_SESSION['registration_otp_attempts'] >= 5) {
+        unset(
+            $_SESSION['registration_otp_hash'],
+            $_SESSION['registration_phone'],
+            $_SESSION['registration_otp_expires_at'],
+            $_SESSION['registration_otp_attempts']
+        );
+    }
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Invalid OTP. Please try again.']);
+    echo json_encode(['success' => false, 'message' => 'Invalid or expired verification code.']);
     exit;
 }
 
-// OTP verified successfully
-error_log("OTP verified successfully!");
 $_SESSION['phone_verified'] = true;
-$_SESSION['verified_phone'] = $_SESSION['registration_phone'];
-
-// Clear OTP from session
-unset($_SESSION['registration_otp']);
-unset($_SESSION['registration_phone']);
-unset($_SESSION['otp_expires_at']);
-
-error_log("=== verify_registration_otp.php END ===");
+$_SESSION['verified_phone'] = $phone;
+$_SESSION['verified_phone_at'] = time();
+unset(
+    $_SESSION['registration_otp_hash'],
+    $_SESSION['registration_phone'],
+    $_SESSION['registration_otp_expires_at'],
+    $_SESSION['registration_otp_attempts']
+);
 
 echo json_encode([
     'success' => true,
-    'message' => 'Phone number verified successfully!',
-    'phone' => $_SESSION['verified_phone']
+    'message' => 'Phone number verified successfully.',
+    'phone' => otpMaskPhone($phone)
 ]);
-?>

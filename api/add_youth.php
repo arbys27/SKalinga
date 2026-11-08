@@ -5,10 +5,13 @@
  * Tracks which admin created the user
  */
 
-session_start();
+require_once __DIR__ . '/../includes/request.php';
+secureSessionStart();
 header('Content-Type: application/json');
 
 require_once 'db_connect.php';
+require_once 'auth.php';
+requireAdminApi();
 
 // Check if admin is authenticated
 if (!isset($_SESSION['admin_authenticated']) || $_SESSION['admin_authenticated'] !== true) {
@@ -49,7 +52,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 try {
     // Check if email already exists
-    $checkStmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+    $checkStmt = $pdo->prepare("SELECT id FROM users WHERE LOWER(email) = LOWER(?)");
     $checkStmt->execute([$email]);
     
     if ($checkStmt->rowCount() > 0) {
@@ -80,9 +83,10 @@ try {
     
     // Insert user
     $userStmt = $pdo->prepare("INSERT INTO users (email, password_hash, member_id, status, email_verified) 
-                              VALUES (?, ?, ?, 'active', true)");
+                              VALUES (?, ?, ?, 'active', TRUE)
+                              RETURNING id");
     $userStmt->execute([$email, $password_hash, $member_id]);
-    $user_id = $pdo->lastInsertId();
+    $user_id = (int)$userStmt->fetchColumn();
     
     // Insert profile
     $profileStmt = $pdo->prepare("INSERT INTO youth_profiles 
@@ -112,13 +116,15 @@ try {
     
 } catch (Exception $e) {
     // Rollback transaction on error
-    $pdo->rollBack();
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     
     error_log("[Add Youth Error] " . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => 'An error occurred while registering youth member: ' . $e->getMessage()
+        'message' => 'Unable to register the youth member.'
     ]);
 }
 ?>

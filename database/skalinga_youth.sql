@@ -55,9 +55,6 @@ CREATE TABLE `admins` (
 -- Dumping data for table `admins`
 --
 
-INSERT INTO `admins` (`id`, `username`, `email`, `password_hash`, `role`, `status`, `last_login`, `created_at`, `updated_at`) VALUES
-(4, 'admin', 'admin@skalinga.local', '$2y$10$LK9f0DKfW25j2lfWGANRGuyaZkjznOAefR3W1WBYRdLp1z8ixsplm', 'superadmin', 'active', '2026-02-18 14:46:52', '2026-02-17 08:02:47', '2026-02-18 14:46:52');
-
 -- --------------------------------------------------------
 
 --
@@ -251,8 +248,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password_hash`, `member_id`, `status`, `email_verified`, `email_verified_at`, `last_login`, `created_at`, `updated_at`) VALUES
-(8, 'arbybarnuevo27@gmail.com', '$2y$10$Icrez0svpyp5hFyif3fjDeAeqiOcNAFJfxby0DzjpUcjCFOYQr2Kq', 'SK-2026-7402', 'active', 1, NULL, '2026-02-18 14:36:04', '2026-02-17 05:56:40', '2026-02-18 14:36:04'),
-(9, 'abdulmalik@gmail.com', '$2y$10$QNBS21Vx6MZyl5brm.pOAOx6rXX2lBxsTHGfHyUmN26ANWlnCrQLG', 'SK-2026-5315', 'active', 0, NULL, '2026-02-18 14:25:07', '2026-02-17 05:58:42', '2026-02-18 14:25:07');
+(8, 'arbybarnuevo27@gmail.com', '!ACCOUNT_DISABLED!', 'SK-2026-7402', 'active', 1, NULL, '2026-02-18 14:36:04', '2026-02-17 05:56:40', '2026-02-18 14:36:04'),
+(9, 'abdulmalik@gmail.com', '!ACCOUNT_DISABLED!', 'SK-2026-5315', 'active', 0, NULL, '2026-02-18 14:25:07', '2026-02-17 05:58:42', '2026-02-18 14:25:07');
 
 -- --------------------------------------------------------
 

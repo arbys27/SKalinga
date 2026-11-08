@@ -4,9 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loader System - Integration Examples</title>
+    <link rel="icon" type="image/x-icon" href="/SKalinga/assets/icons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/SKalinga/assets/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/SKalinga/assets/icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/SKalinga/assets/icons/apple-touch-icon.png">
+    <link rel="manifest" href="/SKalinga/assets/icons/site.webmanifest">
+    <meta name="msapplication-config" content="/SKalinga/assets/icons/browserconfig.xml">
+    <meta name="theme-color" content="#FF6B9D">
     
     <!-- Loader CSS (Add to all your pages) -->
-    <link rel="stylesheet" href="assets/css/loader.css">
+    <link rel="stylesheet" href="assets/css/loader.css?v=3">
     
     <style>
         body {
@@ -351,8 +358,8 @@ window.Loader.setConfig({
         <div class="section-title">✅ Integration Checklist</div>
 
         <ol style="color: #666; line-height: 1.8;">
-            <li>Add <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">&lt;link rel="stylesheet" href="assets/css/loader.css"&gt;</code> to page head</li>
-            <li>Add <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">&lt;script src="assets/js/loader.js"&gt;&lt;/script&gt;</code> before closing body tag</li>
+            <li>Add <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">&lt;link rel="stylesheet" href="assets/css/loader.css?v=3"&gt;</code> to page head</li>
+            <li>Add <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">&lt;script src="assets/js/loader.js?v=3"&gt;&lt;/script&gt;</code> before closing body tag</li>
             <li>Loader will auto-show on fetch API calls</li>
             <li>Loader will auto-show on form submissions</li>
             <li>Loader will auto-hide when requests complete</li>
@@ -362,11 +369,7 @@ window.Loader.setConfig({
     </div>
 </div>
 
-<!-- Loader CSS (Add to all your pages) -->
-<link rel="stylesheet" href="assets/css/loader.css">
-
-<!-- Loader JS (Add to all your pages) -->
-<script src="assets/js/loader.js"></script>
+<script src="assets/js/loader.js?v=3"></script>
 
 <script>
 // Update status every 200ms

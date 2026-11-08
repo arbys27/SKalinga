@@ -4,20 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SKalinga - Report Issues</title>
+  <link rel="icon" type="image/x-icon" href="/SKalinga/assets/icons/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/SKalinga/assets/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/SKalinga/assets/icons/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/SKalinga/assets/icons/apple-touch-icon.png">
+  <link rel="manifest" href="/SKalinga/assets/icons/site.webmanifest">
+  <meta name="msapplication-config" content="/SKalinga/assets/icons/browserconfig.xml">
+  <meta name="theme-color" content="#FF6B9D">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="assets/css/global.css">
-  <link rel="stylesheet" href="assets/css/portal.css">
-  <link rel="stylesheet" href="assets/css/report.css">
-
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 
   <!-- Professional Loader System -->
-  <link rel="stylesheet" href="assets/css/loader.css">
+  <link rel="stylesheet" href="assets/css/loader.css?v=3">
 
   <style>
     #toastContainer {
@@ -123,41 +123,23 @@
         }
     }
   </style>
+  <link rel="stylesheet" href="assets/css/skalinga-ui.css?v=20261021-3">
 </head>
 <body>
 
 <div class="app-container">
 
-  <!-- Back Button -->
-  <button class="back-btn" onclick="window.location.href='youth-portal.html'">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <path d="M19 12H5M12 19l-7-7 7-7"></path>
-    </svg>
-  </button>
-
-  <!-- Header -->
-  <nav class="top-nav" style="padding: 24px 32px;">
-    <div class="logo-area" style="display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%;">
-      <img src="assets/images/logosanantonio.jpg" alt="San Antonio Logo" style="width: 64px; height: 64px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
-      <div class="logo-text" style="text-align: center;">
-        <h1 style="font-size: 36px; font-weight: 800; color: var(--primary-green); margin: 0;">SKalinga</h1>
-        <p style="font-size: 15px; color: var(--text-gray); margin: 4px 0 0;">Youth Portal</p>
-      </div>
-      <img src="assets/images/sklogo.jpg" alt="SK Logo" style="width: 64px; height: 64px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
-    </div>
-  </nav>
-
   <header class="page-header">
+    <p class="eyebrow">YOUTH SERVICES</p>
     <h1>Report Issues</h1>
     <p>Submit incident reports, safety concerns, bullying, environmental problems, or request emergency assistance</p>
   </header>
 
   <!-- Main Content -->
   <section class="report-section">
-    <!-- Report Form -->
-    <form id="reportForm" class="report-form">
+    <form id="reportForm" class="report-form card-soft">
       <div class="form-group">
-        <label for="category">Issue Category</label>
+        <label for="category">Issue category</label>
         <select id="category" name="category" required>
           <option value="" disabled selected>Select type of issue</option>
           <option value="safety">Safety / Security Concern</option>
@@ -171,7 +153,7 @@
       </div>
 
       <div class="form-group">
-        <label for="description">Describe the Issue</label>
+        <label for="description">Describe the issue</label>
         <textarea id="description" name="description" rows="5" placeholder="What happened, where, when, who is involved..." required></textarea>
       </div>
 
@@ -181,7 +163,7 @@
       </div>
 
       <div class="form-group">
-        <label>Urgency Level</label>
+        <label>Urgency level</label>
         <div class="urgency-options">
           <label><input type="radio" name="urgency" value="low" checked> Low</label>
           <label><input type="radio" name="urgency" value="medium"> Medium</label>
@@ -191,34 +173,31 @@
       </div>
 
       <div class="form-group">
-        <label>Attach Photos (Optional)</label>
-        <div id="photoUploadArea" style="border: 2px solid #5DADE2; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: #f0f8ff;">
+        <label>Attach photos (optional)</label>
+        <button type="button" id="photoUploadArea" class="file-dropzone report-upload-area" aria-label="Add report photos">
           <input type="file" id="photo" name="photo" accept="image/*" multiple style="display: none;">
-          <div style="font-size: 32px; margin-bottom: 10px;"><i class="fas fa-images" style="color: #5DADE2;"></i></div>
-          <p style="margin: 10px 0; font-weight: 600; color: #222;">Tap to add photos</p>
-          <p style="margin: 0; font-size: 13px; color: #666;">You can select multiple photos at once</p>
-          <p id="selectedFilesCount" style="margin-top: 8px; font-size: 12px; color: #27AE60; font-weight: 600; display: none;"></p>
-        </div>
-        <!-- Photo Preview Grid -->
-        <div id="photoPreviewGrid" style="display: none; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 15px;">
-        </div>
+          <div class="dropzone-icon"><svg class="icon" aria-hidden="true"><use href="#icon-file"></use></svg></div>
+          <p class="dropzone-label">Tap to add photos</p>
+          <p class="dropzone-help">You can select multiple photos at once</p>
+          <p id="selectedFilesCount"></p>
+        </button>
+        <div id="photoPreviewGrid"></div>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn primary large">Submit Report</button>
+        <button type="submit" class="btn-primary">Submit report</button>
       </div>
     </form>
 
-    <!-- Your Reports Section (shows after submission) -->
-    <div class="reports-history" id="reportsHistory" style="display: none; margin-top: 60px;">
-      <h2>Your Submitted Reports</h2>
-      <div class="reports-list" id="reportsList"></div>
+    <div class="reports-history card-soft" id="reportsHistory" style="display: none; margin-top: 60px;">
+      <div class="report-history-header">
+        <h2>Your submitted reports</h2>
+      </div>
+      <div class="reports-list" id="reportsList" aria-live="polite"></div>
     </div>
   </section>
 
-
-  <!-- Toast Notification Container -->
-  <div id="toastContainer"></div>
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="false"></div>
 
 </div>
 
@@ -297,7 +276,7 @@ function showPhotoPreview() {
                 previewItem.innerHTML = `
                     <img src="${e.target.result}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #5DADE2;">
                     <button type="button" onclick="removePhotoFromSelection(${index})" style="position: absolute; top: -8px; right: -8px; background: #E74C3C; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-                        <i class="fas fa-times"></i>
+                        <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
                     </button>
                 `;
                 previewGrid.appendChild(previewItem);
@@ -332,19 +311,12 @@ function removePhotoFromSelection(indexToRemove) {
 function showAlert(message, type = 'info') {
     const container = document.getElementById('toastContainer');
     
-    let icon = '✓';
-    if (type === 'error') {
-        icon = '❌';
-    } else if (type === 'warning') {
-        icon = '⚠️';
-    } else if (type === 'info') {
-        icon = 'ℹ️';
-    }
+    const iconName = type === 'error' || type === 'warning' ? 'alert' : type === 'info' ? 'help' : 'check';
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `
-        <span class="toast-icon">${icon}</span>
+        <svg class="icon toast-icon" aria-hidden="true"><use href="#icon-${iconName}"></use></svg>
         <span class="toast-message">${message}</span>
     `;
     
@@ -363,6 +335,16 @@ function showAlert(message, type = 'info') {
 // Data Management - Database API
 // ────────────────────────────────────────────────
 let reports = [];
+const escapeIncidentHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+}[character]));
+const publicIncidentStatus = status => ({
+    pending: 'Submitted',
+    in_review: 'Under Review',
+    under_action: 'Referred',
+    resolved: 'Resolved',
+    closed: 'Closed'
+}[status] || 'Submitted');
 
 // Load user's incidents from database
 async function loadUserIncidents() {
@@ -404,31 +386,23 @@ function renderReports() {
             if (report.photo_path) {
                 try {
                     const photoPaths = JSON.parse(report.photo_path);
-                    if (Array.isArray(photoPaths)) {
-                        photosHtml = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 8px;">';
-                        photoPaths.forEach(path => {
-                            photosHtml += `<img src="${path}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 4px; cursor: pointer;" title="Photo" onclick="alert('Photo: ' + '${path}')" onerror="this.src='https://via.placeholder.com/80?text=Error'">`;
-                        });
-                        photosHtml += '</div>';
-                    } else {
-                        photosHtml = `<div style="margin-top: 8px;"><img src="${report.photo_path}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 4px;" onerror="this.src='https://via.placeholder.com/300?text=Error'"></div>`;
-                    }
+                    const paths = Array.isArray(photoPaths) ? photoPaths : [photoPaths];
+                    photosHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:8px;">${paths.map(path => `<img src="${escapeIncidentHtml(path)}" style="width:100%;height:80px;object-fit:cover;border-radius:4px" alt="Incident photo" loading="lazy">`).join('')}</div>`;
                 } catch (e) {
-                    // Treat as single image path
-                    photosHtml = `<div style="margin-top: 8px;"><img src="${report.photo_path}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 4px;" onerror="this.src='https://via.placeholder.com/300?text=Error'"></div>`;
+                    photosHtml = '';
                 }
             }
-            
+            const status = String(report.status || 'pending');
+            const description = String(report.description || '');
             item.innerHTML = `
                 <div class="report-header">
-                    <strong>${report.category.toUpperCase()}</strong>
-                    <span class="status ${report.status.toLowerCase()}">${report.status}</span>
+                    <strong>${escapeIncidentHtml(String(report.category || '').toUpperCase())}</strong>
+                    <span class="status ${escapeIncidentHtml(status)}">${escapeIncidentHtml(report.status_label || publicIncidentStatus(status))}</span>
                 </div>
-                <p class="report-desc">${report.description.substring(0, 120)}${report.description.length > 120 ? '...' : ''}</p>
-                <p class="report-meta">Location: ${report.location} • Submitted: ${submittedDate}</p>
-                <p class="report-urgency">Urgency: <strong>${report.urgency.toUpperCase()}</strong></p>
+                <p class="report-desc">${escapeIncidentHtml(description.substring(0, 120))}${description.length > 120 ? '...' : ''}</p>
+                <p class="report-meta">Location: ${escapeIncidentHtml(report.location)} • Submitted: ${escapeIncidentHtml(submittedDate)}</p>
+                <p class="report-urgency">Urgency: <strong>${escapeIncidentHtml(String(report.urgency || '').toUpperCase())}</strong></p>
                 ${photosHtml}
-                ${report.admin_notes ? `<p class="admin-notes"><strong>Admin Notes:</strong> ${report.admin_notes}</p>` : ''}
             `;
             list.appendChild(item);
         });
@@ -457,17 +431,24 @@ document.getElementById('reportForm').addEventListener('submit', async (e) => {
         console.log('DEBUG: Number of photo files selected:', photoInput.files.length);
         Array.from(photoInput.files).forEach((file, index) => {
             console.log('DEBUG: Appending file', index + 1, ':', file.name, file.size, 'bytes');
-            formData.append(`photo`, file); // This will create photo[0], photo[1], etc.
+            formData.append('photo[]', file);
         });
     } else {
         console.log('DEBUG: No photo files to append');
     }
     
     try {
+        const csrfResponse = await fetch('api/csrf_token.php', { credentials: 'same-origin', cache: 'no-store' });
+        const csrfData = await csrfResponse.json();
+        if (!csrfResponse.ok || !csrfData.success || !csrfData.csrf_token) {
+            throw new Error('Unable to prepare a secure submission.');
+        }
         const response = await fetch('api/submit_incident.php', {
             method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-CSRF-Token': csrfData.csrf_token },
             body: formData
-        }));
+        });
         
         const result = await response.json();
         
@@ -528,6 +509,8 @@ initializePage();
 </script>
 
 <!-- Professional Loader System -->
-<script src="assets/js/loader.js"></script>
+<script src="js/auth-guard.js" data-roles="youth"></script>
+<script src="js/youth-nav.js?v=20261021-3"></script>
+<script src="assets/js/loader.js?v=3"></script>
 </body>
 </html>

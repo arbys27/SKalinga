@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verify Service Claim - SKalinga</title>
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+  <link rel="stylesheet" href="assets/css/admin-theme.css">
+  <link rel="stylesheet" href="assets/css/loader.css?v=3">
+  <style>
+    body{margin:0;background:#f3f8f5;color:#16303f}
+    .verify-shell{width:min(900px,100%);margin:0 auto}
+    .verify-card{background:#fff;border:1px solid #dfeae3;border-radius:22px;padding:clamp(20px,4vw,36px);box-shadow:0 12px 36px #16303f12}
+    h1{margin:0 0 8px;color:#0f4d31;font-size:clamp(26px,5vw,36px)}
+    .muted{color:#5f7788;line-height:1.55}
+    label{display:block;margin:20px 0 7px;font-weight:700}
+    input,textarea{width:100%;box-sizing:border-box;min-height:48px;padding:12px;border:1px solid #cbd9d0;border-radius:12px;font:inherit}
+    video{display:block;width:min(100%,440px);margin:18px auto;border-radius:14px;background:#10251c}
+    button{min-height:46px;padding:0 16px;border:0;border-radius:12px;background:#228b57;color:#fff;font:inherit;font-weight:700;font-size:14px;cursor:pointer}
+    button.secondary{background:#e8f3ec;color:#0f4d31}
+    button.danger{background:#b42345}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+    .result{margin-top:20px;padding:18px;border:1px solid #dce9e1;border-radius:16px;background:#f8fbf9}
+    .result[hidden],#camera[hidden],#otpControls[hidden]{display:none}
+    .result p{margin:8px 0}
+    .status{min-height:24px;margin-top:14px;font-weight:700}
+    .status.error{color:#b42345}.status.success{color:#167447}
+    @media(max-width:520px){.actions button{width:100%}}
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="adminSidebar"></aside>
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left"><h2>Service Verification</h2><p>Confirm one-time service claims</p></div>
+      </header>
+      <section class="dashboard-content">
+  <main class="verify-shell">
+    <section class="verify-card">
+      <h1>Verify service claim</h1>
+      <p class="muted">Scan a one-time service QR or enter its token manually. Permanent member ID QR codes are not accepted.</p>
+      <label for="tokenInput">Verification token</label>
+      <input id="tokenInput" type="text" autocomplete="off" spellcheck="false" maxlength="512" placeholder="Paste the 64-character token or scan a QR">
+      <div class="actions">
+        <button id="validateButton" type="button">Validate token</button>
+        <button id="cameraButton" class="secondary" type="button">Use camera</button>
+      </div>
+      <div id="camera" hidden>
+        <video id="cameraVideo" playsinline muted></video>
+        <button id="stopCamera" class="secondary" type="button">Stop camera</button>
+      </div>
+      <div id="verificationResult" class="result" hidden>
+        <p><strong>Youth:</strong> <span id="youthName"></span></p>
+        <p><strong>Service:</strong> <span id="serviceName"></span></p>
+        <p id="otpNotice" class="muted" hidden>SMS OTP is required before completion.</p>
+        <div id="otpControls" hidden>
+          <button id="sendOtpButton" class="secondary" type="button">Send OTP</button>
+          <label for="otpInput">6-digit OTP</label>
+          <input id="otpInput" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter code sent to youth">
+        </div>
+        <label for="rejectReason">Rejection reason (optional)</label>
+        <textarea id="rejectReason" rows="2" maxlength="500"></textarea>
+        <div class="actions">
+          <button id="confirmButton" type="button">Confirm &amp; Complete</button>
+          <button id="rejectButton" class="danger" type="button">Reject</button>
+        </div>
+      </div>
+      <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+      </section>
+    </main>
+  </div>
+  <script>
+    (() => {
+      const $ = id => document.getElementById(id);
+      let csrfToken = '';
+      let activeToken = '';
+      let stream = null;
+      let detector = null;
+      let scanFrame = 0;
+
+      async function csrf() {
+        if (csrfToken) return csrfToken;
+        const response = await fetch('api/csrf_token.php', { credentials: 'same-origin', cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.message || 'Unable to prepare a secure request.');
+        csrfToken = data.csrf_token;
+        return csrfToken;
+      }
+
+      function showStatus(message, type = '') {
+        $('statusMessage').textContent = message;
+        $('statusMessage').className = `status ${type}`;
+      }
+
+      function tokenFromInput(value) {
+        const text = value.trim();
+        if (/^[a-f0-9]{64}$/i.test(text)) return text;
+        try {
+          const url = new URL(text);
+          const token = url.searchParams.get('t') || '';
+          return /^[a-f0-9]{64}$/i.test(token) ? token : '';
+        } catch {
+          return '';
+        }
+      }
+
+      async function post(path, body) {
+        const response = await fetch(`api/verification/${path}.php`, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': await csrf() },
+          body: JSON.stringify(body)
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.message || 'The verification request failed.');
+        return data;
+      }
+
+      async function validateToken(token = tokenFromInput($('tokenInput').value)) {
+        if (!token) {
+          showStatus('Enter a valid service token or scan its QR.', 'error');
+          return;
+        }
+        $('verificationResult').hidden = true;
+        activeToken = '';
+        try {
+          const data = await post('validate', { token });
+          activeToken = token;
+          $('youthName').textContent = data.verification.youth_name;
+          $('serviceName').textContent = data.verification.service;
+          $('otpNotice').hidden = !data.verification.otp_required;
+          $('otpControls').hidden = !data.verification.otp_required;
+          $('otpInput').value = '';
+          $('rejectReason').value = '';
+          $('verificationResult').hidden = false;
+          showStatus('Token is valid. Confirm only after checking the youth and request.', 'success');
+        } catch (error) {
+          showStatus(error.message, 'error');
+        }
+      }
+
+      $('validateButton').addEventListener('click', () => validateToken());
+      $('tokenInput').addEventListener('keydown', event => {
+        if (event.key === 'Enter') validateToken();
+      });
+
+      $('sendOtpButton').addEventListener('click', async () => {
+        try {
+          const data = await post('send_otp', { token: activeToken });
+          showStatus(`${data.message} ${data.phone_hint || ''}`.trim(), 'success');
+        } catch (error) {
+          showStatus(error.message, 'error');
+        }
+      });
+
+      $('confirmButton').addEventListener('click', async () => {
+        $('confirmButton').disabled = true;
+        try {
+          const body = { token: activeToken, otp: $('otpInput').value.trim() };
+          const data = await post('confirm', body);
+          showStatus(data.message, 'success');
+          $('verificationResult').hidden = true;
+          $('tokenInput').value = '';
+          activeToken = '';
+        } catch (error) {
+          showStatus(error.message, 'error');
+        } finally {
+          $('confirmButton').disabled = false;
+        }
+      });
+
+      $('rejectButton').addEventListener('click', async () => {
+        $('rejectButton').disabled = true;
+        try {
+          const data = await post('reject', { token: activeToken, reason: $('rejectReason').value.trim() });
+          showStatus(data.message, 'success');
+          $('verificationResult').hidden = true;
+          $('tokenInput').value = '';
+          activeToken = '';
+        } catch (error) {
+          showStatus(error.message, 'error');
+        } finally {
+          $('rejectButton').disabled = false;
+        }
+      });
+
+      async function stopCamera() {
+        if (scanFrame) cancelAnimationFrame(scanFrame);
+        scanFrame = 0;
+        if (stream) stream.getTracks().forEach(track => track.stop());
+        stream = null;
+        $('cameraVideo').srcObject = null;
+        $('camera').hidden = true;
+      }
+
+      async function scanFrameLoop() {
+        if (!detector || !stream) return;
+        try {
+          const codes = await detector.detect($('cameraVideo'));
+          if (codes.length && codes[0].rawValue) {
+            $('tokenInput').value = codes[0].rawValue;
+            await stopCamera();
+            await validateToken(codes[0].rawValue);
+            return;
+          }
+        } catch (error) {
+          showStatus('Camera scan failed. Use manual token entry.', 'error');
+          await stopCamera();
+          return;
+        }
+        scanFrame = requestAnimationFrame(scanFrameLoop);
+      }
+
+      $('cameraButton').addEventListener('click', async () => {
+        if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) {
+          showStatus('Camera QR scanning is not supported here. Enter the token manually.', 'error');
+          return;
+        }
+        try {
+          detector = new BarcodeDetector({ formats: ['qr_code'] });
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          $('camera').hidden = false;
+          $('cameraVideo').srcObject = stream;
+          await $('cameraVideo').play();
+          scanFrameLoop();
+        } catch (error) {
+          await stopCamera();
+          showStatus('Unable to access the camera. Enter the token manually.', 'error');
+        }
+      });
+      $('stopCamera').addEventListener('click', stopCamera);
+      window.addEventListener('pagehide', stopCamera);
+    })();
+  </script>
+  <script src="js/auth-guard.js" data-roles="admin,sk_official"></script>
+  <script src="assets/js/loader.js?v=3"></script>
+  <script src="js/admin-common.js"></script>
+  <script src="js/admin-sidebar.js"></script>
+</body>
+</html>

@@ -1,14 +1,8 @@
 <?php
-// Password reset request - Send OTP via SMS (with email fallback)
-error_log("=== request_password_reset.php START ===");
-error_log("POST data: " . print_r($_POST, true));
+require_once __DIR__ . '/security_helpers.php';
+require_once __DIR__ . '/../includes/turnstile.php';
 
-require_once 'db_connect.php';
-
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -16,125 +10,140 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Accept form-urlencoded data (matching frontend)
-$phone = trim($_POST['phone'] ?? '');
-error_log("Phone received: '$phone'");
-
-// Validation - 11-digit Philippine mobile number
-if (empty($phone) || !preg_match('/^[0-9]{11}$/', $phone)) {
-    error_log("Phone validation failed: '$phone'");
+$input = json_decode(file_get_contents('php://input'), true);
+$verification = verifyTurnstile(
+    is_array($input) && is_string($input['cf-turnstile-response'] ?? null) ? $input['cf-turnstile-response'] : '',
+    'forgot_password'
+);
+if (!$verification['success']) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Valid 11-digit mobile number is required']);
+    echo json_encode(['success' => false, 'message' => $verification['message']]);
     exit;
 }
 
+require_once 'db_connect.php';
+
+$emailValue = is_array($input) ? ($input['email'] ?? null) : null;
+$email = is_string($emailValue) ? trim($emailValue) : '';
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Enter a valid email address.']);
+    exit;
+}
+
+$genericResponse = [
+    'success' => true,
+    'message' => 'If an active youth account uses this email, an OTP will be sent shortly.'
+];
+$appConfig = skalingaConfig();
+$emailJsOrigin = $appConfig['EMAILJS_ORIGIN'] ?? 'http://localhost';
+$serviceId = $appConfig['EMAILJS_SERVICE_ID'] ?? '';
+$templateId = $appConfig['EMAILJS_TEMPLATE_ID'] ?? '';
+$publicKey = $appConfig['EMAILJS_PUBLIC_KEY'] ?? '';
+
 try {
-    // Check if user exists and get their email for fallback
-    $stmt = $pdo->prepare("
-        SELECT u.id, u.email FROM users u 
-        INNER JOIN youth_profiles yp ON u.id = yp.user_id 
-        WHERE yp.phone = ?
-    ");
-    $stmt->execute([$phone]);
-    $result = $stmt->fetch();
-    
-    if (!$result) {
-        error_log("User not found for phone: $phone");
-        // Don't reveal if number exists (security best practice)
+    $userStmt = $pdo->prepare(
+        'SELECT id, email FROM users WHERE LOWER(email) = LOWER(?) AND status = ? LIMIT 1'
+    );
+    $userStmt->execute([$email, 'active']);
+    $user = $userStmt->fetch();
+
+    if (!$user) {
+        echo json_encode($genericResponse);
+        exit;
+    }
+
+    if ($serviceId === '' || $templateId === '' || $publicKey === '') {
+        throw new RuntimeException('EmailJS settings are not configured.');
+    }
+    otpReserveSend($pdo, 'password-reset', (string)$user['id']);
+    $otpCode = otpGenerateCode();
+    $otpHash = otpCodeHash($otpCode);
+
+    $pdo->beginTransaction();
+
+    $deleteStmt = $pdo->prepare('DELETE FROM password_resets WHERE user_id = ? AND is_used = FALSE');
+    $deleteStmt->execute([$user['id']]);
+
+    $insertStmt = $pdo->prepare(
+        'INSERT INTO password_resets (user_id, otp_code, otp_attempts, is_used, expires_at, created_at)
+         VALUES (?, ?, 0, FALSE, CURRENT_TIMESTAMP + INTERVAL \'5 minutes\', CURRENT_TIMESTAMP)'
+    );
+    $insertStmt->execute([$user['id'], $otpHash]);
+
+    $emailPayload = json_encode([
+        'service_id' => $serviceId,
+        'template_id' => $templateId,
+        'user_id' => $publicKey,
+        'template_params' => [
+            'to_email' => $user['email'],
+            'email' => $user['email'],
+            'user_email' => $user['email'],
+            'recipient_email' => $user['email'],
+            'otp' => $otpCode
+        ]
+    ]);
+
+    $curl = curl_init('https://api.emailjs.com/api/v1.0/email/send');
+    curl_setopt_array($curl, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $emailPayload,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Origin: ' . $emailJsOrigin
+        ],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 5,
+        CURLOPT_TIMEOUT => 15
+    ]);
+    $emailResponse = curl_exec($curl);
+    $emailStatus = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($curl);
+    curl_close($curl);
+
+    if ($emailResponse === false || $emailStatus < 200 || $emailStatus >= 300) {
+        $pdo->rollBack();
+        error_log(
+            '[Password Reset] EmailJS send failed; HTTP ' . $emailStatus .
+            '; cURL error: ' . $curlError .
+            '; response: ' . (is_string($emailResponse) ? $emailResponse : '')
+        );
+        http_response_code(502);
+        $message = 'Unable to send the password reset email right now. Please try again later.';
+        if ($emailStatus === 403) {
+            $message = 'Email service rejected the request. Verify the EmailJS configuration, EMAILJS_ORIGIN, and allowed origins.';
+        } elseif ($emailStatus === 422 && stripos((string)$emailResponse, 'recipient') !== false) {
+            $message = 'EmailJS could not determine the recipient. Set the template To Email field to {{to_email}}.';
+        }
         echo json_encode([
-            'success' => true,
-            'message' => 'If an account exists, you will receive an OTP via SMS or Email'
+            'success' => false,
+            'message' => $message
         ]);
         exit;
     }
-    
-    $user_id = $result['id'];
-    $user_email = $result['email'];
-    error_log("User found - ID: $user_id, Email: $user_email");
-    
-    // Generate 6-digit OTP
-    $otp_code = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
-    error_log("OTP generated: $otp_code");
-    
-    // Clear any existing non-used OTP for this user
-    $delete_stmt = $pdo->prepare("DELETE FROM password_resets WHERE user_id = ? AND is_used = false");
-    $delete_stmt->execute([$user_id]);
-    error_log("Cleared old OTPs for user: $user_id");
-    
-    // Insert new OTP record (expires in 15 minutes)
-    $expires_at = date('Y-m-d H:i:s', time() + 900); // 900 seconds = 15 minutes
-    
-    $insert_stmt = $pdo->prepare("
-        INSERT INTO password_resets (user_id, otp_code, expires_at, created_at)
-        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-    ");
-    
-    if (!$insert_stmt->execute([$user_id, $otp_code, $expires_at])) {
-        throw new Exception("Failed to create password reset request");
+
+    $pdo->commit();
+    echo json_encode($genericResponse);
+} catch (RuntimeException $exception) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
     }
-    error_log("OTP stored in database for user: $user_id");
-    
-    // Format phone for SMS API (convert to +63 format)
-    $formatted_phone = '+63' . substr($phone, 1);
-    error_log("Formatted phone: $formatted_phone");
-    
-    // Send OTP via SMS using SMS API Philippines (with automatic email fallback)
-    $sms_message = "Your SKalinga password reset code is: $otp_code. Valid for 15 minutes.";
-    
-    error_log("Attempting to send SMS to: $formatted_phone");
-    
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, 'https://smsapiph.onrender.com/api/v1/send/sms');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-    // Disable SSL/TLS verification for this endpoint
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-    curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'x-api-key: sk-2b10j0whlzeqvf64h6t2fes2oksm2qzm',
-        'Content-Type: application/json'
-    ]);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-        'recipient' => $formatted_phone,
-        'message' => $sms_message
-    ]));
-    
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curl_error = curl_error($ch);
-    curl_close($ch);
-    
-    error_log("SMS API Response Code: $http_code");
-    error_log("SMS API Response: $response");
-    if ($curl_error) {
-        error_log("cURL Error: $curl_error");
+    if (strpos($exception->getMessage(), 'rate limited') !== false) {
+        echo json_encode($genericResponse);
+        exit;
     }
-    
-    $sms_response = json_decode($response, true);
-    
-    if ($http_code === 200 && isset($sms_response['success']) && $sms_response['success']) {
-        error_log("SMS sent successfully");
-        echo json_encode([
-            'success' => true,
-            'message' => 'OTP has been sent to your mobile number. Check SMS or email if SMS fails.',
-            'user_id' => $user_id
-        ]);
-    } else {
-        error_log("SMS send failed. HTTP Code: $http_code. Response: $response");
-        // SMS API will automatically fallback to email, so we still return success
-        echo json_encode([
-            'success' => true,
-            'message' => 'OTP is being sent to your mobile number or email',
-            'user_id' => $user_id,
-            '_debug' => 'SMS gateway fallback: if SMS fails, it will be sent via email'
-        ]);
+    error_log('[Password Reset Request Error] ' . $exception->getMessage());
+    http_response_code(503);
+    echo json_encode(['success' => false, 'message' => 'Unable to send the password reset code right now.']);
+} catch (Throwable $exception) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
     }
-    
-} catch (Exception $e) {
+    error_log('[Password Reset Request Error] ' . $exception->getMessage());
     http_response_code(500);
-    error_log('Password reset error: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Unable to process the password reset request right now.'
+    ]);
 }
-?>

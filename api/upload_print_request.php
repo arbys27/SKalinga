@@ -1,135 +1,156 @@
 <?php
-// api/upload_print_request.php - Upload document and create print request
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
-session_start();
-
-// Check if user is logged in
+require_once __DIR__ . '/../includes/request.php';
+secureSessionStart();
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Unauthorized. User must be logged in.'
-    ]);
+    echo json_encode(['success' => false, 'error' => 'Youth session required.']);
+    exit;
+}
+
+require_once __DIR__ . '/db_connect.php';
+require_once __DIR__ . '/security_helpers.php';
+securityRequireCsrf();
+
+$title = isset($_POST['document_title']) && is_string($_POST['document_title'])
+    ? trim($_POST['document_title'])
+    : '';
+$printType = $_POST['print_type'] ?? '';
+$paperSize = $_POST['paper_size'] ?? '';
+$copies = filter_var($_POST['copies'] ?? null, FILTER_VALIDATE_INT);
+$filePath = null;
+
+if ($title === '' || strlen($title) > 120
+    || !in_array($printType, ['Black & White', 'Colored'], true)
+    || !in_array($paperSize, ['A4', 'Short', 'Long'], true)
+    || !$copies || $copies < 1 || $copies > 100) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'error' => 'Valid print details are required.']);
+    exit;
+}
+
+if (!isset($_FILES['document']) || $_FILES['document']['error'] !== UPLOAD_ERR_OK) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'error' => 'A valid document upload is required.']);
+    exit;
+}
+
+$file = $_FILES['document'];
+$originalName = basename((string)$file['name']);
+$fileSize = (int)$file['size'];
+$extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+$allowedTypes = [
+    'pdf' => ['application/pdf'],
+    'doc' => ['application/msword', 'application/octet-stream'],
+    'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'],
+    'jpg' => ['image/jpeg'],
+    'jpeg' => ['image/jpeg'],
+    'png' => ['image/png'],
+    'txt' => ['text/plain']
+];
+
+if (!array_key_exists($extension, $allowedTypes) || $fileSize < 1 || $fileSize > 10 * 1024 * 1024) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'error' => 'File type is not allowed or exceeds the 10 MB limit.']);
+    exit;
+}
+
+$fileInfo = new finfo(FILEINFO_MIME_TYPE);
+$mimeType = $fileInfo->file((string)$file['tmp_name']);
+if (!is_string($mimeType) || !in_array($mimeType, $allowedTypes[$extension], true)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'error' => 'The uploaded file content does not match its file type.']);
     exit;
 }
 
 try {
-    require_once 'db_connect.php';
-    
-    // Validate required fields
-    $required_fields = ['document_title', 'print_type', 'paper_size', 'copies'];
-    foreach ($required_fields as $field) {
-        if (!isset($_POST[$field]) || empty($_POST[$field])) {
-            throw new Exception("Missing required field: $field");
-        }
+    $memberQuery = $pdo->prepare(
+        'SELECT u.member_id, u.status, yp.firstname, yp.lastname,
+                km.first_name, km.middle_name, km.last_name
+         FROM users u
+         LEFT JOIN youth_profiles yp ON yp.user_id = u.id
+         LEFT JOIN kk_masterlist km ON km.id = u.masterlist_id
+         WHERE u.id = ?
+         LIMIT 1'
+    );
+    $memberQuery->execute([(int)$_SESSION['user_id']]);
+    $member = $memberQuery->fetch(PDO::FETCH_ASSOC);
+    if (!$member || $member['status'] !== 'active') {
+        throw new RuntimeException('An active youth account is required.');
     }
-    
-    // Validate file upload
-    if (!isset($_FILES['document']) || $_FILES['document']['error'] !== UPLOAD_ERR_OK) {
-        throw new Exception("File upload failed or no file provided");
+
+    $memberName = trim((string)$member['firstname'] . ' ' . (string)$member['lastname']);
+    if ($memberName === '') {
+        $memberName = trim(implode(' ', array_filter([
+            $member['first_name'] ?? '',
+            $member['middle_name'] ?? '',
+            $member['last_name'] ?? ''
+        ], static fn($part) => trim((string)$part) !== '')));
     }
-    
-    $file = $_FILES['document'];
-    $file_name = basename($file['name']);
-    $file_size = $file['size'];
-    $tmp_path = $file['tmp_name'];
-    
-    // Validate file type
-    $allowed_extensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'txt'];
-    $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-    
-    if (!in_array($file_ext, $allowed_extensions)) {
-        throw new Exception("File type not allowed. Allowed types: " . implode(', ', $allowed_extensions));
+    if ($memberName === '') {
+        throw new RuntimeException('Member profile is incomplete.');
     }
-    
-    // Validate file size (max 10MB)
-    $max_size = 10 * 1024 * 1024;
-    if ($file_size > $max_size) {
-        throw new Exception("File size exceeds 10MB limit");
+
+    $uploadDirectory = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'printing';
+    if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0755, true) && !is_dir($uploadDirectory)) {
+        throw new RuntimeException('Unable to prepare the document upload directory.');
     }
-    
-    // Create uploads directory if not exists
-    $upload_dir = __DIR__ . '/../uploads/printing';
-    if (!is_dir($upload_dir)) {
-        if (!mkdir($upload_dir, 0755, true)) {
-            throw new Exception("Failed to create upload directory");
-        }
+
+    $newFilename = bin2hex(random_bytes(16)) . '.' . $extension;
+    $filePath = $uploadDirectory . DIRECTORY_SEPARATOR . $newFilename;
+    if (!move_uploaded_file((string)$file['tmp_name'], $filePath)) {
+        throw new RuntimeException('Unable to save the uploaded document.');
     }
-    
-    // Generate unique filename
-    $timestamp = time();
-    $random_str = substr(md5(uniqid()), 0, 8);
-    $new_filename = $timestamp . '_' . $random_str . '.' . $file_ext;
-    $file_path = $upload_dir . '/' . $new_filename;
-    
-    // Move uploaded file
-    if (!move_uploaded_file($tmp_path, $file_path)) {
-        throw new Exception("Failed to save uploaded file");
-    }
-    
-    // Get user information from session
-    $user_id = $_SESSION['user_id'];
-    $firstname = $_SESSION['firstname'] ?? 'Unknown';
-    $lastname = $_SESSION['lastname'] ?? '';
-    
-    // Get member_id from users table
-    $stmt = $pdo->prepare("SELECT member_id FROM users WHERE id = ?");
-    $stmt->execute([$user_id]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$user) {
-        unlink($file_path);
-        throw new Exception("User not found");
-    }
-    
-    $member_id = $user['member_id'];
-    $member_name = trim($firstname . ' ' . $lastname);
-    $document_title = trim($_POST['document_title']);
-    $print_type = $_POST['print_type'];
-    $paper_size = $_POST['paper_size'];
-    $copies = intval($_POST['copies']);
-    
-    // Insert into printing_requests table
-    $stmt = $pdo->prepare("
-        INSERT INTO printing_requests 
-        (member_id, member_name, document_title, file_path, file_name, file_size, print_type, paper_size, copies, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', CURRENT_TIMESTAMP)
-    ");
-    
-    $stmt->execute([
-        $member_id,
-        $member_name,
-        $document_title,
-        'uploads/printing/' . $new_filename,
-        $file_name,
-        $file_size,
-        $print_type,
-        $paper_size,
+
+    $pdo->beginTransaction();
+    $insert = $pdo->prepare(
+        "INSERT INTO printing_requests
+            (member_id, member_name, document_title, file_path, file_name, file_size,
+             print_type, paper_size, copies, status, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', CURRENT_TIMESTAMP)"
+         . " RETURNING request_id"
+    );
+    $insert->execute([
+        $member['member_id'],
+        $memberName,
+        $title,
+        'uploads/printing/' . $newFilename,
+        $originalName,
+        $fileSize,
+        $printType,
+        $paperSize,
         $copies
     ]);
-    
-    $request_id = $pdo->lastInsertId();
-    
+    $requestId = (int)$insert->fetchColumn();
+    $pdo->commit();
+
     echo json_encode([
         'success' => true,
-        'message' => 'Print request submitted successfully',
-        'request_id' => $request_id,
-        'member_id' => $member_id,
-        'member_name' => $member_name,
+        'message' => 'Print request submitted successfully.',
+        'request_id' => $requestId,
         'data' => [
-            'request_id' => $request_id,
-            'member_id' => $member_id,
-            'member_name' => $member_name,
-            'document_title' => $document_title
+            'request_id' => $requestId,
+            'document_title' => $title
         ]
-    ]);
-    
-} catch (Exception $e) {
+    ], JSON_UNESCAPED_UNICODE);
+} catch (RuntimeException $exception) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    if ($filePath !== null && is_file($filePath)) {
+        unlink($filePath);
+    }
     http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'error' => $e->getMessage()
-    ]);
+    echo json_encode(['success' => false, 'error' => $exception->getMessage()]);
+} catch (Throwable $exception) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    if ($filePath !== null && is_file($filePath)) {
+        unlink($filePath);
+    }
+    error_log('[Print] Verified request failed: ' . $exception->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Unable to save the print request.']);
 }
-?>

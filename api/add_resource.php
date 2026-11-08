@@ -2,9 +2,9 @@
 // add_resource.php - Add a new borrowable resource
 header('Content-Type: application/json');
 
-require_once 'db.php';
-
-session_start();
+require_once 'db_connect.php';
+require_once 'auth.php';
+requireAdminApi();
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin_id'])) {
@@ -80,16 +80,18 @@ try {
     ]);
 
 } catch (PDOException $e) {
+    error_log('[Resources] Creation failed: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'Database error: ' . $e->getMessage()
+        'error' => 'Unable to create the inventory item.'
     ]);
 } catch (Exception $e) {
+    error_log('[Resources] Creation failed: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'Error: ' . $e->getMessage()
+        'error' => 'Unable to create the inventory item.'
     ]);
 }
 ?>

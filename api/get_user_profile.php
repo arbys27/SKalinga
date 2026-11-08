@@ -2,15 +2,18 @@
 // get_user_profile.php - Fetch current logged-in user info
 header('Content-Type: application/json');
 
-session_start();
+require_once 'auth.php';
+authStartSession();
 
 $requestedRole = $_GET['role'] ?? 'any';
 
 try {
     // For youth pages requesting youth profile, skip admin session
-    if ($requestedRole !== 'youth' && isset($_SESSION['admin_id'])) {
-        $userId = $_SESSION['admin_id'];
-        $userName = $_SESSION['admin_username'] ?? 'Administrator';
+    if ($requestedRole !== 'youth') {
+        $adminAuth = requireAdminApi();
+        $adminSessionId = $adminAuth['id'];
+        $userId = $adminSessionId;
+        $userName = $_SESSION['admin_username'] ?? $adminAuth['identifier'] ?? 'Administrator';
         $userRole = 'Super Admin';
         
         // Capitalize first letter of username
@@ -101,9 +104,11 @@ try {
     ]);
 
 } catch (Exception $e) {
+    error_log('[Profile] Request failed: ' . $e->getMessage());
+    http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => $e->getMessage()
+        'error' => 'Unable to retrieve the profile.'
     ]);
 }
 

@@ -1,5 +1,4 @@
-// Youth Registry JS: search, filter, modal, QR, age calc
-// Requires: QRCode.js (for QR code generation)
+// Youth Registry JS: search, filter, modal, and age calculation
 
 document.addEventListener('DOMContentLoaded', function () {
     // Age auto-calc in registration form
@@ -21,12 +20,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // Modal open/close logic
     window.openYouthModal = function(memberId) {
         document.getElementById('youth-details-modal').style.display = 'flex';
-        // For demo: set QR code and member id
         document.getElementById('modal-member-id').textContent = memberId;
-        if (window.QRCode) {
-            const qrCanvas = document.getElementById('modal-qr-code');
-            qrCanvas.getContext('2d').clearRect(0,0,qrCanvas.width,qrCanvas.height);
-            new QRCode(qrCanvas, { text: memberId, width: 120, height: 120 });
+        const qrCanvas = document.getElementById('modal-qr-code');
+        if (qrCanvas && qrCanvas.getContext) {
+            const context = qrCanvas.getContext('2d');
+            context.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+            context.fillStyle = '#18332b';
+            context.font = '12px sans-serif';
+            context.textAlign = 'center';
+            context.fillText('Not proof of identity', qrCanvas.width / 2, qrCanvas.height / 2);
         }
     };
     window.closeYouthModal = function() {

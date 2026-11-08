@@ -1,12 +1,14 @@
 <?php
 // Get user profile - supports both logged-in user lookup and admin member lookup by ID
 require_once 'db_connect.php';
+require_once 'auth.php';
 
 header('Content-Type: application/json');
 
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    require_once __DIR__ . '/../includes/request.php';
+    secureSessionStart();
 }
 
 try {
@@ -16,11 +18,7 @@ try {
     if ($member_id_param) {
         // Admin is looking up a specific member by member_id (QR scan)
         // Verify admin is logged in
-        if (!isset($_SESSION['admin_id'])) {
-            http_response_code(401);
-            echo json_encode(['success' => false, 'message' => 'Admin session required']);
-            exit;
-        }
+        requireAdminApi();
         
         // Convert to uppercase for consistent search (member IDs are typically uppercase)
         $member_id_param = strtoupper($member_id_param);
@@ -143,7 +141,7 @@ try {
         'avatar_path' => $user['avatar_path'],
         'bio' => $user['bio'],
         'status' => $user['status'],
-        'email_verified' => (bool)$user['email_verified'],
+        'email_verified' => postgresBoolean($user['email_verified']),
         'created_at' => $user['created_at'],
         'last_login' => $user['last_login'],
         'events_attended' => $events_count
@@ -161,7 +159,8 @@ try {
     }
     
 } catch (Exception $e) {
+    error_log('[User] Profile retrieval failed: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Error retrieving user data: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Unable to retrieve user data.']);
 }
 ?>

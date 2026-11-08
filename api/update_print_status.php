@@ -1,72 +1,81 @@
 <?php
-// api/update_print_status.php - Update printing request status
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
-session_start();
+require_once __DIR__ . '/db_connect.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/security_helpers.php';
 
-// Check if admin is logged in
-if (!isset($_SESSION['admin_id'])) {
-    http_response_code(401);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Unauthorized. Admin login required.'
-    ]);
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Method not allowed.']);
+    exit;
+}
+
+$staff = requireAdminApi();
+securityRequireCsrf();
+$input = json_decode(file_get_contents('php://input'), true);
+$requestId = filter_var(is_array($input) ? ($input['request_id'] ?? null) : null, FILTER_VALIDATE_INT);
+$status = is_array($input) && is_string($input['status'] ?? null) ? $input['status'] : '';
+$allowedStatuses = ['Pending', 'Printing', 'Completed', 'Claimed'];
+
+if (!$requestId || $requestId < 1 || !in_array($status, $allowedStatuses, true)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Valid print request and status are required.']);
     exit;
 }
 
 try {
-    require_once 'db.php';
-    
-    $input = json_decode(file_get_contents('php://input'), true);
-    
-    if (!isset($input['request_id']) || !isset($input['status'])) {
-        throw new Exception("Missing required fields: request_id, status");
+    $pdo->beginTransaction();
+    $requestQuery = $pdo->prepare(
+        'SELECT request_id, member_id, status
+         FROM printing_requests
+         WHERE request_id = ?
+         LIMIT 1
+         FOR UPDATE'
+    );
+    $requestQuery->execute([$requestId]);
+    $request = $requestQuery->fetch(PDO::FETCH_ASSOC);
+    if (!$request) {
+        throw new RuntimeException('Print request not found.');
     }
-    
-    $request_id = intval($input['request_id']);
-    $status = $input['status'];
-    
-    // Validate status value
-    $valid_statuses = ['Pending', 'Printing', 'Completed', 'Claimed'];
-    if (!in_array($status, $valid_statuses)) {
-        throw new Exception("Invalid status. Allowed: " . implode(', ', $valid_statuses));
-    }
-    
-    // Check if request exists
-    $stmt = $pdo->prepare("SELECT request_id FROM printing_requests WHERE request_id = ?");
-    $stmt->execute([$request_id]);
-    if (!$stmt->fetch()) {
-        throw new Exception("Print request not found");
-    }
-    
-    // Update status
-    $claimed_at = null;
-    if ($status === 'Claimed') {
-        $claimed_at = date('Y-m-d H:i:s');
-    }
-    
-    $stmt = $pdo->prepare("
-        UPDATE printing_requests 
-        SET status = ?, 
-            updated_at = NOW(),
-            claimed_at = ?
-        WHERE request_id = ?
-    ");
-    
-    $stmt->execute([$status, $claimed_at, $request_id]);
-    
+
+    $claimedAt = $status === 'Claimed' ? date('Y-m-d H:i:s') : null;
+    $update = $pdo->prepare(
+        'UPDATE printing_requests
+         SET status = ?, updated_at = CURRENT_TIMESTAMP, claimed_at = ?
+         WHERE request_id = ?'
+    );
+    $update->execute([$status, $claimedAt, $requestId]);
+    $activity = $pdo->prepare(
+        'INSERT INTO activity_logs (user_id, role, action, identifier, ip_address)
+         VALUES (?, ?, ?, ?, ?)'
+    );
+    $activity->execute([
+        (int)$staff['id'],
+        $staff['role'],
+        'print_status_update',
+        (string)$requestId,
+        clientIp(),
+    ]);
+    $pdo->commit();
+
     echo json_encode([
         'success' => true,
-        'message' => 'Status updated successfully',
-        'request_id' => $request_id,
+        'message' => 'Status updated successfully.',
+        'request_id' => $requestId,
         'status' => $status
-    ]);
-    
-} catch (Exception $e) {
+    ], JSON_UNESCAPED_UNICODE);
+} catch (RuntimeException $exception) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'error' => $e->getMessage()
-    ]);
+    echo json_encode(['success' => false, 'message' => $exception->getMessage()]);
+} catch (Throwable $exception) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    error_log('[Print] Status update failed: ' . $exception->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Unable to update the print request status.']);
 }
-?>
