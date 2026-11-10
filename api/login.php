@@ -160,35 +160,6 @@ try {
         ], 429);
     }
 
-    $trustedToken = is_string($_COOKIE['trusted_device'] ?? null) ? $_COOKIE['trusted_device'] : '';
-    $rememberedYouthDevice = false;
-    if ($role === 'youth' && preg_match('/^[a-f0-9]{64}$/', $trustedToken)) {
-        $trustedStmt = $pdo->prepare(
-            'SELECT id FROM trusted_devices
-             WHERE token_hash = ? AND user_id = ? AND user_type = \'youth\'
-               AND user_agent_hash = ? AND expires_at > CURRENT_TIMESTAMP'
-        );
-        $trustedStmt->execute([hash('sha256', $trustedToken), (int)$account['id'], securityUserAgentHash()]);
-        $rememberedYouthDevice = (bool)$trustedStmt->fetchColumn();
-    }
-    if ($rememberedYouthDevice) {
-        $expires = time() + 14 * 24 * 60 * 60;
-        $pdo->prepare(
-            'UPDATE trusted_devices
-             SET expires_at = CURRENT_TIMESTAMP + INTERVAL \'14 days\', last_used_at = CURRENT_TIMESTAMP
-             WHERE token_hash = ?'
-        )->execute([hash('sha256', $trustedToken)]);
-        completePasswordOnlyLogin($pdo, $account, $role, $accountIdentifier, $name, $redirect, false);
-        setTrustedDeviceCookie($trustedToken, $expires);
-        authJsonResponse([
-            'success' => true,
-            'status' => 'authenticated',
-            'role' => $role,
-            'redirect' => $redirect,
-            'trusted_device' => true
-        ]);
-    }
-
     $hourly = $pdo->prepare(
         'SELECT COUNT(*) FROM login_challenges
          WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL \'1 hour\'
@@ -208,8 +179,8 @@ try {
     $challengeId = loginChallengeUuid();
     $insert = $pdo->prepare(
         'INSERT INTO login_challenges
-         (id, user_type, user_id, token_hash, code_hash, expires_at, ip, user_agent, redirect_to, remember_device)
-         VALUES (?::uuid, ?, ?, ?, ?, CURRENT_TIMESTAMP + INTERVAL \'10 minutes\', ?, ?, ?, ?)'
+         (id, user_type, user_id, token_hash, code_hash, expires_at, ip, user_agent, redirect_to)
+         VALUES (?::uuid, ?, ?, ?, ?, CURRENT_TIMESTAMP + INTERVAL \'10 minutes\', ?, ?, ?)'
     );
     $insert->execute([
         $challengeId,
@@ -219,9 +190,7 @@ try {
         otpCodeHash($code),
         $ipAddress,
         substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 1000),
-        $redirect,
-        $role === 'youth' && isset($_POST['remember_device'])
-            && in_array(strtolower((string)$_POST['remember_device']), ['1', 'true', 'on'], true)
+        $redirect
     ]);
     error_log('[Auth Login] Email challenge created; role=' . $role . '; email=' . otpMaskEmail($email) . '.');
 

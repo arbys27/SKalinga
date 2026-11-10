@@ -28,7 +28,7 @@ if (!preg_match('/^[a-f0-9]{64}$/', $token) || !preg_match('/^\d{6}$/', $code)) 
 try {
     $pdo->beginTransaction();
     $stmt = $pdo->prepare(
-        'SELECT id, user_type, user_id, code_hash, expires_at, attempts, max_attempts, redirect_to, remember_device
+        'SELECT id, user_type, user_id, code_hash, expires_at, attempts, max_attempts, redirect_to
          FROM login_challenges
          WHERE token_hash = ? AND consumed_at IS NULL
          FOR UPDATE'
@@ -106,20 +106,9 @@ try {
         'INSERT INTO activity_logs (user_id, role, action, identifier, ip_address)
          VALUES (?, ?, ?, ?, ?)'
     )->execute([$userId, $role, 'login_success', $identifier, securityClientIp()]);
-    $trustedToken = null;
-    if ($role === 'youth' && postgresBoolean($challenge['remember_device'] ?? false)) {
-        $trustedToken = bin2hex(random_bytes(32));
-        $pdo->prepare(
-            'INSERT INTO trusted_devices (user_id, token_hash, user_agent_hash, expires_at)
-             VALUES (?, ?, ?, CURRENT_TIMESTAMP + INTERVAL \'14 days\')'
-        )->execute([$userId, hash('sha256', $trustedToken), securityUserAgentHash()]);
-    }
     $pdo->commit();
 
     establishLoginSession($account, $role, $identifier, $name, $role !== 'youth');
-    if (is_string($trustedToken)) {
-        setTrustedDeviceCookie($trustedToken, time() + 14 * 24 * 60 * 60);
-    }
     clearLoginChallengeCookie();
     error_log('[Login OTP] Verification succeeded; role=' . $role . '; email=' . otpMaskEmail((string)$account['email']) . '.');
     authJsonResponse([
