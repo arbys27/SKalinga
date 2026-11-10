@@ -137,17 +137,18 @@ not yet have individual pending-request records.
 
 ## 2.4 Password reset and OTP
 
-Affected routes include `request_password_reset.php`, `reset_password.php`, `send_login_otp.php`, `verify_login_otp.php`, `send_registration_otp.php`, `verify_registration_otp.php`, `send_sms_otp.php`, and `verify_sms_otp.php`.
+Affected routes include `login.php`, `login-verify.php`, `login-resend.php`, `request_password_reset.php`, `reset_password.php`, `send_registration_otp.php`, and `verify_registration_otp.php`.
 
 | ID | Test flow | Expected |
 |---|---|---|
-| AUTH-045 | Request reset with empty/invalid phone. | HTTP 400 validation response. |
-| AUTH-046 | Request reset for unknown phone. | Generic response does not reveal account existence. |
-| AUTH-047 | Request reset for known phone. | OTP delivery attempt occurs without exposing user ID or debug field. |
-| AUTH-048 | Submit correct OTP before expiry. | Password reset succeeds once. |
-| AUTH-049 | Submit wrong OTP repeatedly. | Attempts are limited/rate-limited; no unlimited guessing. |
-| AUTH-050 | Submit expired OTP. | Reset rejected. |
-| AUTH-051 | Reuse a successful OTP. | Rejected as already used. |
+| AUTH-045 | Sign in with a correct password. | No session is created; an email OTP challenge is returned. |
+| AUTH-046 | Submit a wrong login OTP repeatedly. | Five attempts lock the challenge; no unlimited guessing. |
+| AUTH-047 | Submit the correct login OTP before expiry. | The challenge is consumed and the role session is created. |
+| AUTH-048 | Request login resend before cooldown or after the challenge limit. | The request is rejected without sending an email. |
+| AUTH-049 | Exhaust the monthly EmailJS quota. | Login fails closed with the monthly-limit message. |
+| AUTH-050 | Request a password reset with an invalid email. | HTTP 400 validation response. |
+| AUTH-051 | Submit a correct password-reset OTP before expiry. | Password reset succeeds once. |
+| AUTH-052 | Submit a wrong or reused password-reset OTP. | Reset is rejected and attempts remain limited. |
 | AUTH-052 | Submit concurrent reset requests with same OTP. | Only one request can consume OTP and update password. |
 | AUTH-053 | Inspect OTP database record. | OTP is hashed, expiring, attempt-limited, and not logged in plaintext. |
 | AUTH-054 | Block SMS provider or induce timeout. | User receives a safe failure/retry state; no success-shaped false fallback. |

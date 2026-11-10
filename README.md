@@ -78,6 +78,8 @@ Authenticated youth can submit feedback, suggestions, concerns, or other posts a
 ### Authentication
 
 - `POST api/login.php` - unified role-based login
+- `POST api/login-verify.php` - verifies the email OTP before creating the authenticated session
+- `POST api/login-resend.php` - resends an email OTP subject to cooldown and quota limits
 - `GET api/me.php` - current session user and role, or `401`
 - `GET api/logout.php` - clears the session and redirects to `login.html`
 - `POST api/masterlist_verify.php` - verifies a KK Masterlist record
@@ -86,7 +88,7 @@ Authenticated youth can submit feedback, suggestions, concerns, or other posts a
 - `POST api/reset_password.php` - verifies the OTP and updates the youth account password
 - `GET api/get_user_borrow_records.php` - returns borrowing history for the authenticated youth account
 
-Forgot-password OTP email settings (`EMAILJS_SERVICE_ID`, `EMAILJS_TEMPLATE_ID`, and `EMAILJS_PUBLIC_KEY`) are loaded from `.env` locally or deployment environment variables. In the EmailJS template, set **To Email** to `{{to_email}}` and include `{{otp}}` in the email body. The API also supplies `email`, `user_email`, and `recipient_email` as recipient aliases for templates using those variable names. Add `localhost` to the allowed domains in the EmailJS account security settings for local testing; set `EMAILJS_ORIGIN` to the deployed origin outside local development. OTPs expire after 15 minutes and are limited to five verification attempts. Admin and SK official accounts are not included in this youth-account recovery flow.
+Login OTP uses EmailJS over HTTPS. Configure the exact template variables and server-side private key access described in [docs/EMAILJS_SETUP.md](docs/EMAILJS_SETUP.md). Codes expire after 10 minutes and are limited to five verification attempts. Youth activation uses UniSMS only for mobile verification; SMS is not used for login or service verification.
 
 ### Admin masterlist
 
@@ -97,7 +99,7 @@ Admin and SK official APIs enforce the session role on the server through `api/a
 
 ### Secure service verification
 
-Service claims use a short-lived, single-use QR token bound to an authenticated youth and a real service request. The QR contains only a cryptographically random token; permanent member ID QR codes are not accepted as proof of identity for services. Staff scan or enter the token on the service verification page, then confirm or reject the linked request. Tokens expire after three minutes, can be cancelled by the youth, and are limited to five generations per user per hour. Optional SMS OTP is configurable per service in `service_verification_settings`.
+Service claims use a short-lived, single-use QR token bound to an authenticated youth and a real service request. The QR contains only a cryptographically random token; permanent member ID QR codes are not accepted as proof of identity for services. Staff scan or enter the token on the service verification page, then confirm or reject the linked request. Tokens expire after three minutes, can be cancelled by the youth, and are limited to five generations per user per hour. Service verification does not create an SMS login or activation path.
 
 The current service adapter supports claiming a completed, unclaimed print request. Borrow, event, and health requests do not yet have individual pending-request records in this database and therefore cannot be issued verification tokens. Apply [database/postgres/migrations/008_service_verification.sql](database/postgres/migrations/008_service_verification.sql) after migration `007_freedom_wall.sql`.
 

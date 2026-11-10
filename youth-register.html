@@ -182,7 +182,7 @@ input:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 4px rgba(34,139,
           <input type="hidden" id="activationVoterId" name="voter_id">
           <input type="hidden" id="activationFullName" name="full_name">
           <input type="hidden" id="activationBirthday" name="birthday">
-          <div class="field"><label for="mobile">Mobile number</label><div class="inp"><svg class="ic"><use href="#r-ph"/></svg><input type="tel" id="mobile" name="mobile" placeholder="09XXXXXXXXX" pattern="09[0-9]{9}" maxlength="11" inputmode="numeric" autocomplete="tel" required></div></div>
+          <div class="field"><label for="mobile">Mobile number</label><div class="inp"><svg class="ic"><use href="#r-ph"/></svg><input type="tel" id="mobile" name="mobile" placeholder="09XXXXXXXXX or +639XXXXXXXXX" autocomplete="tel" required></div><p class="hint">Enter a Philippine number in 09XXXXXXXXX, 9XXXXXXXXX, 639XXXXXXXXX, or +639XXXXXXXXX format.</p></div>
           <div id="phoneOtpControls" hidden>
            <div id="phoneOtpSendChallenge">
             <div class="turnstile-field">
@@ -203,7 +203,7 @@ input:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 4px rgba(34,139,
            </div>
             <span id="phoneOtpStatus" class="status-message" role="status" aria-live="polite"></span>
           </div>
-          <div class="field"><label for="email">Email address <small>(optional)</small></label><div class="inp"><svg class="ic"><use href="#r-m"/></svg><input type="email" id="email" name="email" placeholder="juan@example.com" autocomplete="email"></div></div>
+          <div class="field"><label for="email">Email address</label><div class="inp"><svg class="ic"><use href="#r-m"/></svg><input type="email" id="email" name="email" placeholder="juan@example.com" autocomplete="email" required></div></div>
           <div class="field"><label for="password">Create password</label><div class="inp pw"><svg class="ic"><use href="#r-k"/></svg><input type="password" id="password" name="password" minlength="8" autocomplete="new-password" required><button type="button" class="eye" id="togglePw" aria-label="Show passwords"><svg class="ic"><use href="#r-eye"/></svg></button></div><p class="hint">Use at least 8 characters.</p></div>
           <div class="field"><label for="confirmPassword">Confirm password</label><div class="inp"><svg class="ic"><use href="#r-k"/></svg><input type="password" id="confirmPassword" name="confirm_password" minlength="8" autocomplete="new-password" required></div></div>
           <div class="consent"><input type="checkbox" id="privacyConsent" required><label for="privacyConsent">I agree to the Data Privacy Policy and consent to the processing of my data under RA 10173.</label></div>
@@ -265,13 +265,20 @@ verifyForm.addEventListener('submit',async e=>{
 });
 
 $('mobile').addEventListener('input',e=>{
-  e.target.value=e.target.value.replace(/\D/g,'').slice(0,11);
-  if(verifiedActivationMobile!==e.target.value){
+  if(verifiedActivationMobile!==normalizePhoneForBrowser(e.target.value)){
     verifiedActivationMobile='';
     $('phoneOtpField').hidden=true;$('phoneOtpVerifyChallenge').hidden=true;$('verifyPhoneOtp').hidden=true;
     setStatus($('phoneOtpStatus'),'Verify this number before account activation.','');
   }
 });
+function normalizePhoneForBrowser(value){
+  const phone=String(value||'').replace(/[\s().-]+/g,'');
+  if(/^09\d{9}$/.test(phone))return '+63'+phone.slice(1);
+  if(/^9\d{9}$/.test(phone))return '+63'+phone;
+  if(/^639\d{9}$/.test(phone))return '+'+phone;
+  if(/^\+639\d{9}$/.test(phone))return phone;
+  return '';
+}
 $('togglePw').addEventListener('click',()=>{
   const show=$('password').type==='password';
   $('password').type=$('confirmPassword').type=show?'text':'password';
@@ -279,14 +286,15 @@ $('togglePw').addEventListener('click',()=>{
 });
 
 $('sendPhoneOtp').addEventListener('click',async()=>{
-  const phone=$('mobile').value.trim();
-  if(!/^09\d{9}$/.test(phone)){setStatus($('phoneOtpStatus'),'Enter a valid 11-digit mobile number.','error');return}
+  const phone=normalizePhoneForBrowser($('mobile').value);
+  if(!phone){setStatus($('phoneOtpStatus'),'Enter a valid Philippine mobile number (09XXXXXXXXX).','error');return}
   const button=$('sendPhoneOtp');button.disabled=true;button.textContent='Sending code...';
   try{
     const data=new FormData();data.set('phone',phone);data.set('cf-turnstile-response',phoneOtpSendChallenge.token());
     data.set('csrf_token',await registrationCsrfToken());
     const r=await fetch('api/send_registration_otp.php',{method:'POST',body:data}),result=await r.json();
     if(!r.ok||!result.success){setStatus($('phoneOtpStatus'),result.message||'Unable to send a verification code.','error');return}
+    $('mobile').value=result.normalizedPhone||phone;
     verifiedActivationMobile='';$('phoneOtpField').hidden=false;$('phoneOtpVerifyChallenge').hidden=false;$('verifyPhoneOtp').hidden=false;
     phoneOtpVerifyChallenge=await window.prepareTurnstileForm($('phoneOtpVerifyChallenge'),'verify_registration_otp',$('verifyPhoneOtp'),$('phoneOtpVerifyTurnstileMessage'));
     setStatus($('phoneOtpStatus'),result.message,'success');$('phoneOtp').focus();
@@ -301,14 +309,14 @@ $('verifyPhoneOtp').addEventListener('click',async()=>{
     data.set('csrf_token',await registrationCsrfToken());
     const r=await fetch('api/verify_registration_otp.php',{method:'POST',body:data}),result=await r.json();
     if(!r.ok||!result.success){setStatus($('phoneOtpStatus'),result.message||'Unable to verify this code.','error');return}
-    verifiedActivationMobile=$('mobile').value.trim();setStatus($('phoneOtpStatus'),'Mobile number verified. You can activate your account.','success');
+    verifiedActivationMobile=result.normalizedPhone||normalizePhoneForBrowser($('mobile').value);$('mobile').value=verifiedActivationMobile;setStatus($('phoneOtpStatus'),'Mobile number verified. You can activate your account.','success');
   }catch(err){setStatus($('phoneOtpStatus'),'Unable to verify the code. Please try again.','error')}
   finally{phoneOtpVerifyChallenge?.reset();button.textContent='Verify phone number'}
 });
 
 activationForm.addEventListener('submit',async e=>{
   e.preventDefault();
-  if(!verifiedActivationMobile||verifiedActivationMobile!==$('mobile').value.trim()){setStatus(activationStatus,'Verify your mobile number before activating your account.','error');return}
+  if(!verifiedActivationMobile||verifiedActivationMobile!==normalizePhoneForBrowser($('mobile').value)){setStatus(activationStatus,'Verify your mobile number before activating your account.','error');return}
   if($('password').value!==$('confirmPassword').value){setStatus(activationStatus,'Passwords do not match.','error');$('confirmPassword').focus();return}
   activationSubmit.disabled=true;activationSubmit.textContent='Activating...';setStatus(activationStatus,'','');
   try{

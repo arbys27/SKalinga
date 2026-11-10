@@ -1,93 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Verify your phone | SKalinga</title>
-<link rel="stylesheet" href="assets/css/skalinga-ui.css">
-<link rel="stylesheet" href="assets/css/turnstile.css">
-<script src="assets/js/turnstile-forms.js"></script>
-<script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=skalingaTurnstileLoaded&amp;render=explicit" onerror="skalingaTurnstileLoadFailed()"></script>
-<style>
-body{min-height:100vh;display:grid;place-items:center;padding:24px;background:#fff7fa}
-.otp-card{width:min(100%,440px);padding:36px;border-radius:24px;background:#fff;box-shadow:0 20px 60px #7c24401a}
-.otp-card h1{margin:0 0 10px}.otp-card p{color:#655b60}.otp-card form{margin-top:24px}
-.otp-card input{width:100%;padding:14px;border:1px solid #d8ccd1;border-radius:12px;font-size:1.2rem;letter-spacing:.25em;text-align:center}
-.otp-card button{width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:#cf3f75;color:#fff;font-weight:700;cursor:pointer}
-.otp-card button:disabled{opacity:.55;cursor:not-allowed}.otp-message{min-height:1.5em;margin:12px 0;color:#a52c4e}
-.otp-message.success{color:#267448}.otp-back{display:block;margin-top:18px;text-align:center;color:#8f2850}
-.resend{border-top:1px solid #eee3e8;margin-top:24px;padding-top:8px}.resend button{background:#72536a}
-[hidden]{display:none!important}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Continue sign in | SKalinga</title>
 </head>
 <body>
-<main class="otp-card">
-  <h1>Verify your phone</h1>
-  <p id="description">Enter the 6-digit code sent to your registered mobile number.</p>
-  <p class="otp-message" id="status" role="status" aria-live="polite"></p>
-  <form id="verifyForm">
-    <label for="otp">6-digit verification code</label>
-    <input id="otp" name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required>
-    <div class="turnstile-field">
-      <span class="turnstile-label">Security verification</span>
-      <div class="turnstile-slot" role="group" aria-label="Cloudflare security verification"></div>
-      <p class="turnstile-message" id="verifyTurnstileMessage" aria-live="polite"></p>
-    </div>
-    <button id="verifyButton" type="submit" disabled>Verify and continue</button>
-  </form>
-  <form id="resendForm" class="resend">
-    <p id="resendDescription">Did not receive the code? Request another one.</p>
-    <div class="turnstile-field">
-      <span class="turnstile-label">Security verification</span>
-      <div class="turnstile-slot" role="group" aria-label="Cloudflare security verification"></div>
-      <p class="turnstile-message" id="resendTurnstileMessage" aria-live="polite"></p>
-    </div>
-    <button id="resendButton" type="submit" disabled>Send verification code</button>
-  </form>
-  <a class="otp-back" href="login.html">Back to sign in</a>
-</main>
-<script>
-const $=id=>document.getElementById(id);
-const params=new URLSearchParams(location.search);
-let verifyChallenge,resendChallenge,reauth=false;
-const say=(text,success=false)=>{$('status').textContent=text;$('status').classList.toggle('success',success)};
-const csrf=async()=>{const r=await fetch('api/csrf_token.php',{cache:'no-store'});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to prepare verification.');return d.csrf_token};
-const init=async()=>{
-  try{
-    const r=await fetch('api/login_otp_status.php',{cache:'no-store',credentials:'same-origin'}),s=await r.json();
-    reauth=s.reauth===true;
-    if(!s.pending&&!reauth){location.replace('login.html');return}
-    if(s.phone)$('description').textContent=`Enter the 6-digit code sent to ${s.phone}.`;
-    if(reauth){$('description').textContent='Your 30-minute verification period has ended. Verify your phone to continue.';$('resendDescription').textContent='Send a new verification code to your registered number.'}
-    verifyChallenge=await window.prepareTurnstileForm($('verifyForm'),'verify_login_otp',$('verifyButton'),$('verifyTurnstileMessage'));
-    resendChallenge=await window.prepareTurnstileForm($('resendForm'),'send_otp',$('resendButton'),$('resendTurnstileMessage'));
-  }catch(error){say(error.message||'Unable to load verification. Please try again.')}
-};
-$('verifyForm').addEventListener('submit',async e=>{
-  e.preventDefault();const button=$('verifyButton');button.disabled=true;button.textContent='Verifying...';say('');
-  try{
-    const data=new FormData();data.set('otp',$('otp').value.trim());data.set('cf-turnstile-response',verifyChallenge.token());data.set('csrf_token',await csrf());
-    const r=await fetch('api/verify_login_otp.php',{method:'POST',body:data,credentials:'same-origin'}),result=await r.json();
-    if(!r.ok||!result.success){say(result.message||'Unable to verify this code.');return}
-    location.replace(result.redirect||'youth-portal.html');
-  }catch(error){say(error.message||'Unable to verify this code. Please try again.')}
-  finally{verifyChallenge?.reset();button.textContent='Verify and continue'}
-});
-$('resendForm').addEventListener('submit',async e=>{
-  e.preventDefault();const button=$('resendButton');button.disabled=true;button.textContent='Sending...';say('');
-  try{
-    const data=new FormData();data.set('cf-turnstile-response',resendChallenge.token());data.set('csrf_token',await csrf());
-    data.set('redirect',params.get('redirect')||'');
-    const endpoint=reauth?'api/send_reauth_otp.php':'api/resend_login_otp.php';
-    const r=await fetch(endpoint,{method:'POST',body:data,credentials:'same-origin'}),result=await r.json();
-    if(!r.ok||!result.success){say(result.message||'Unable to send a new code.');return}
-    say(result.message||'A new code was sent.',true);
-    if(result.phone)$('description').textContent=`Enter the 6-digit code sent to ${result.phone}.`;
-  }catch(error){say(error.message||'Unable to send a new code. Please try again.')}
-  finally{resendChallenge?.reset();button.textContent='Send verification code'}
-});
-init();
-</script>
-<script src="assets/js/loader.js?v=3"></script>
+  <p>Sign-in verification has moved to the email code screen.</p>
+  <p><a id="continueLink" href="login.html">Continue to sign in</a></p>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const redirect = params.get('redirect') || '';
+    const target = `login.html?reauth=1${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`;
+    document.getElementById('continueLink').href = target;
+    location.replace(target);
+  </script>
 </body>
 </html>

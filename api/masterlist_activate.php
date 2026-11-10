@@ -1,6 +1,7 @@
 <?php
 
 require_once 'masterlist_common.php';
+require_once __DIR__ . '/../includes/sms.php';
 require_once __DIR__ . '/../includes/turnstile.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -24,25 +25,27 @@ enforceMasterlistRateLimit($pdo, 'activate', 5);
 $voterId = normalizeMasterlistValue($_POST['voter_id'] ?? '');
 $fullName = normalizeMasterlistName($_POST['full_name'] ?? '');
 $birthday = trim($_POST['birthday'] ?? '');
-$mobile = trim($_POST['mobile'] ?? '');
+$rawMobile = is_string($_POST['mobile'] ?? null) ? $_POST['mobile'] : '';
 $email = trim($_POST['email'] ?? '');
-$password = $_POST['password'] ?? '';
-$confirmPassword = $_POST['confirm_password'] ?? '';
+$password = is_string($_POST['password'] ?? null) ? $_POST['password'] : '';
+$confirmPassword = is_string($_POST['confirm_password'] ?? null) ? $_POST['confirm_password'] : '';
 
 if ($voterId === '' || $fullName === '' || !DateTime::createFromFormat('!Y-m-d', $birthday)) {
     masterlistJsonResponse(['success' => false, 'message' => 'Please complete the masterlist verification first.'], 400);
 }
-if (!preg_match('/^09[0-9]{9}$/', $mobile)) {
-    masterlistJsonResponse(['success' => false, 'message' => 'A valid 11-digit Philippine mobile number is required.'], 400);
+try {
+    $mobile = normalizePhPhone($rawMobile);
+} catch (InvalidArgumentException $exception) {
+    masterlistJsonResponse(['success' => false, 'message' => $exception->getMessage()], 400);
 }
-if (empty($_SESSION['phone_verified'])
-    || !isset($_SESSION['verified_phone'], $_SESSION['verified_phone_at'])
-    || !is_string($_SESSION['verified_phone'])
-    || !hash_equals($mobile, $_SESSION['verified_phone'])
-    || time() - (int)$_SESSION['verified_phone_at'] > 600) {
+if ((int)($_SESSION['activation_masterlist_id'] ?? 0) <= 0
+    || !is_string($_SESSION['verified_activation_challenge_id'] ?? null)
+    || !is_string($_SESSION['verified_phone'] ?? null)
+    || !hash_equals($mobile, (string)$_SESSION['verified_phone'])
+    || time() - (int)($_SESSION['verified_phone_at'] ?? 0) > 600) {
     masterlistJsonResponse(['success' => false, 'message' => 'Verify this mobile number before activating your account.'], 403);
 }
-if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     masterlistJsonResponse(['success' => false, 'message' => 'Please provide a valid email address.'], 400);
 }
 if (strlen($password) < 8) {
@@ -56,7 +59,7 @@ try {
     $pdo->beginTransaction();
     $record = masterlistFindRecord($pdo, $voterId, $fullName, $birthday, true);
 
-    if (!$record) {
+    if (!$record || (int)$record['id'] !== (int)$_SESSION['activation_masterlist_id']) {
         $pdo->rollBack();
         masterlistJsonResponse([
             'success' => false,
@@ -71,6 +74,22 @@ try {
         ], 409);
     }
 
+    $phoneChallenge = $pdo->prepare(
+        'SELECT id FROM registration_sms_challenges
+         WHERE id = ?::uuid AND masterlist_id = ? AND phone = ?
+           AND verified_at IS NOT NULL
+           AND verified_at >= CURRENT_TIMESTAMP - INTERVAL \'10 minutes\''
+    );
+    $phoneChallenge->execute([
+        $_SESSION['verified_activation_challenge_id'],
+        (int)$record['id'],
+        $mobile
+    ]);
+    if (!$phoneChallenge->fetchColumn()) {
+        $pdo->rollBack();
+        masterlistJsonResponse(['success' => false, 'message' => 'Verify this mobile number before activating your account.'], 403);
+    }
+
     $stmt = $pdo->prepare('SELECT id FROM youth_profiles WHERE phone = ? LIMIT 1');
     $stmt->execute([$mobile]);
     if ($stmt->fetch()) {
@@ -78,13 +97,11 @@ try {
         masterlistJsonResponse(['success' => false, 'message' => 'Mobile number already registered.'], 409);
     }
 
-    if ($email !== '') {
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1');
-        $stmt->execute([$email]);
-        if ($stmt->fetch()) {
-            $pdo->rollBack();
-            masterlistJsonResponse(['success' => false, 'message' => 'Email already registered.'], 409);
-        }
+    $stmt = $pdo->prepare('SELECT id FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1');
+    $stmt->execute([$email]);
+    if ($stmt->fetch()) {
+        $pdo->rollBack();
+        masterlistJsonResponse(['success' => false, 'message' => 'Email already registered.'], 409);
     }
 
     do {
@@ -95,11 +112,11 @@ try {
 
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
     $stmt = $pdo->prepare(
-        'INSERT INTO users (email, password_hash, member_id, masterlist_id, status, email_verified, created_at)
-         VALUES (?, ?, ?, ?, \'active\', FALSE, CURRENT_TIMESTAMP)
+        'INSERT INTO users (email, password_hash, member_id, masterlist_id, status, email_verified, phone_verified_at, created_at)
+         VALUES (?, ?, ?, ?, \'active\', FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
          RETURNING id'
     );
-    $stmt->execute([$email !== '' ? $email : null, $passwordHash, $memberId, $record['id']]);
+    $stmt->execute([$email, $passwordHash, $memberId, $record['id']]);
     $userId = (int)$stmt->fetchColumn();
 
     $sex = strtolower(trim($record['sex']));
@@ -132,7 +149,14 @@ try {
     }
 
     $pdo->commit();
-    unset($_SESSION['phone_verified'], $_SESSION['verified_phone'], $_SESSION['verified_phone_at']);
+    unset(
+        $_SESSION['activation_masterlist_id'],
+        $_SESSION['registration_sms_challenge_id'],
+        $_SESSION['verified_activation_challenge_id'],
+        $_SESSION['phone_verified'],
+        $_SESSION['verified_phone'],
+        $_SESSION['verified_phone_at']
+    );
     masterlistJsonResponse([
         'success' => true,
         'message' => 'Account activated successfully.',
@@ -143,6 +167,10 @@ try {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    error_log('[Masterlist Activate] ' . $exception->getMessage());
-    masterlistJsonResponse(['success' => false, 'message' => 'Account activation failed. Please try again.'], 500);
+    $reference = securityLogException('Masterlist Activate Error', $exception, [$password, $confirmPassword, $mobile, $email]);
+    masterlistJsonResponse([
+        'success' => false,
+        'message' => 'Account activation failed. Please try again. Reference: ' . $reference,
+        'reference' => $reference
+    ], 500);
 }

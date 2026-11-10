@@ -1,6 +1,7 @@
 <?php
 
 require_once 'masterlist_common.php';
+require_once __DIR__ . '/security_helpers.php';
 require_once __DIR__ . '/../includes/turnstile.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -46,6 +47,16 @@ try {
         ], 409);
     }
 
+    securityStartSession();
+    session_regenerate_id(true);
+    $_SESSION['activation_masterlist_id'] = (int)$record['id'];
+    unset(
+        $_SESSION['registration_sms_challenge_id'],
+        $_SESSION['verified_activation_challenge_id'],
+        $_SESSION['phone_verified'],
+        $_SESSION['verified_phone'],
+        $_SESSION['verified_phone_at']
+    );
     masterlistJsonResponse([
         'success' => true,
         'profile' => [
@@ -59,6 +70,10 @@ try {
         ]
     ]);
 } catch (Throwable $exception) {
-    error_log('[Masterlist Verify] ' . $exception->getMessage());
-    masterlistJsonResponse(['success' => false, 'message' => 'Unable to verify the masterlist record.'], 500);
+    $reference = securityLogException('Masterlist Verify Error', $exception);
+    masterlistJsonResponse([
+        'success' => false,
+        'message' => 'Unable to verify the masterlist record. Reference: ' . $reference,
+        'reference' => $reference
+    ], 500);
 }

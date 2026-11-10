@@ -9,7 +9,7 @@
   function loginRedirect(reverify) {
     const target = `${window.location.pathname.split('/').pop()}${window.location.search}`;
     if (reverify) {
-      window.location.replace(`verify-otp.html?reauth=1&redirect=${encodeURIComponent(target)}`);
+      window.location.replace(`login.html?reauth=1&redirect=${encodeURIComponent(target)}`);
       return;
     }
     window.location.replace(`login.html?redirect=${encodeURIComponent(target)}`);
@@ -22,6 +22,29 @@
         if (!session || !session.authenticated || !allowedRoles.includes(session.role)) {
           loginRedirect(!!(session && session.otp_required));
           return null;
+        }
+        if (session.otp_off && allowedRoles.some(role => role === 'admin' || role === 'sk_official')) {
+          let banner = document.getElementById('loginOtpOffBanner');
+          if (!banner) {
+            banner = document.createElement('p');
+            banner.id = 'loginOtpOffBanner';
+            banner.setAttribute('role', 'alert');
+            banner.textContent = 'Login OTP is OFF. This admin account signed in with password only.';
+            banner.style.cssText = 'padding:12px 16px;margin:12px;border:1px solid #b45309;background:#fffbeb;color:#92400e;border-radius:8px;font-weight:700';
+            document.body.prepend(banner);
+          }
+        }
+        if (session.mail_usage && session.mail_usage.nearLimit
+            && allowedRoles.some(role => role === 'admin' || role === 'sk_official')) {
+          let banner = document.getElementById('emailOtpQuotaBanner');
+          if (!banner) {
+            banner = document.createElement('p');
+            banner.id = 'emailOtpQuotaBanner';
+            banner.setAttribute('role', 'alert');
+            banner.style.cssText = 'padding:12px 16px;margin:12px;border:1px solid #b45309;background:#fffbeb;color:#92400e;border-radius:8px;font-weight:700';
+            document.body.prepend(banner);
+          }
+          banner.textContent = `Email OTP usage is ${session.mail_usage.count} of ${session.mail_usage.limit} this month (${session.mail_usage.percent}%).`;
         }
         updateProfileCard(session.user, session.role);
         if (allowedRoles.includes('admin') || allowedRoles.includes('sk_official')) {

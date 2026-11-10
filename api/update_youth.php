@@ -30,6 +30,7 @@ $birthday = isset($_POST['birthday']) ? $_POST['birthday'] : '';
 $age = isset($_POST['age']) ? intval($_POST['age']) : 0;
 $gender = isset($_POST['gender']) ? $_POST['gender'] : '';
 $phone = isset($_POST['contact']) ? trim($_POST['contact']) : '';
+$email = isset($_POST['email']) ? trim($_POST['email']) : '';
 $address = isset($_POST['address']) ? trim($_POST['address']) : '';
 $barangay = isset($_POST['barangay']) ? trim($_POST['barangay']) : 'San Antonio';
 
@@ -40,6 +41,11 @@ $admin_username = $_SESSION['admin_username'];
 if (empty($member_id)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Member ID is required']);
+    exit;
+}
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'A valid email address is required']);
     exit;
 }
 
@@ -56,6 +62,13 @@ try {
     
     $user = $userStmt->fetch(PDO::FETCH_ASSOC);
     $user_id = $user['id'];
+    $emailCheck = $pdo->prepare('SELECT id FROM users WHERE LOWER(email) = LOWER(?) AND id <> ? LIMIT 1');
+    $emailCheck->execute([$email, $user_id]);
+    if ($emailCheck->fetchColumn()) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => 'Email address is already registered']);
+        exit;
+    }
     
     // Begin transaction
     $pdo->beginTransaction();
@@ -67,6 +80,7 @@ try {
                                     address = ?, barangay = ?, updated_at = CURRENT_TIMESTAMP
                                 WHERE user_id = ?");
     $profileStmt->execute([$firstname, $lastname, $birthday, $age, $gender, $phone, $address, $barangay, $user_id]);
+    $pdo->prepare('UPDATE users SET email = ? WHERE id = ?')->execute([$email, $user_id]);
     
     // Commit transaction
     $pdo->commit();

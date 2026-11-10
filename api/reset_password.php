@@ -99,6 +99,7 @@ try {
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
     $updateStmt = $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
     $updateStmt->execute([$passwordHash, $user['id']]);
+    $pdo->prepare('DELETE FROM trusted_devices WHERE user_id = ?')->execute([(int)$user['id']]);
 
     $usedStmt = $pdo->prepare('UPDATE password_resets SET is_used = TRUE WHERE id = ?');
     $usedStmt->execute([$reset['id']]);

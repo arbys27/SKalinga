@@ -759,6 +759,7 @@ form.addEventListener('submit', async e => {
     formData.append('age', document.getElementById('age').value);
     formData.append('gender', document.getElementById('gender').value);
     formData.append('contact', document.getElementById('contact').value.trim());
+    formData.append('email', document.getElementById('email').value.trim());
     formData.append('address', fullAddress);
 
     const brgyMatch = fullAddress.match(/Brgy\.?\s*([^,]+)/i) || fullAddress.match(/Barangay\s*([^,]+)/i);

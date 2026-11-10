@@ -122,6 +122,7 @@ try {
             WHERE id = ?
         ");
         $update_pass->execute([$new_hash, $user_id]);
+        $pdo->prepare('DELETE FROM trusted_devices WHERE user_id = ?')->execute([(int)$user_id]);
     }
     
     // Commit transaction

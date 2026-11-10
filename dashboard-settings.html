@@ -83,6 +83,12 @@
             </header>
 
         <div class="dashboard-content">
+            <section id="mailUsageCard" class="maintenance-container" hidden aria-labelledby="mailUsageTitle">
+                <h1 id="mailUsageTitle" class="maintenance-title">Email OTP usage</h1>
+                <p id="mailUsageCount" class="maintenance-message" aria-live="polite"></p>
+                <button type="button" class="btn btn-primary" id="sendTestEmail">Send test email to my account</button>
+                <p id="mailTestResult" role="status" aria-live="polite"></p>
+            </section>
             <div class="maintenance-container">
                 <div class="maintenance-icon">
                     <i class="fas fa-tools"></i>
@@ -141,6 +147,54 @@ updateDashboardDateTime();
 // Logout Confirmation
 // ────────────────────────────────────────────────
 
+</script>
+<script>
+(() => {
+    const card = document.getElementById('mailUsageCard');
+    const count = document.getElementById('mailUsageCount');
+    const result = document.getElementById('mailTestResult');
+    const button = document.getElementById('sendTestEmail');
+    const showUsage = usage => {
+        count.textContent = `${usage.count} of ${usage.limit} EmailJS requests used this month (${usage.percent}%).`;
+    };
+
+    fetch('api/admin/mail_usage.php', { credentials: 'same-origin', cache: 'no-store' })
+        .then(async response => {
+            const data = await response.json();
+            if (response.ok && data.success) {
+                card.hidden = false;
+                showUsage(data.usage);
+            }
+        })
+        .catch(() => {});
+
+    button.addEventListener('click', async () => {
+        button.disabled = true;
+        result.textContent = 'Sending test email...';
+        try {
+            const csrfResponse = await fetch('api/csrf_token.php', { credentials: 'same-origin', cache: 'no-store' });
+            const csrf = await csrfResponse.json();
+            if (!csrfResponse.ok || !csrf.success) throw new Error('Unable to prepare a secure request.');
+            const body = new FormData();
+            body.set('csrf_token', csrf.csrf_token);
+            const response = await fetch('api/admin/send_test_email.php', {
+                method: 'POST',
+                body,
+                credentials: 'same-origin'
+            });
+            const data = await response.json();
+            if (data.usage) showUsage(data.usage);
+            const providerResult = data.provider_result;
+            result.textContent = data.success
+                ? `${data.message} EmailJS HTTP ${data.status}: ${data.response || '(empty response)'}`
+                : `${data.message || 'Test email failed.'}${providerResult ? ` EmailJS HTTP ${providerResult.status}: ${providerResult.response || '(empty response)'}` : ''}`;
+        } catch (error) {
+            result.textContent = error.message || 'Unable to send the test email.';
+        } finally {
+            button.disabled = false;
+        }
+    });
+})();
 </script>
 
 <!-- Professional Loader System -->
