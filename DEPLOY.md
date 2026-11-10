@@ -23,7 +23,7 @@ The dummy secret keys must stay in local `.env` files and never be committed to 
 
 ## 1. Supabase
 
-The schema and migrations should already be applied:
+Apply all PostgreSQL migrations, including `database/postgres/migrations/011_login_email_otp.sql` and `database/postgres/migrations/012_email_quota_activation_sms.sql`, before enabling email OTP or youth activation. The schema and migrations should otherwise already be applied:
 
 1. Use the Supabase **Session pooler** connection, port `5432`, database `postgres`.
 2. Do not use the transaction pooler on port `6543`.
@@ -43,12 +43,19 @@ The schema and migrations should already be applied:
    | `DB_PASSWORD` | Supabase database password |
    | `SITE_KEY` | Private random 64-character hexadecimal string |
    | `APP_ENV` | `production` |
-   | `EMAILJS_ORIGIN` | `https://<your-render-domain>` |
+   | `MAIL_DRIVER` | `emailjs` |
+   | `LOGIN_OTP_MODE` | `email` |
    | `EMAILJS_SERVICE_ID` | EmailJS service ID |
-   | `EMAILJS_TEMPLATE_ID` | EmailJS password-reset template ID |
+   | `EMAILJS_TEMPLATE_ID` | Login OTP template ID |
+   | `EMAILJS_RESET_TEMPLATE_ID` | Password reset OTP template ID |
    | `EMAILJS_PUBLIC_KEY` | EmailJS public key |
+   | `EMAILJS_PRIVATE_KEY` | EmailJS private key; enable server-side and non-browser access in Account → Security |
+   | `EMAILJS_MONTHLY_LIMIT` | Optional monthly cap; defaults to `200` |
+   | `SMS_DRIVER` | `unisms` |
+   | `UNISMS_API_KEY` | UniSMS bearer-token API key |
+   | `UNISMS_SENDER_ID` | Sender ID approved for your UniSMS account |
 
-   Add `SKALINGA_SMS_API_URL` and `SKALINGA_SMS_API_KEY` only if configuring an SMS provider. Never put actual secret values in GitHub or this chat.
+   Never put actual secret values in GitHub or this chat. UniSMS is used only for the youth activation phone check. EmailJS private keys must remain server-side.
 
    Generate `SITE_KEY` in PowerShell:
 
@@ -59,7 +66,7 @@ The schema and migrations should already be applied:
    [BitConverter]::ToString($bytes).Replace('-', '').ToLower()
    ```
 
-5. After creating the service, generate its `onrender.com` domain in **Settings**. Set `EMAILJS_ORIGIN` to the exact HTTPS origin and allow that origin in EmailJS.
+5. After creating the service, generate its `onrender.com` domain in **Settings**. In EmailJS, confirm the sending service is connected and that server-side/non-browser requests are enabled. See [docs/EMAILJS_SETUP.md](./docs/EMAILJS_SETUP.md) for the exact template fields and content.
 6. In **Settings**, set the health check path to `/healthz`. Render provides `PORT`; Apache listens on it. Wait for the first deployment to finish successfully.
 7. Test `https://<your-render-domain>/SKalinga/`.
 
@@ -76,7 +83,7 @@ Render Free is suitable for a temporary demo, not reliable production use:
 
 The Render free plan may not provide an interactive service shell. Run these commands from your local project folder instead, using XAMPP PHP with `pdo_pgsql` and `pgsql` enabled:
 
-1. Copy `.env.example` to `.env`. Fill in the same Supabase Session Pooler host, username, and database password as the Render variables. Use a private local `SITE_KEY`; it can differ from Render's. Fill in EmailJS settings if testing password reset.
+1. Copy `.env.example` to `.env`. Fill in the same Supabase Session Pooler host, username, and database password as the Render variables. Use a private local `SITE_KEY`; it can differ from Render's. Fill in EmailJS settings for login OTP and UniSMS settings for youth activation testing.
 2. Open PowerShell in the project folder and run:
 
    ```powershell

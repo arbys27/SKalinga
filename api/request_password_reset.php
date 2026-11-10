@@ -39,7 +39,7 @@ $genericResponse = [
 $appConfig = skalingaConfig();
 $emailJsOrigin = $appConfig['EMAILJS_ORIGIN'] ?? 'http://localhost';
 $serviceId = $appConfig['EMAILJS_SERVICE_ID'] ?? '';
-$templateId = $appConfig['EMAILJS_TEMPLATE_ID'] ?? '';
+$templateId = $appConfig['EMAILJS_RESET_TEMPLATE_ID'] ?? '';
 $publicKey = $appConfig['EMAILJS_PUBLIC_KEY'] ?? '';
 
 try {

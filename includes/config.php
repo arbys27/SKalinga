@@ -9,18 +9,11 @@ function skalingaConfig(): array
         return $config;
     }
 
-    $localConfigPath = __DIR__ . DIRECTORY_SEPARATOR . 'config.local.php';
-    $localConfig = [];
-    if (is_file($localConfigPath)) {
-        $localConfig = require $localConfigPath;
-        if (!is_array($localConfig)) {
-            throw new RuntimeException('Local configuration must return an array.');
-        }
-    }
-
+    $appEnvironment = getenv('APP_ENV');
+    $appEnvironment = is_string($appEnvironment) && $appEnvironment !== '' ? $appEnvironment : '';
     $dotenvConfig = [];
     $dotenvPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . '.env';
-    if (is_file($dotenvPath)) {
+    if ($appEnvironment !== 'production' && is_file($dotenvPath)) {
         $parsedConfig = parse_ini_file($dotenvPath, false, INI_SCANNER_RAW);
         if (!is_array($parsedConfig)) {
             throw new RuntimeException('Unable to parse the .env configuration file.');
@@ -34,13 +27,46 @@ function skalingaConfig(): array
             'EMAILJS_ORIGIN',
             'EMAILJS_SERVICE_ID',
             'EMAILJS_TEMPLATE_ID',
+            'EMAILJS_RESET_TEMPLATE_ID',
             'EMAILJS_PUBLIC_KEY',
+            'EMAILJS_PRIVATE_KEY',
+            'EMAILJS_MONTHLY_LIMIT',
+            'MAIL_DRIVER',
+            'LOGIN_OTP_MODE',
+            'SMS_DRIVER',
             'UNISMS_API_KEY',
             'UNISMS_SENDER_ID',
         ];
         foreach ($dotenvKeys as $key) {
             if (isset($parsedConfig[$key]) && is_string($parsedConfig[$key])) {
                 $dotenvConfig[$key] = $parsedConfig[$key];
+            }
+        }
+    }
+
+    if ($appEnvironment === '') {
+        $appEnvironment = $dotenvConfig['APP_ENV'] ?? '';
+    }
+    if (!is_string($appEnvironment) || $appEnvironment === '') {
+        $localPath = __DIR__ . DIRECTORY_SEPARATOR . 'config.local.php';
+        if (is_file($localPath)) {
+            $localEnvironment = require $localPath;
+            if (!is_array($localEnvironment)) {
+                throw new RuntimeException('Local configuration must return an array.');
+            }
+            $appEnvironment = (string)($localEnvironment['APP_ENV'] ?? 'development');
+        } else {
+            $appEnvironment = 'development';
+        }
+    }
+
+    $localConfig = [];
+    if ($appEnvironment !== 'production') {
+        $localConfigPath = __DIR__ . DIRECTORY_SEPARATOR . 'config.local.php';
+        if (is_file($localConfigPath)) {
+            $localConfig = require $localConfigPath;
+            if (!is_array($localConfig)) {
+                throw new RuntimeException('Local configuration must return an array.');
             }
         }
     }
@@ -55,7 +81,13 @@ function skalingaConfig(): array
         'EMAILJS_ORIGIN',
         'EMAILJS_SERVICE_ID',
         'EMAILJS_TEMPLATE_ID',
+        'EMAILJS_RESET_TEMPLATE_ID',
         'EMAILJS_PUBLIC_KEY',
+        'EMAILJS_PRIVATE_KEY',
+        'EMAILJS_MONTHLY_LIMIT',
+        'MAIL_DRIVER',
+        'LOGIN_OTP_MODE',
+        'SMS_DRIVER',
         'UNISMS_API_KEY',
         'UNISMS_SENDER_ID',
     ] as $key) {
