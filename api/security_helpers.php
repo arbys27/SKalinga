@@ -43,6 +43,9 @@ function securityLogException(string $context, Throwable $exception, array $sens
 {
     $reference = bin2hex(random_bytes(4));
     $message = $exception->getMessage();
+    if (property_exists($exception, 'providerResponse') && is_string($exception->providerResponse)) {
+        $message .= ' Provider response: ' . $exception->providerResponse;
+    }
     foreach ($sensitiveValues as $value) {
         if (is_string($value) && $value !== '') {
             $message = str_replace($value, '[REDACTED]', $message);
