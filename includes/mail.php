@@ -105,6 +105,27 @@ function sendLoginOtpEmail(
     int $expiresMinutes,
     ?PDO $pdo = null
 ): array {
+    return sendEmailJsOtp($toEmail, $userName, $code, $expiresMinutes, 'EMAILJS_TEMPLATE_ID', $pdo);
+}
+
+function sendPasswordResetOtpEmail(
+    string $toEmail,
+    string $userName,
+    string $code,
+    int $expiresMinutes,
+    ?PDO $pdo = null
+): array {
+    return sendEmailJsOtp($toEmail, $userName, $code, $expiresMinutes, 'EMAILJS_RESET_TEMPLATE_ID', $pdo);
+}
+
+function sendEmailJsOtp(
+    string $toEmail,
+    string $userName,
+    string $code,
+    int $expiresMinutes,
+    string $templateConfigKey,
+    ?PDO $pdo
+): array {
     $config = skalingaConfig();
     $driver = strtolower(trim((string)($config['MAIL_DRIVER'] ?? 'emailjs')));
     if (strpbrk($toEmail, "\r\n") !== false || !filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
@@ -130,7 +151,7 @@ function sendLoginOtpEmail(
 
     reserveEmailOtpAttempt($pdo);
     $serviceId = trim((string)($config['EMAILJS_SERVICE_ID'] ?? ''));
-    $templateId = trim((string)($config['EMAILJS_TEMPLATE_ID'] ?? ''));
+    $templateId = trim((string)($config[$templateConfigKey] ?? ''));
     $publicKey = trim((string)($config['EMAILJS_PUBLIC_KEY'] ?? ''));
     $privateKey = trim((string)($config['EMAILJS_PRIVATE_KEY'] ?? ''));
     if ($serviceId === '' || $templateId === '' || $publicKey === '' || $privateKey === '') {

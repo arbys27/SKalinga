@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/security_helpers.php';
 require_once __DIR__ . '/../includes/turnstile.php';
+require_once __DIR__ . '/../includes/mail.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -37,11 +38,6 @@ $genericResponse = [
     'message' => 'If an active youth account uses this email, an OTP will be sent shortly.'
 ];
 $appConfig = skalingaConfig();
-$emailJsOrigin = $appConfig['EMAILJS_ORIGIN'] ?? 'http://localhost';
-$serviceId = $appConfig['EMAILJS_SERVICE_ID'] ?? '';
-$templateId = $appConfig['EMAILJS_RESET_TEMPLATE_ID'] ?? '';
-$publicKey = $appConfig['EMAILJS_PUBLIC_KEY'] ?? '';
-
 try {
     $userStmt = $pdo->prepare(
         'SELECT id, email FROM users WHERE LOWER(email) = LOWER(?) AND status = ? LIMIT 1'
@@ -54,76 +50,30 @@ try {
         exit;
     }
 
-    if ($serviceId === '' || $templateId === '' || $publicKey === '') {
-        throw new RuntimeException('EmailJS settings are not configured.');
-    }
     otpReserveSend($pdo, 'password-reset', (string)$user['id']);
     $otpCode = otpGenerateCode();
     $otpHash = otpCodeHash($otpCode);
 
     $pdo->beginTransaction();
-
     $deleteStmt = $pdo->prepare('DELETE FROM password_resets WHERE user_id = ? AND is_used = FALSE');
     $deleteStmt->execute([$user['id']]);
-
     $insertStmt = $pdo->prepare(
         'INSERT INTO password_resets (user_id, otp_code, otp_attempts, is_used, expires_at, created_at)
-         VALUES (?, ?, 0, FALSE, CURRENT_TIMESTAMP + INTERVAL \'5 minutes\', CURRENT_TIMESTAMP)'
+         VALUES (?, ?, 0, FALSE, CURRENT_TIMESTAMP + INTERVAL \'5 minutes\', CURRENT_TIMESTAMP)
+         RETURNING id'
     );
     $insertStmt->execute([$user['id'], $otpHash]);
-
-    $emailPayload = json_encode([
-        'service_id' => $serviceId,
-        'template_id' => $templateId,
-        'user_id' => $publicKey,
-        'template_params' => [
-            'to_email' => $user['email'],
-            'email' => $user['email'],
-            'user_email' => $user['email'],
-            'recipient_email' => $user['email'],
-            'otp' => $otpCode
-        ]
-    ]);
-
-    $curl = curl_init('https://api.emailjs.com/api/v1.0/email/send');
-    curl_setopt_array($curl, [
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => $emailPayload,
-        CURLOPT_HTTPHEADER => [
-            'Content-Type: application/json',
-            'Origin: ' . $emailJsOrigin
-        ],
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 5,
-        CURLOPT_TIMEOUT => 15
-    ]);
-    $emailResponse = curl_exec($curl);
-    $emailStatus = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($curl);
-    curl_close($curl);
-
-    if ($emailResponse === false || $emailStatus < 200 || $emailStatus >= 300) {
-        $pdo->rollBack();
-        error_log(
-            '[Password Reset] EmailJS send failed; HTTP ' . $emailStatus .
-            '; cURL error: ' . $curlError .
-            '; response: ' . (is_string($emailResponse) ? $emailResponse : '')
-        );
-        http_response_code(502);
-        $message = 'Unable to send the password reset email right now. Please try again later.';
-        if ($emailStatus === 403) {
-            $message = 'Email service rejected the request. Verify the EmailJS configuration, EMAILJS_ORIGIN, and allowed origins.';
-        } elseif ($emailStatus === 422 && stripos((string)$emailResponse, 'recipient') !== false) {
-            $message = 'EmailJS could not determine the recipient. Set the template To Email field to {{to_email}}.';
-        }
-        echo json_encode([
-            'success' => false,
-            'message' => $message
-        ]);
-        exit;
-    }
-
+    $resetId = (int)$insertStmt->fetchColumn();
     $pdo->commit();
+
+    sendPasswordResetOtpEmail(
+        (string)$user['email'],
+        'SKalinga youth member',
+        $otpCode,
+        5,
+        $pdo
+    );
+
     echo json_encode($genericResponse);
 } catch (RuntimeException $exception) {
     if ($pdo->inTransaction()) {
@@ -133,17 +83,28 @@ try {
         echo json_encode($genericResponse);
         exit;
     }
-    error_log('[Password Reset Request Error] ' . $exception->getMessage());
+    if (!empty($resetId)) {
+        $pdo->prepare('DELETE FROM password_resets WHERE id = ? AND is_used = FALSE')->execute([$resetId]);
+    }
+    $reference = securityLogException('Password Reset Request Error', $exception, [$otpCode ?? '']);
     http_response_code(503);
-    echo json_encode(['success' => false, 'message' => 'Unable to send the password reset code right now.']);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Unable to send the password reset code right now. Reference: ' . $reference,
+        'reference' => $reference
+    ]);
 } catch (Throwable $exception) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    error_log('[Password Reset Request Error] ' . $exception->getMessage());
+    if (!empty($resetId)) {
+        $pdo->prepare('DELETE FROM password_resets WHERE id = ? AND is_used = FALSE')->execute([$resetId]);
+    }
+    $reference = securityLogException('Password Reset Request Error', $exception, [$otpCode ?? '']);
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => 'Unable to process the password reset request right now.'
+        'message' => 'Unable to process the password reset request right now. Reference: ' . $reference,
+        'reference' => $reference
     ]);
 }
