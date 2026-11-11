@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/security_helpers.php';
-require_once __DIR__ . '/../includes/turnstile.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -11,16 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
-$verification = verifyTurnstile(
-    is_array($input) && is_string($input['cf-turnstile-response'] ?? null) ? $input['cf-turnstile-response'] : '',
-    'reset_password'
-);
-if (!$verification['success']) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => $verification['message']]);
-    exit;
-}
-
 require_once 'db_connect.php';
 
 $emailValue = is_array($input) ? ($input['email'] ?? null) : null;

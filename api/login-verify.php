@@ -2,21 +2,12 @@
 
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/security_helpers.php';
-require_once __DIR__ . '/../includes/turnstile.php';
 require_once __DIR__ . '/db_connect.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, private');
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     authJsonResponse(['success' => false, 'message' => 'Method not allowed.'], 405);
-}
-
-$verification = verifyTurnstile(
-    is_string($_POST['cf-turnstile-response'] ?? null) ? $_POST['cf-turnstile-response'] : '',
-    'login_verify'
-);
-if (!$verification['success']) {
-    authJsonResponse(['success' => false, 'message' => $verification['message']], 400);
 }
 
 $token = is_string($_COOKIE['login_challenge'] ?? null) ? $_COOKIE['login_challenge'] : '';
